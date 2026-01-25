@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environmental Health Analysis Platform</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🌍 Environmental Health Platform</h1>
+            <p>Discover how your location and lifestyle impact your health</p>
+        </header>
+
+        <!-- Step 1: Location Request -->
+        <section id="step-location" class="step active">
+            <div class="card">
+                <h2>📍 Step 1: Share Your Location</h2>
+                <p>We need your location to analyze environmental health factors in your area.</p>
+                <button id="btn-get-location" class="btn btn-primary">Get My Location</button>
+                <div id="location-info" class="info-box" style="display: none;">
+                    <p><strong>Latitude:</strong> <span id="latitude">-</span></p>
+                    <p><strong>Longitude:</strong> <span id="longitude">-</span></p>
+                    <p class="success">✓ Location captured successfully!</p>
+                </div>
+                <div id="location-error" class="error-box" style="display: none;"></div>
+            </div>
+        </section>
+
+        <!-- Step 2: Environmental Data Loading -->
+        <section id="step-environment" class="step">
+            <div class="card">
+                <h2>🌫️ Step 2: Analyzing Your Environment</h2>
+                <div class="loading" id="env-loading">
+                    <div class="spinner"></div>
+                    <p>Fetching live air quality, weather, and soil data...</p>
+                </div>
+                <div id="env-results" style="display: none;">
+                    <div class="env-section">
+                        <h3>Air Quality & Weather</h3>
+                        <div class="aqi-badge" id="aqi-badge">AQI: <span id="aqi-value">-</span></div>
+                        <p id="air-interpretation">-</p>
+                        <div class="weather-card">
+                            <p class="location-label" id="location-name">Your area</p>
+                            <div class="temperature-row">
+                                <span class="temperature" id="temperature">-</span><span class="temp-unit">°C</span>
+                                <span class="feels-like">Feels like <span id="feels-like">-</span>°C</span>
+                            </div>
+                            <p class="weather-summary" id="weather-summary">-</p>
+                        </div>
+                    </div>
+                    <div class="env-section">
+                        <h3>Soil & Environment Analysis</h3>
+                        <div class="soil-details">
+                            <div class="soil-property">
+                                <strong>Soil Type:</strong> <span id="soil-type">-</span>
+                            </div>
+                            <div class="soil-property">
+                                <strong>pH Level:</strong> <span id="soil-ph">-</span>
+                            </div>
+                            <div class="soil-nutrients">
+                                <h4>Nutrient Levels</h4>
+                                <div class="nutrient-row">
+                                    <span><strong>Nitrogen:</strong> <span id="nitrogen-level">-</span></span>
+                                    <span><strong>Phosphorus:</strong> <span id="phosphorus-level">-</span></span>
+                                    <span><strong>Potassium:</strong> <span id="potassium-level">-</span></span>
+                                </div>
+                            </div>
+                            <div class="soil-property contamination">
+                                <strong>Contamination Risk:</strong> <span id="contamination-risk" class="risk-badge">-</span>
+                            </div>
+                            <div class="soil-health">
+                                <h4>Health Implications</h4>
+                                <ul id="soil-health-implications">
+                                    <li>Analyzing soil data...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="btn-continue-quiz" class="btn btn-primary">Continue to Lifestyle Quiz →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3: Gamified Lifestyle Quiz -->
+        <section id="step-quiz" class="step">
+            <div class="card">
+                <h2>🎮 Step 3: Lifestyle Health Quiz</h2>
+                <p>Help us personalize your health report by answering a few questions.</p>
+                
+                <form id="lifestyle-form">
+                    <div class="quiz-question">
+                        <label>What's your age range?</label>
+                        <select name="age_range" required>
+                            <option value="">Select...</option>
+                            <option value="18-25">18-25</option>
+                            <option value="26-35">26-35</option>
+                            <option value="36-50">36-50</option>
+                            <option value="51-65">51-65</option>
+                            <option value="65+">65+</option>
+                        </select>
+                    </div>
+
+                    <div class="quiz-question">
+                        <label>Do you smoke?</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="smoking_status" value="never" required> Never</label>
+                            <label><input type="radio" name="smoking_status" value="former"> Former smoker</label>
+                            <label><input type="radio" name="smoking_status" value="current"> Current smoker</label>
+                        </div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <label>How active are you?</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="activity_level" value="sedentary" required> Sedentary (little to no exercise)</label>
+                            <label><input type="radio" name="activity_level" value="moderate"> Moderate (exercise 2-3 times/week)</label>
+                            <label><input type="radio" name="activity_level" value="active"> Active (exercise 4+ times/week)</label>
+                        </div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <label>Where do you work?</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="work_environment" value="indoor" required> Primarily indoors</label>
+                            <label><input type="radio" name="work_environment" value="outdoor"> Primarily outdoors</label>
+                            <label><input type="radio" name="work_environment" value="mixed"> Mixed indoor/outdoor</label>
+                        </div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <label>How would you rate your diet?</label>
+                        <select name="diet_quality">
+                            <option value="">Select...</option>
+                            <option value="poor">Poor</option>
+                            <option value="average">Average</option>
+                            <option value="good">Good</option>
+                        </select>
+                    </div>
+
+                    <div class="quiz-question">
+                        <label>How many hours do you sleep per night?</label>
+                        <select name="sleep_hours">
+                            <option value="">Select...</option>
+                            <option value="<6">Less than 6 hours</option>
+                            <option value="6-8">6-8 hours</option>
+                            <option value=">8">More than 8 hours</option>
+                        </select>
+                    </div>
+
+                    <div class="quiz-question">
+                        <label>What's your stress level?</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="stress_level" value="low"> Low</label>
+                            <label><input type="radio" name="stress_level" value="medium"> Medium</label>
+                            <label><input type="radio" name="stress_level" value="high"> High</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Generate My Health Report 🎯</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Step 4: Health Report -->
+        <section id="step-report" class="step">
+            <div class="card">
+                <h2>📊 Your Personalized Health Report</h2>
+                
+                <div class="loading" id="report-loading">
+                    <div class="spinner"></div>
+                    <p>Generating your personalized health analysis...</p>
+                </div>
+
+                <div id="report-results" style="display: none;">
+                    <div class="risk-score-container">
+                        <div class="risk-score" id="risk-score">
+                            <div class="score-number" id="score-number">-</div>
+                            <div class="score-label" id="score-label">-</div>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3>Summary</h3>
+                        <p id="report-summary" class="summary-text">-</p>
+                    </div>
+
+                    <div class="report-section">
+                        <h3>Component Scores</h3>
+                        <div class="score-breakdown">
+                            <div class="score-item">
+                                <span>Environmental Risk:</span>
+                                <span id="env-risk-score" class="score-value">-</span>
+                            </div>
+                            <div class="score-item">
+                                <span>Lifestyle Risk:</span>
+                                <span id="lifestyle-risk-score" class="score-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3>Contributing Factors</h3>
+                        <div id="contributing-factors" class="factors-list"></div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3>Health Recommendations</h3>
+                        <div id="recommendations" class="recommendations-list"></div>
+                    </div>
+
+                    <button id="btn-start-over" class="btn btn-secondary">Start New Analysis</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

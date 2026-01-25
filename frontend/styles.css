@@ -1,0 +1,479 @@
+/* Environmental Health Platform Styles */
+
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --success-color: #10b981;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --bg-light: #f9fafb;
+    --border-color: #e5e7eb;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+header p {
+    font-size: 1.2em;
+    opacity: 0.9;
+}
+
+/* Card Styles */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.card h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+/* Step Management */
+.step {
+    display: none;
+}
+
+.step.active {
+    display: block;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary {
+    background: var(--text-secondary);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+/* Info Boxes */
+.info-box, .error-box, .success-box {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.info-box {
+    background: #dbeafe;
+    border-left: 4px solid var(--primary-color);
+}
+
+.error-box {
+    background: #fee2e2;
+    border-left: 4px solid var(--danger-color);
+    color: #991b1b;
+}
+
+.success {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+/* Loading Spinner */
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.spinner {
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Environmental Results */
+.env-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 8px;
+}
+
+.weather-card {
+    margin-top: 12px;
+    padding: 12px;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.location-label {
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.temperature-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.temperature {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+
+.temp-unit {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+
+.feels-like {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.weather-summary {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.aqi-badge {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+
+.aqi-low { background: #d1fae5; color: #065f46; }
+.aqi-medium { background: #fef3c7; color: #92400e; }
+.aqi-high { background: #fee2e2; color: #991b1b; }
+
+/* Soil Details */
+.soil-details {
+    padding: 10px 0;
+}
+
+.soil-property {
+    margin: 10px 0;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+}
+
+.soil-property.contamination {
+    margin-top: 15px;
+}
+
+.soil-nutrients {
+    margin: 15px 0;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+}
+
+.soil-nutrients h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+    font-size: 0.95em;
+}
+
+.nutrient-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nutrient-row span {
+    flex: 1;
+    min-width: 120px;
+}
+
+.risk-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.soil-health {
+    margin-top: 15px;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+}
+
+.soil-health h4 {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+    font-size: 0.95em;
+}
+
+.soil-health ul {
+    margin: 0;
+    padding-left: 20px;
+    list-style: disc;
+}
+
+.soil-health li {
+    margin: 6px 0;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+/* Quiz Form */
+.quiz-question {
+    margin-bottom: 25px;
+}
+
+.quiz-question label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.quiz-question select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: normal;
+}
+
+.radio-group label:hover {
+    background: var(--bg-light);
+    border-color: var(--primary-color);
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 10px;
+}
+
+/* Report Styles */
+.risk-score-container {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.risk-score {
+    display: inline-block;
+    padding: 30px;
+    border-radius: 50%;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.risk-low {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border: 4px solid #10b981;
+}
+
+.risk-medium {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 4px solid #f59e0b;
+}
+
+.risk-high {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 4px solid #ef4444;
+}
+
+.score-number {
+    font-size: 3em;
+    font-weight: bold;
+}
+
+.score-label {
+    font-size: 1.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.report-section {
+    margin: 30px 0;
+    padding: 20px;
+    background: var(--bg-light);
+    border-radius: 8px;
+}
+
+.report-section h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.summary-text {
+    font-size: 1.1em;
+    line-height: 1.8;
+}
+
+.score-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.score-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+}
+
+.score-value {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.factors-list, .recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.factor-item, .recommendation-item {
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.factor-negative { border-left-color: var(--danger-color); }
+.factor-positive { border-left-color: var(--success-color); }
+
+.recommendation-item {
+    border-left-color: var(--primary-color);
+}
+
+.recommendation-item h4 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.priority-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.priority-high { background: #fee2e2; color: #991b1b; }
+.priority-medium { background: #fef3c7; color: #92400e; }
+.priority-low { background: #dbeafe; color: #1e40af; }
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 2em;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    .risk-score {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .score-number {
+        font-size: 2.5em;
+    }
+}
