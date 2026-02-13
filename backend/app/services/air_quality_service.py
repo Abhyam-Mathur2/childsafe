@@ -25,13 +25,20 @@ class AirQualityService:
     async def get_air_quality(self, latitude: float, longitude: float) -> AirQualityResponse:
         """
         Get air quality data for location
-        Uses OpenWeather API. Mock data is no longer used for AQI.
+        Uses OpenWeather API with mock fallback.
         """
-        if not self.api_key:
-            raise ValueError("OPENWEATHER_API_KEY is required for air quality service")
-
-        air_data = await self._fetch_real_air_quality(latitude, longitude)
         data_source = "openweather"
+        air_data = None
+
+        if self.api_key:
+            try:
+                air_data = await self._fetch_real_air_quality(latitude, longitude)
+            except Exception as e:
+                print(f"Air Quality API failed ({e}). Falling back to mock.")
+                
+        if not air_data:
+            air_data = self._generate_mock_air_quality(latitude, longitude)
+            data_source = "mock"
         
         # Analyze risk level
         risk_level = self._calculate_air_risk_level(air_data)

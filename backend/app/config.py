@@ -11,12 +11,14 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
     # Database
-    DATABASE_URL: str = "sqlite:///./envhealth.db"
+    DATABASE_URL: str = "sqlite:///./childsafeenvirons.db"
     
     # API Keys (for future real API integrations)
     AIR_QUALITY_API_KEY: str = ""
     OPENWEATHER_API_KEY: str = ""
     PERPLEXITY_API_KEY: str = ""
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
     
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"
@@ -25,7 +27,7 @@ class Settings(BaseSettings):
     
     # Application
     DEBUG: bool = True
-    APP_NAME: str = "Environmental Health Analysis Platform"
+    APP_NAME: str = "Childsafeenvirons"
     
     class Config:
         env_file = ".env"

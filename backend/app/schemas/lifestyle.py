@@ -41,6 +41,8 @@ class WorkEnvironment(str, Enum):
 
 class LifestyleInput(BaseModel):
     """Lifestyle data input from gamified quiz"""
+    name: Optional[str] = Field(None, description="User name")
+    years_at_location: Optional[int] = Field(None, description="Years lived at current location")
     age_range: AgeRange
     gender: Optional[str] = Field(None, description="male/female/other/prefer_not_to_say")
     smoking_status: SmokingStatus
@@ -51,7 +53,14 @@ class LifestyleInput(BaseModel):
     diet_quality: Optional[str] = Field(None, description="poor/average/good")
     sleep_hours: Optional[str] = Field(None, description="<6/6-8/>8")
     stress_level: Optional[str] = Field(None, description="low/medium/high")
-    
+
+    # Comprehensive Questionnaire Fields
+    medical_history: Optional[list[str]] = Field(None, description="List of pre-existing conditions")
+    medications: Optional[list[Dict[str, Any]]] = Field(None, description="List of medications")
+    family_history: Optional[list[str]] = Field(None, description="Family history of diseases")
+    home_environment: Optional[Dict[str, Any]] = Field(None, description="Home details: floor, cooking, etc.")
+    occupational_details: Optional[Dict[str, Any]] = Field(None, description="Detailed job info")
+
     # Store all quiz responses
     quiz_responses: Optional[Dict[str, Any]] = None
     

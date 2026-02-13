@@ -1,5 +1,5 @@
 """
-Environmental Health Analysis Platform
+Childsafeenvirons
 Backend Application Package
 """
 

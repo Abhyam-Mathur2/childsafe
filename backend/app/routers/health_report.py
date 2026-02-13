@@ -40,6 +40,8 @@ async def generate_health_report(
     
     # Get lifestyle data
     lifestyle_data = None
+    lifestyle_record = None
+    
     if request.lifestyle_data_id:
         # Fetch from database
         lifestyle_record = db.query(LifestyleData).filter(
@@ -51,6 +53,8 @@ async def generate_health_report(
         
         # Convert to LifestyleInput for service
         lifestyle_data = LifestyleInput(
+            name=lifestyle_record.name,
+            years_at_location=lifestyle_record.years_at_location,
             age_range=lifestyle_record.age_range,
             gender=lifestyle_record.gender,
             smoking_status=lifestyle_record.smoking_status,
@@ -58,7 +62,8 @@ async def generate_health_report(
             work_environment=lifestyle_record.work_environment,
             diet_quality=lifestyle_record.diet_quality,
             sleep_hours=lifestyle_record.sleep_hours,
-            stress_level=lifestyle_record.stress_level
+            stress_level=lifestyle_record.stress_level,
+            medical_history=lifestyle_record.medical_history
         )
     elif request.age_range and request.smoking_status:
         # Use direct inputs
@@ -70,33 +75,59 @@ async def generate_health_report(
         )
     
     # Generate report
-    report_data = health_report_service.generate_report(
-        latitude=request.latitude,
-        longitude=request.longitude,
-        lifestyle_data=lifestyle_data
-    )
+    try:
+        report_data = await health_report_service.generate_report(
+            latitude=request.latitude,
+            longitude=request.longitude,
+            lifestyle_data=lifestyle_data
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Report generation service failed: {str(e)}")
     
-    # Store report in database
-    health_report = HealthReport(
-        risk_score=report_data["risk_score"],
-        risk_level=report_data["risk_level"],
-        environmental_risk=report_data["environmental_risk"],
-        lifestyle_risk=report_data["lifestyle_risk"],
-        combined_risk=report_data["risk_score"],
-        contributing_factors=[factor.dict() for factor in report_data["contributing_factors"]],
-        health_recommendations=[rec.dict() for rec in report_data["health_recommendations"]],
-        report_summary=report_data["report_summary"],
-        feature_vector=report_data["feature_vector"],
-        version="1.0"
-    )
+    # Database storage variables
+    report_id = 0
+    is_paid = 0
     
-    db.add(health_report)
-    db.commit()
-    db.refresh(health_report)
+    try:
+        # Store report in database
+        health_report = HealthReport(
+            risk_score=report_data["risk_score"],
+            risk_level=report_data["risk_level"],
+            environmental_risk=report_data["environmental_risk"],
+            lifestyle_risk=report_data["lifestyle_risk"],
+            combined_risk=report_data["risk_score"],
+            contributing_factors=[factor.dict() if hasattr(factor, 'dict') else factor for factor in report_data["contributing_factors"]],
+            health_recommendations=[rec.dict() if hasattr(rec, 'dict') else rec for rec in report_data["health_recommendations"]],
+            report_summary=report_data["report_summary"],
+            feature_vector=report_data["feature_vector"],
+            version="1.0"
+        )
+        
+        if lifestyle_record and hasattr(lifestyle_record, 'user_id'):
+            health_report.user_id = lifestyle_record.user_id
+            
+        db.add(health_report)
+        db.commit()
+        db.refresh(health_report)
+        report_id = health_report.id
+        is_paid = health_report.is_paid
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"ERROR SAVING REPORT: {e}")
+        db.rollback()
+        # Fallback: report_id remains 0, which frontend should handle
     
+    # Safe data extraction for response
+    def get_enum_value(obj, attr):
+        val = getattr(obj, attr) if obj and hasattr(obj, attr) else None
+        return val.value if val and hasattr(val, 'value') else val
+
     # Build response
     return HealthReportResponse(
-        report_id=health_report.id,
+        report_id=report_id,
         risk_score=report_data["risk_score"],
         risk_level=report_data["risk_level"],
         environmental_risk=report_data["environmental_risk"],
@@ -109,7 +140,15 @@ async def generate_health_report(
         location_name=report_data["location_name"],
         generated_at=datetime.utcnow().isoformat() + "Z",
         version="1.0",
-        feature_vector=report_data["feature_vector"]
+        feature_vector=report_data["feature_vector"],
+        name=lifestyle_record.name if lifestyle_record else None,
+        years_at_location=lifestyle_record.years_at_location if lifestyle_record else None,
+        sleep_hours=lifestyle_record.sleep_hours if lifestyle_record else None,
+        stress_level=lifestyle_record.stress_level if lifestyle_record else None,
+        activity_level=get_enum_value(lifestyle_record, 'activity_level') or get_enum_value(lifestyle_data, 'activity_level'),
+        age_range=get_enum_value(lifestyle_record, 'age_range') or get_enum_value(lifestyle_data, 'age_range'),
+        vulnerability_multiplier=report_data.get("vulnerability_multiplier", 1.0),
+        is_paid=is_paid
     )
 
 

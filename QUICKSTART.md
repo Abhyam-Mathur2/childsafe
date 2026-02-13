@@ -7,7 +7,7 @@ Download from: https://www.postgresql.org/download/windows/
 
 Create database:
 ```sql
-CREATE DATABASE envhealth;
+CREATE DATABASE childsafeenvirons;
 ```
 
 ### Step 2: Set Up Backend
@@ -68,7 +68,7 @@ Open http://localhost:8000/docs for interactive Swagger UI
 **Database connection error?**
 - Verify PostgreSQL is running
 - Check DATABASE_URL in .env
-- Ensure database 'envhealth' exists
+- Ensure database 'childsafeenvirons' exists
 
 **Frontend can't connect to API?**
 - Ensure backend is running on port 8000

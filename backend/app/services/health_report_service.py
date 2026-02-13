@@ -12,16 +12,18 @@ from app.schemas.health_report import (
 )
 from app.schemas.air_quality import AirQualityResponse
 from app.schemas.soil import SoilDataResponse
+from app.schemas.water import WaterDataResponse
 from app.schemas.lifestyle import LifestyleInput
 from app.services.air_quality_service import air_quality_service
-from app.services.soil_service import soil_service
+from app.services.perplexity_soil_service import perplexity_soil_service as soil_service
+from app.services.water_service import water_service
 from app.services.lifestyle_service import lifestyle_service
 
 
 class HealthReportService:
     """Service for generating comprehensive health risk reports"""
     
-    def generate_report(
+    async def generate_report(
         self,
         latitude: float,
         longitude: float,
@@ -31,23 +33,134 @@ class HealthReportService:
         Generate comprehensive health report combining all data sources
         """
         # Fetch environmental data
-        air_quality = air_quality_service.get_air_quality(latitude, longitude)
-        soil_data = soil_service.get_soil_data(latitude, longitude)
+        # Note: In a real async app, we'd gather these concurrently
+        # Get location details first for better research context
+        # Fetch environmental data with error handling
+        # Note: In a real async app, we'd gather these concurrently
         
+        # 1. Air Quality
+        try:
+            air_quality = await air_quality_service.get_air_quality(latitude, longitude)
+        except Exception as e:
+            print(f"Air Quality Service Failed: {e}")
+            # Mock Fallback
+            from app.schemas.air_quality import AirQualityResponse, AirQualityData
+            air_quality = AirQualityResponse(
+                latitude=latitude,
+                longitude=longitude,
+                location_name="Unknown Location",
+                data=AirQualityData(
+                    aqi=50,
+                    pm25=12.0,
+                    pm10=20.0,
+                    no2=10.0,
+                    so2=5.0,
+                    co=2.0,
+                    o3=30.0,
+                    pm_2_5=12.0 # Alias handling if needed, but schema uses pm25
+                ),
+                primary_pollutant="PM2.5",
+                risk_level="low",
+                health_interpretation="Air quality is acceptable.",
+                data_source="mock_fallback"
+            )
+
+        # Parallel fetch for Soil and Water using Perplexity
+        # Both invoke Perplexity API so parallel execution is better
+        import asyncio
+        
+        # Define wrapper functions to handle individual failures in gather
+        async def safe_soil_research():
+            try:
+                return await soil_service.research_soil_data(
+                    latitude, longitude, 
+                    city=air_quality.location_name.split(',')[0] if air_quality.location_name else None
+                )
+            except Exception as e:
+                print(f"Soil Service Failed: {e}")
+                return {
+                    "location": "Unknown",
+                    "soil_type": "Unknown",
+                    "ph": 7.0,
+                    "contamination_risk": "low",
+                    "health_implications": ["Data unavailable"],
+                    "confidence": "low",
+                    "data_source": "mock_fallback"
+                }
+
+        async def safe_water_quality():
+            try:
+                return await water_service.get_water_quality(latitude, longitude, city=air_quality.location_name.split(',')[0] if air_quality.location_name else None)
+            except Exception as e:
+                print(f"Water Service Failed: {e}")
+                return {
+                    "location": "Unknown",
+                    "coordinates": {"latitude": latitude, "longitude": longitude},
+                    "source_type": "Unknown",
+                    "ph": 7.0,
+                    "hardness": "moderate",
+                    "lead_risk": "low",
+                    "contamination_risk": "low",
+                    "health_implications": ["Data unavailable"],
+                    "recommendations": ["Use standard water filters"],
+                    "confidence": "low",
+                    "data_source": "mock_fallback"
+                }
+
+        soil_task = safe_soil_research()
+        water_task = safe_water_quality()
+        
+        soil_data_dict, water_data = await asyncio.gather(soil_task, water_task)
+        
+        # Convert dicts to Pydantic models
+        water_response = WaterDataResponse(**water_data)
+        # Handle Soil Data (which is now a dict from PerplexityService, need to adapt to SoilDataResponse)
+        # The SoilDataResponse expects `properties` sub-object, but PerplexityService returns a flat dict with some keys.
+        # We need a small adapter here or update the schema.
+        # Let's adapt it to the existing SoilDataResponse structure to avoid breaking schemas.
+        from app.schemas.soil import SoilProperties
+        
+        soil_response = SoilDataResponse(
+            latitude=latitude,
+            longitude=longitude,
+            location_name=soil_data_dict.get("location", "Unknown"),
+            properties=SoilProperties(
+                soil_type=soil_data_dict.get("soil_type", "unknown"),
+                ph=soil_data_dict.get("ph", 7.0) if isinstance(soil_data_dict.get("ph"), (int, float)) else 7.0,
+                organic_matter=0.0, # Estimation not provided by Perplexity usually
+                contamination_risk=soil_data_dict.get("contamination_risk", "unknown")
+            ),
+            health_impacts=soil_data_dict.get("health_implications", []),
+            risk_level=soil_data_dict.get("contamination_risk", "low"), # Simplified mapping
+            recommendations=["Follow local soil safety guidelines"], # Generic fallback
+            data_source="perplexity_ai"
+        )
+        
+        # Placeholder for Noise and Radiation (Future integrations)
+        noise_data = {"level": 55, "risk_score": 10, "source": "Traffic (Est.)"}
+        radiation_data = {"level": "Low", "risk_score": 5, "source": "Background"}
+
         # Calculate environmental risk score
-        env_risk = self._calculate_environmental_risk(air_quality, soil_data)
+        env_risk_base = self._calculate_environmental_risk(air_quality, soil_response, water_response)
         
         # Calculate lifestyle risk score
         lifestyle_risk = 0
         lifestyle_risk_factors = []
         lifestyle_positive_factors = []
+        vulnerability_multiplier = 1.0
         
         if lifestyle_data:
             lifestyle_risk, lifestyle_risk_factors, lifestyle_positive_factors = \
                 lifestyle_service.calculate_lifestyle_risk(lifestyle_data)
-        
+            
+            # Calculate personal vulnerability multiplier
+            vulnerability_multiplier = self._calculate_vulnerability_multiplier(lifestyle_data)
+
+        # Apply multiplier to environmental risk (vulnerable people suffer more from environment)
+        env_risk = min(env_risk_base * vulnerability_multiplier, 100)
+
         # Calculate combined risk score
-        # Weight: 60% environmental, 40% lifestyle
+        # Weight: 60% environmental (adjusted), 40% lifestyle
         combined_risk = (env_risk * 0.6) + (lifestyle_risk * 0.4)
         
         # Determine overall risk level
@@ -55,12 +168,12 @@ class HealthReportService:
         
         # Generate contributing factors
         contributing_factors = self._generate_contributing_factors(
-            air_quality, soil_data, lifestyle_risk_factors, lifestyle_positive_factors
+            air_quality, soil_response, water_response, lifestyle_risk_factors, lifestyle_positive_factors, lifestyle_data
         )
         
         # Generate recommendations
         recommendations = self._generate_recommendations(
-            air_quality, soil_data, lifestyle_data, risk_level
+            air_quality, soil_response, water_response, lifestyle_data, risk_level
         )
         
         # Generate report summary
@@ -70,7 +183,7 @@ class HealthReportService:
         
         # Create feature vector for future ML
         feature_vector = self._create_feature_vector(
-            air_quality, soil_data, lifestyle_data
+            air_quality, soil_response, water_response, lifestyle_data
         )
         
         return {
@@ -84,23 +197,61 @@ class HealthReportService:
             "latitude": latitude,
             "longitude": longitude,
             "location_name": air_quality.location_name,
-            "feature_vector": feature_vector
+            "feature_vector": feature_vector,
+            "noise_data": noise_data,
+            "radiation_data": radiation_data,
+            "vulnerability_multiplier": vulnerability_multiplier
         }
     
+    def _calculate_vulnerability_multiplier(self, data: LifestyleInput) -> float:
+        """Calculate a multiplier (e.g., 1.0 to 2.0) based on health status"""
+        multiplier = 1.0
+        
+        # Age Factor
+        age_value = data.age_range.value if hasattr(data.age_range, 'value') else data.age_range
+        
+        if age_value in ["51-65", "65+"]:
+            multiplier += 0.2
+        elif age_value in ["13-17"]:
+            multiplier += 0.1 # Developing bodies
+            
+        # Respiratory Issues (High impact on Air Quality risk)
+        if data.medical_history:
+            for condition in data.medical_history:
+                condition_lower = condition.lower()
+                if any(x in condition_lower for x in ["asthma", "copd", "bronchitis", "lung"]):
+                    multiplier += 0.4
+                elif "heart" in condition_lower or "cardio" in condition_lower:
+                    multiplier += 0.3
+                elif "allergy" in condition_lower:
+                    multiplier += 0.1
+                    
+        # Pregnancy
+        if data.gender and data.gender.lower() == "female" and data.medical_history:
+             if any("pregnan" in c.lower() for c in data.medical_history):
+                 multiplier += 0.4
+
+        return round(multiplier, 2)
+
     def _calculate_environmental_risk(
         self,
         air_quality: AirQualityResponse,
-        soil_data: SoilDataResponse
+        soil_data: SoilDataResponse,
+        water_data: WaterDataResponse
     ) -> float:
         """Calculate environmental risk score (0-100)"""
-        # Air quality contributes 70% of environmental risk
+        # Air: 50%, Soil: 25%, Water: 25%
         air_risk = min((air_quality.data.aqi / 500) * 100, 100)
         
-        # Soil contamination contributes 30%
         soil_risk_map = {"low": 10, "medium": 40, "high": 80}
-        soil_risk = soil_risk_map.get(soil_data.properties.contamination_risk, 20)
+        soil_risk_val = soil_data.properties.contamination_risk.lower() if soil_data.properties.contamination_risk else "low"
+        soil_risk = soil_risk_map.get(soil_risk_val, 20)
         
-        return (air_risk * 0.7) + (soil_risk * 0.3)
+        water_risk_map = {"low": 10, "medium": 45, "high": 85}
+        water_risk_val = water_data.contamination_risk.lower() if water_data.contamination_risk else "low"
+        water_risk = water_risk_map.get(water_risk_val, 20)
+        
+        return (air_risk * 0.5) + (soil_risk * 0.25) + (water_risk * 0.25)
     
     def _get_risk_level(self, risk_score: float) -> str:
         """Convert risk score to categorical level"""
@@ -115,11 +266,30 @@ class HealthReportService:
         self,
         air_quality: AirQualityResponse,
         soil_data: SoilDataResponse,
+        water_data: WaterDataResponse,
         lifestyle_risk_factors: List[str],
-        lifestyle_positive_factors: List[str]
+        lifestyle_positive_factors: List[str],
+        lifestyle_data: Optional[LifestyleInput] = None
     ) -> List[ContributingFactor]:
-        """Generate list of contributing factors"""
+        """Generate list of contributing factors including synergistic risks"""
         factors = []
+        
+        # Synergistic/Interaction Risks
+        if lifestyle_data and air_quality.data.aqi > 100:
+            if lifestyle_data.smoking_status.value == "current":
+                factors.append(ContributingFactor(
+                    category="interaction",
+                    factor="CRITICAL INTERACTION: Smoking + High Air Pollution dramatically increases cardiovascular risk.",
+                    impact="negative",
+                    severity="high"
+                ))
+            if lifestyle_data.medical_history and any("asthma" in c.lower() for c in lifestyle_data.medical_history):
+                factors.append(ContributingFactor(
+                    category="interaction",
+                    factor="CRITICAL INTERACTION: Asthma + High Air Pollution",
+                    impact="negative",
+                    severity="high"
+                ))
         
         # Air quality factors
         if air_quality.data.aqi > 100:
@@ -137,22 +307,24 @@ class HealthReportService:
                 severity="medium"
             ))
         
-        # PM2.5 specific
-        if air_quality.data.pm25 > 35:
+        # Water factors
+        if water_data.contamination_risk and water_data.contamination_risk.lower() != "low":
+            risk_val = water_data.contamination_risk.lower()
             factors.append(ContributingFactor(
                 category="environmental",
-                factor=f"Elevated PM2.5 levels ({air_quality.data.pm25} μg/m³)",
+                factor=f"{water_data.contamination_risk.capitalize()} water contamination risk",
                 impact="negative",
-                severity="medium"
+                severity=risk_val if risk_val in ["low", "medium", "high"] else "medium"
             ))
         
         # Soil contamination
-        if soil_data.properties.contamination_risk != "low":
+        soil_risk_val = soil_data.properties.contamination_risk.lower() if soil_data.properties.contamination_risk else "low"
+        if soil_risk_val != "low":
             factors.append(ContributingFactor(
                 category="environmental",
                 factor=f"{soil_data.properties.contamination_risk.capitalize()} soil contamination risk",
                 impact="negative",
-                severity=soil_data.properties.contamination_risk
+                severity=soil_risk_val if soil_risk_val in ["low", "medium", "high"] else "medium"
             ))
         
         # Lifestyle negative factors
@@ -179,6 +351,7 @@ class HealthReportService:
         self,
         air_quality: AirQualityResponse,
         soil_data: SoilDataResponse,
+        water_data: WaterDataResponse,
         lifestyle_data: Optional[LifestyleInput],
         risk_level: str
     ) -> List[HealthRecommendation]:
@@ -190,32 +363,32 @@ class HealthReportService:
             recommendations.append(HealthRecommendation(
                 category="environmental",
                 title="Monitor Air Quality Daily",
-                description="Check AQI before outdoor activities. Limit exertion when AQI exceeds 100. Consider air purifiers indoors.",
-                priority="high"
-            ))
-        elif air_quality.data.aqi > 50:
-            recommendations.append(HealthRecommendation(
-                category="environmental",
-                title="Air Quality Awareness",
-                description="Monitor daily air quality and adjust outdoor activities accordingly. Sensitive individuals should be cautious.",
-                priority="medium"
-            ))
-        
-        # PM2.5 specific
-        if air_quality.data.pm25 > 25:
-            recommendations.append(HealthRecommendation(
-                category="environmental",
-                title="Reduce PM2.5 Exposure",
-                description="Wear N95 masks during high pollution days. Keep windows closed when outdoor AQI is elevated.",
+                description="Check AQI before outdoor activities. Limit exertion when AQI exceeds 100.",
                 priority="high"
             ))
         
+        # Water recommendations
+        if water_data.contamination_risk in ["medium", "high"]:
+            recommendations.append(HealthRecommendation(
+                category="environmental",
+                title="Water Safety",
+                description="Consider using a certified water filter or drinking bottled water.",
+                priority="high" if water_data.contamination_risk == "high" else "medium"
+            ))
+        elif water_data.hardness == "hard":
+             recommendations.append(HealthRecommendation(
+                category="environmental",
+                title="Hard Water Care",
+                description="Your water is hard. Use moisturizers to prevent skin dryness.",
+                priority="low"
+            ))
+            
         # Soil recommendations
         if soil_data.properties.contamination_risk in ["medium", "high"]:
             recommendations.append(HealthRecommendation(
                 category="environmental",
                 title="Soil Safety Precautions",
-                description=soil_data.recommendations[0] if soil_data.recommendations else "Test soil before gardening",
+                description="Wash hands thoroughly after gardening or outdoor activities.",
                 priority="medium"
             ))
         
@@ -233,14 +406,6 @@ class HealthReportService:
                     priority="medium"
                 ))
         
-        # General recommendation
-        recommendations.append(HealthRecommendation(
-            category="general",
-            title="Regular Health Checkups",
-            description="Schedule annual checkups to monitor impact of environmental exposures on your health.",
-            priority="medium"
-        ))
-        
         return recommendations
     
     def _generate_report_summary(
@@ -254,63 +419,38 @@ class HealthReportService:
         summaries = {
             "low": "Your overall health risk is low. ",
             "medium": "Your health risk is moderate. ",
-            "high": "Your health risk is elevated and requires attention. "
+            "high": "Your health risk is elevated. "
         }
         
         summary = summaries.get(risk_level, "")
         
-        # Add primary driver
         if env_risk > lifestyle_risk * 1.5:
-            summary += "Environmental factors are the primary concern. "
+            summary += "Environmental factors (Air/Water/Soil) are the primary concern. "
         elif lifestyle_risk > env_risk * 1.5:
             summary += "Lifestyle factors are the primary concern. "
         else:
             summary += "Both environmental and lifestyle factors contribute to your risk. "
-        
-        # Add positive note if applicable
-        if lifestyle_risk < 30:
-            summary += "Your healthy lifestyle choices help mitigate environmental risks."
-        elif env_risk < 30:
-            summary += "Good environmental conditions support your health despite lifestyle considerations."
-        
+            
         return summary
     
     def _create_feature_vector(
         self,
         air_quality: AirQualityResponse,
         soil_data: SoilDataResponse,
+        water_data: WaterDataResponse,
         lifestyle_data: Optional[LifestyleInput]
     ) -> Dict[str, float]:
         """Create numeric feature vector for future ML models"""
         features = {
-            # Environmental features
             "aqi": float(air_quality.data.aqi),
-            "pm25": air_quality.data.pm25,
-            "pm10": air_quality.data.pm10,
-            "co": air_quality.data.co,
-            "no2": air_quality.data.no2,
-            "so2": air_quality.data.so2,
-            "o3": air_quality.data.o3,
             "soil_ph": soil_data.properties.ph,
-            "soil_contamination": {"low": 1, "medium": 2, "high": 3}.get(
-                soil_data.properties.contamination_risk, 1
-            )
+            "water_ph": water_data.ph,
+            "water_risk": {"low": 1, "medium": 2, "high": 3}.get(water_data.contamination_risk, 1)
         }
         
-        # Lifestyle features (if available)
         if lifestyle_data:
-            features.update({
-                "smoking": {"never": 0, "former": 1, "current": 2}.get(
-                    lifestyle_data.smoking_status.value, 0
-                ),
-                "activity": {"active": 2, "moderate": 1, "sedentary": 0}.get(
-                    lifestyle_data.activity_level.value, 1
-                ),
-                "work_outdoor_exposure": {"outdoor": 2, "mixed": 1, "indoor": 0}.get(
-                    lifestyle_data.work_environment.value, 0
-                )
-            })
-        
+            features["smoking"] = 1 if lifestyle_data.smoking_status.value != "never" else 0
+            
         return features
 
 

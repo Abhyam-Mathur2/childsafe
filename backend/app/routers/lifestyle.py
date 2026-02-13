@@ -31,6 +31,8 @@ async def submit_lifestyle_data(
     
     # Store lifestyle data in database
     lifestyle_data = LifestyleData(
+        name=lifestyle.name,
+        years_at_location=lifestyle.years_at_location,
         age_range=lifestyle.age_range.value,
         gender=lifestyle.gender,
         smoking_status=lifestyle.smoking_status.value,

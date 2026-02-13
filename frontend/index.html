@@ -1,12 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Environmental Health Analysis Platform</title>
+    <title>Childsafeenvirons</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
+    <!-- Background & Overlay -->
+    <div id="bg-container" class="bg-default"></div>
+    <div id="aqi-overlay"></div>
+
     <div class="container">
         <!-- Header -->
         <header>
@@ -35,47 +49,70 @@
                 <h2>🌫️ Step 2: Analyzing Your Environment</h2>
                 <div class="loading" id="env-loading">
                     <div class="spinner"></div>
-                    <p>Fetching live air quality, weather, and soil data...</p>
+                    <p>Fetching live air quality, weather, soil, and water data...</p>
                 </div>
                 <div id="env-results" style="display: none;">
-                    <div class="env-section">
-                        <h3>Air Quality & Weather</h3>
-                        <div class="aqi-badge" id="aqi-badge">AQI: <span id="aqi-value">-</span></div>
-                        <p id="air-interpretation">-</p>
-                        <div class="weather-card">
-                            <p class="location-label" id="location-name">Your area</p>
-                            <div class="temperature-row">
-                                <span class="temperature" id="temperature">-</span><span class="temp-unit">°C</span>
-                                <span class="feels-like">Feels like <span id="feels-like">-</span>°C</span>
+                    <div class="env-grid">
+                        <!-- Air Quality -->
+                        <div class="env-section">
+                            <h3>Air Quality & Weather</h3>
+                            <div class="aqi-badge" id="aqi-badge">AQI: <span id="aqi-value">-</span></div>
+                            <p id="air-interpretation">-</p>
+                            <div class="weather-card">
+                                <p class="location-label" id="location-name">Your area</p>
+                                <div class="temperature-row">
+                                    <span class="temperature" id="temperature">-</span><span class="temp-unit">°C</span>
+                                    <span class="feels-like">Feels like <span id="feels-like">-</span>°C</span>
+                                </div>
+                                <p class="weather-summary" id="weather-summary">-</p>
                             </div>
-                            <p class="weather-summary" id="weather-summary">-</p>
                         </div>
-                    </div>
-                    <div class="env-section">
-                        <h3>Soil & Environment Analysis</h3>
-                        <div class="soil-details">
-                            <div class="soil-property">
-                                <strong>Soil Type:</strong> <span id="soil-type">-</span>
-                            </div>
-                            <div class="soil-property">
-                                <strong>pH Level:</strong> <span id="soil-ph">-</span>
-                            </div>
-                            <div class="soil-nutrients">
-                                <h4>Nutrient Levels</h4>
-                                <div class="nutrient-row">
-                                    <span><strong>Nitrogen:</strong> <span id="nitrogen-level">-</span></span>
-                                    <span><strong>Phosphorus:</strong> <span id="phosphorus-level">-</span></span>
-                                    <span><strong>Potassium:</strong> <span id="potassium-level">-</span></span>
+
+                        <!-- Water Quality -->
+                        <div class="env-section">
+                            <h3>Water Quality Analysis</h3>
+                            <div class="water-details">
+                                <div class="water-property">
+                                    <strong>Source:</strong> <span id="water-source">-</span>
+                                </div>
+                                <div class="water-property">
+                                    <strong>pH Level:</strong> <span id="water-ph">-</span>
+                                </div>
+                                <div class="water-property">
+                                    <strong>Hardness:</strong> <span id="water-hardness">-</span>
+                                </div>
+                                <div class="water-property contamination">
+                                    <strong>Risk Level:</strong> <span id="water-risk" class="risk-badge">-</span>
+                                </div>
+                                <div class="water-health">
+                                    <h4>Recommendations</h4>
+                                    <ul id="water-recommendations">
+                                        <li>Analyzing water data...</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <div class="soil-property contamination">
-                                <strong>Contamination Risk:</strong> <span id="contamination-risk" class="risk-badge">-</span>
-                            </div>
-                            <div class="soil-health">
-                                <h4>Health Implications</h4>
-                                <ul id="soil-health-implications">
-                                    <li>Analyzing soil data...</li>
-                                </ul>
+                        </div>
+
+                        <!-- Soil Data -->
+                        <div class="env-section">
+                            <h3>Soil & Environment Analysis</h3>
+                            <div class="soil-details">
+                                <div class="soil-property">
+                                    <strong>Type:</strong> <span id="soil-type">-</span>
+                                </div>
+                                <div class="soil-property">
+                                    <strong>pH Level:</strong> <span id="soil-ph">-</span>
+                                </div>
+                                <div class="soil-property contamination">
+                                    <strong>Contamination:</strong> <span id="contamination-risk"
+                                        class="risk-badge">-</span>
+                                </div>
+                                <div class="soil-health">
+                                    <h4>Health Implications</h4>
+                                    <ul id="soil-health-implications">
+                                        <li>Analyzing soil data...</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -84,139 +121,235 @@
             </div>
         </section>
 
-        <!-- Step 3: Gamified Lifestyle Quiz -->
+        <!-- Step 3: Comprehensive Health Questionnaire -->
         <section id="step-quiz" class="step">
             <div class="card">
-                <h2>🎮 Step 3: Lifestyle Health Quiz</h2>
-                <p>Help us personalize your health report by answering a few questions.</p>
-                
-                <form id="lifestyle-form">
-                    <div class="quiz-question">
-                        <label>What's your age range?</label>
-                        <select name="age_range" required>
-                            <option value="">Select...</option>
-                            <option value="18-25">18-25</option>
-                            <option value="26-35">26-35</option>
-                            <option value="36-50">36-50</option>
-                            <option value="51-65">51-65</option>
-                            <option value="65+">65+</option>
-                        </select>
-                    </div>
+                <h2>📋 Environmental Health Risk Assessment</h2>
+                <p>Please complete this detailed profile for a clinical-grade risk analysis.</p>
 
-                    <div class="quiz-question">
-                        <label>Do you smoke?</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="smoking_status" value="never" required> Never</label>
-                            <label><input type="radio" name="smoking_status" value="former"> Former smoker</label>
-                            <label><input type="radio" name="smoking_status" value="current"> Current smoker</label>
+                <form id="lifestyle-form" class="comprehensive-form">
+                    <!-- 1. Basic Info -->
+                    <fieldset>
+                        <legend>1. Personal Profile</legend>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Age Range</label>
+                                <select name="age_range" required>
+                                    <option value="">Select...</option>
+                                    <option value="13-17">13-17</option>
+                                    <option value="18-25">18-25</option>
+                                    <option value="26-35">26-35</option>
+                                    <option value="36-50">36-50</option>
+                                    <option value="51-65">51-65</option>
+                                    <option value="65+">65+</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Biological Sex</label>
+                                <select name="gender">
+                                    <option value="">Select...</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="intersex">Intersex</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                    </fieldset>
 
-                    <div class="quiz-question">
-                        <label>How active are you?</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="activity_level" value="sedentary" required> Sedentary (little to no exercise)</label>
-                            <label><input type="radio" name="activity_level" value="moderate"> Moderate (exercise 2-3 times/week)</label>
-                            <label><input type="radio" name="activity_level" value="active"> Active (exercise 4+ times/week)</label>
+                    <!-- 2. Health Status -->
+                    <fieldset>
+                        <legend>2. Health Status (Check all that apply)</legend>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="condition" value="asthma"> Asthma</label>
+                            <label><input type="checkbox" name="condition" value="copd"> COPD</label>
+                            <label><input type="checkbox" name="condition" value="allergies"> Allergies</label>
+                            <label><input type="checkbox" name="condition" value="hypertension"> Hypertension</label>
+                            <label><input type="checkbox" name="condition" value="heart_disease"> Heart Disease</label>
+                            <label><input type="checkbox" name="condition" value="diabetes"> Diabetes</label>
+                            <label><input type="checkbox" name="condition" value="obesity"> Obesity (BMI >30)</label>
+                            <label><input type="checkbox" name="condition" value="pregnancy"> Pregnancy
+                                (Current)</label>
+                            <label><input type="checkbox" name="condition" value="immune_compromised"> Immune
+                                Compromised</label>
                         </div>
-                    </div>
+                    </fieldset>
 
-                    <div class="quiz-question">
-                        <label>Where do you work?</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="work_environment" value="indoor" required> Primarily indoors</label>
-                            <label><input type="radio" name="work_environment" value="outdoor"> Primarily outdoors</label>
-                            <label><input type="radio" name="work_environment" value="mixed"> Mixed indoor/outdoor</label>
+                    <!-- 3. Lifestyle -->
+                    <fieldset>
+                        <legend>3. Lifestyle Factors</legend>
+                        <div class="form-group">
+                            <label>Smoking Status</label>
+                            <select name="smoking_status" required>
+                                <option value="never">Never Smoked</option>
+                                <option value="former">Former Smoker</option>
+                                <option value="current">Current Smoker</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <div class="quiz-question">
-                        <label>How would you rate your diet?</label>
-                        <select name="diet_quality">
-                            <option value="">Select...</option>
-                            <option value="poor">Poor</option>
-                            <option value="average">Average</option>
-                            <option value="good">Good</option>
-                        </select>
-                    </div>
-
-                    <div class="quiz-question">
-                        <label>How many hours do you sleep per night?</label>
-                        <select name="sleep_hours">
-                            <option value="">Select...</option>
-                            <option value="<6">Less than 6 hours</option>
-                            <option value="6-8">6-8 hours</option>
-                            <option value=">8">More than 8 hours</option>
-                        </select>
-                    </div>
-
-                    <div class="quiz-question">
-                        <label>What's your stress level?</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="stress_level" value="low"> Low</label>
-                            <label><input type="radio" name="stress_level" value="medium"> Medium</label>
-                            <label><input type="radio" name="stress_level" value="high"> High</label>
+                        <div class="form-group">
+                            <label>Physical Activity</label>
+                            <select name="activity_level" required>
+                                <option value="sedentary">Sedentary (<30 min/week)</option>
+                                <option value="moderate">Moderate (150-300 min/week)</option>
+                                <option value="active">Active (>300 min/week)</option>
+                            </select>
                         </div>
-                    </div>
+                        <div class="form-group">
+                            <label>Diet Quality</label>
+                            <select name="diet_quality">
+                                <option value="poor">Poor</option>
+                                <option value="average">Average</option>
+                                <option value="good">Excellent</option>
+                            </select>
+                        </div>
+                    </fieldset>
 
-                    <button type="submit" class="btn btn-primary">Generate My Health Report 🎯</button>
+                    <!-- 4. Home & Work Environment -->
+                    <fieldset>
+                        <legend>4. Environment & Exposure</legend>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Work Environment</label>
+                                <select name="work_environment" required>
+                                    <option value="indoor">Office/Indoor</option>
+                                    <option value="outdoor">Outdoor Labor</option>
+                                    <option value="mixed">Industrial/Manufacturing</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Home Cooking Method</label>
+                                <select name="cooking_method">
+                                    <option value="electric">Electric/Induction</option>
+                                    <option value="gas">Gas (Natural/Propane)</option>
+                                    <option value="wood">Wood/Biomass</option>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <button type="submit" class="btn btn-primary btn-large">Generate Clinical Report 📊</button>
                 </form>
             </div>
         </section>
 
-        <!-- Step 4: Health Report -->
+        <!-- Step 4: Clinical Health Report -->
         <section id="step-report" class="step">
             <div class="card">
-                <h2>📊 Your Personalized Health Report</h2>
-                
+                <div class="report-header-actions">
+                    <h2>📊 Clinical Health Risk Assessment</h2>
+                    <button onclick="window.print()" class="btn btn-secondary">🖨️ Print Report</button>
+                </div>
+
                 <div class="loading" id="report-loading">
                     <div class="spinner"></div>
-                    <p>Generating your personalized health analysis...</p>
+                    <p>Generating clinical-grade analysis...</p>
                 </div>
 
                 <div id="report-results" style="display: none;">
-                    <div class="risk-score-container">
-                        <div class="risk-score" id="risk-score">
-                            <div class="score-number" id="score-number">-</div>
-                            <div class="score-label" id="score-label">-</div>
+                    <!-- Printable Area Wrapper -->
+                    <div id="printable-area">
+                        <header class="print-header">
+                            <h1>Environmental Health Risk Assessment</h1>
+                            <p><strong>Report Date:</strong> <span id="report-date"></span></p>
+                            <p><strong>Report ID:</strong> <span id="report-id"></span></p>
+                        </header>
+
+                        <!-- Risk Score Summary Table -->
+                        <div class="report-section">
+                            <h3>1. Risk Score Summary</h3>
+                            <table class="risk-table">
+                                <thead>
+                                    <tr>
+                                        <th>Risk Factor</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Air Quality</td>
+                                        <td id="table-air-score">-</td>
+                                        <td id="table-air-status">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Water Quality</td>
+                                        <td id="table-water-score">-</td>
+                                        <td id="table-water-status">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Soil Safety</td>
+                                        <td id="table-soil-score">-</td>
+                                        <td id="table-soil-status">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Noise Level (Est.)</td>
+                                        <td id="table-noise-score">-</td>
+                                        <td id="table-noise-status">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Radiation (Est.)</td>
+                                        <td id="table-rad-score">-</td>
+                                        <td id="table-rad-status">-</td>
+                                    </tr>
+                                    <tr class="total-row">
+                                        <td><strong>OVERALL RISK</strong></td>
+                                        <td id="table-total-score"><strong>-</strong></td>
+                                        <td id="table-total-status"><strong>-</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Vulnerability Factors -->
+                        <div class="report-section">
+                            <h3>2. Personal Vulnerability Profile</h3>
+                            <div class="vulnerability-box">
+                                <p><strong>Vulnerability Multiplier Applied:</strong> <span
+                                        id="vuln-multiplier">-</span>x</p>
+                                <p>Based on your profile (Age, Health Conditions, Lifestyle), your environmental risk is
+                                    adjusted.</p>
+
+                                <h4>Key Risk Interactions:</h4>
+                                <ul id="interaction-risks">
+                                    <li>Analyzing interactions...</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations -->
+                        <div class="report-section">
+                            <h3>3. Priority Recommendations</h3>
+                            <div class="rec-grid" id="recommendations-list">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Medical Notes -->
+                        <div class="report-section">
+                            <h3>4. Medical Consultation Notes</h3>
+                            <div class="medical-notes-box">
+                                <p><em>Discuss the following with your healthcare provider:</em></p>
+                                <ul id="medical-notes-list">
+                                    <li>Share this risk report with your primary care physician.</li>
+                                    <!-- Dynamic notes added here -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="disclaimer">
+                            <p><strong>Disclaimer:</strong> This assessment provides risk estimates based on
+                                environmental data and personal health factors. It is not a medical diagnosis. Always
+                                consult qualified healthcare professionals for medical advice.</p>
                         </div>
                     </div>
 
-                    <div class="report-section">
-                        <h3>Summary</h3>
-                        <p id="report-summary" class="summary-text">-</p>
-                    </div>
-
-                    <div class="report-section">
-                        <h3>Component Scores</h3>
-                        <div class="score-breakdown">
-                            <div class="score-item">
-                                <span>Environmental Risk:</span>
-                                <span id="env-risk-score" class="score-value">-</span>
-                            </div>
-                            <div class="score-item">
-                                <span>Lifestyle Risk:</span>
-                                <span id="lifestyle-risk-score" class="score-value">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="report-section">
-                        <h3>Contributing Factors</h3>
-                        <div id="contributing-factors" class="factors-list"></div>
-                    </div>
-
-                    <div class="report-section">
-                        <h3>Health Recommendations</h3>
-                        <div id="recommendations" class="recommendations-list"></div>
-                    </div>
-
-                    <button id="btn-start-over" class="btn btn-secondary">Start New Analysis</button>
+                    <button id="btn-start-over" class="btn btn-secondary no-print">Start New Analysis</button>
                 </div>
             </div>
         </section>
     </div>
 
+    <!-- Scripts -->
     <script src="app.js"></script>
 </body>
+
 </html>

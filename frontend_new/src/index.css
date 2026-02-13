@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #2E7D32;
+  --color-secondary: #00838F;
+  --color-accent: #FF6F00;
+  --color-dark: #1C1C1E;
+  --color-light: #F0F4F8;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: "Merriweather", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+@utility glass {
+  background-color: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+@utility glass-dark {
+  background-color: rgb(0 0 0 / 0.3);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+body {
+  @apply font-sans antialiased bg-light text-dark;
+}
+
+/* Gradient Background Animation */
+@keyframes gradient-xy {
+
+  0%,
+  100% {
+    background-size: 400% 400%;
+    background-position: 0% 0%;
+  }
+
+  50% {
+    background-size: 400% 400%;
+    background-position: 100% 100%;
+  }
+}
+
+
+/* Modern Auth Page Styles & Advanced Animations */
+.auth-container {
+  @apply min-h-screen w-full relative overflow-hidden bg-black flex items-center justify-center;
+  background: radial-gradient(circle at 50% 50%, #1a2e2e 0%, #0f172a 100%);
+}
+
+.orb {
+  @apply absolute border-none rounded-full mix-blend-screen filter blur-[80px] opacity-60;
+  animation: float 20s ease-in-out infinite;
+}
+
+.orb-1 {
+  @apply bg-emerald-500 w-[500px] h-[500px] top-[-10%] left-[-10%];
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  @apply bg-cyan-500 w-[400px] h-[400px] bottom-[-10%] right-[-10%];
+  animation-delay: -5s;
+}
+
+.orb-3 {
+  @apply bg-teal-400 w-[300px] h-[300px] top-[40%] right-[20%];
+  animation-delay: -10s;
+}
+
+.glass-panel {
+  @apply relative p-1 z-10;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 24px;
+}
+
+.glass-content {
+  @apply bg-black/40 p-8 rounded-[20px] relative overflow-hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.input-group-modern {
+  @apply relative;
+}
+
+.input-field-modern {
+  @apply w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 pl-11 text-white placeholder-gray-400 outline-none transition-all duration-300;
+}
+
+.input-field-modern:focus {
+  @apply bg-white/10 border-emerald-500/50 ring-2 ring-emerald-500/20;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.input-icon-modern {
+  @apply absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-300;
+}
+
+.input-group-modern:focus-within .input-icon-modern {
+  @apply text-emerald-400;
+}
+
+.btn-modern {
+  @apply w-full relative overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3.5 rounded-xl transition-all duration-300 transform shadow-lg shadow-emerald-900/40;
+}
+
+.btn-modern:hover {
+  @apply from-emerald-500 to-teal-500 shadow-emerald-500/25 scale-[1.02];
+}
+
+.btn-modern:active {
+  @apply scale-[0.98];
+}
+
+.auth-header-modern {
+  @apply text-center mb-8;
+}
+
+.auth-title-modern {
+  @apply text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400 mb-2;
+}
+
+.auth-subtitle-modern {
+  @apply text-gray-400 text-sm;
+}
+
+.modern-link {
+  @apply text-emerald-400 hover:text-emerald-300 transition-colors font-medium;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(30px, -50px) rotate(10deg);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) rotate(-5deg);
+  }
+}
+
+.animate-float {
+  animation: float 20s ease-in-out infinite;
+}
+
+/* Spinner */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

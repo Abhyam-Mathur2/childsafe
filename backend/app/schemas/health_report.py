@@ -45,6 +45,18 @@ class HealthRecommendation(BaseModel):
     priority: str = Field(..., description="low/medium/high")
 
 
+class NoiseData(BaseModel):
+    level: float
+    risk_score: float
+    source: str
+    details: Optional[str] = "Estimated based on location type"
+
+class RadiationData(BaseModel):
+    level: str
+    risk_score: float
+    source: str
+    details: Optional[str] = "Background estimation"
+
 class HealthReportResponse(BaseModel):
     """Complete health risk report"""
     report_id: int
@@ -56,20 +68,34 @@ class HealthReportResponse(BaseModel):
     # Component Scores
     environmental_risk: float
     lifestyle_risk: float
+    vulnerability_multiplier: float = Field(1.0, description="Multiplier based on age/health")
     
     # Analysis
     report_summary: str
     contributing_factors: List[ContributingFactor]
     health_recommendations: List[HealthRecommendation]
     
+    # New Data Fields
+    noise_data: Optional[NoiseData] = None
+    radiation_data: Optional[RadiationData] = None
+    
     # Location Context
     latitude: float
     longitude: float
     location_name: Optional[str] = None
     
+    # Personal Details
+    name: Optional[str] = None
+    years_at_location: Optional[int] = None
+    sleep_hours: Optional[str] = None
+    stress_level: Optional[str] = None
+    activity_level: Optional[str] = None
+    age_range: Optional[str] = None
+    
     # Metadata
     generated_at: str
     version: str = "1.0"
+    is_paid: int = 0
     
     # ML Feature Vector (for future use)
     feature_vector: Optional[Dict[str, float]] = None

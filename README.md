@@ -1,4 +1,4 @@
-# Environmental Health Analysis Platform
+# Childsafeenvirons
 
 A location-aware web platform that analyzes environmental health risks by combining real-time air quality data, soil conditions, and lifestyle factors to generate personalized health reports.
 
@@ -71,12 +71,12 @@ environmental-health-platform/
 
 5. **Set up PostgreSQL database**
    ```sql
-   CREATE DATABASE envhealth;
+   CREATE DATABASE childsafeenvirons;
    ```
 
 6. **Update DATABASE_URL in .env**
    ```
-   DATABASE_URL=postgresql://username:password@localhost:5432/envhealth
+   DATABASE_URL=postgresql://username:password@localhost:5432/childsafeenvirons
    ```
 
 7. **Run the application**
@@ -264,7 +264,7 @@ MIT License - Open for academic and commercial use
 
 ## 👥 Authors
 
-Built as a comprehensive environmental health analysis platform combining location intelligence, environmental science, and personalized health analytics.
+Built as a comprehensive Childsafeenvirons platform combining location intelligence, environmental science, and personalized health analytics.
 
 ## 🔗 Resources
 

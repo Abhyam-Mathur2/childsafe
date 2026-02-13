@@ -20,33 +20,30 @@ class WeatherService:
     
     async def get_weather(self, latitude: float, longitude: float) -> dict:
         """
-        Get current weather data from OpenWeather API
-        
-        Args:
-            latitude: Latitude coordinate
-            longitude: Longitude coordinate
-            
-        Returns:
-            dict: Normalized weather data
+        Get current weather data from OpenWeather API or Fallback
         """
         if not self.api_key:
-            raise ValueError("OpenWeather API key not configured")
+            print("OpenWeather API key not configured. Using mock data.")
+            return self._generate_mock_weather(latitude, longitude)
         
         url = f"{self.BASE_URL}/weather"
         params = {
             "lat": latitude,
             "lon": longitude,
             "appid": self.api_key,
-            "units": "metric"  # Use Celsius
+            "units": "metric"
         }
         
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, params=params, timeout=10.0)
+                
+                if response.status_code == 401:
+                    print("Invalid OpenWeather API key. Falling back to mock data.")
+                    return self._generate_mock_weather(latitude, longitude)
+                
                 response.raise_for_status()
                 data = response.json()
-            
-            print(f"OpenWeather API response: {data}")
             
             # Normalize response for frontend
             return {
@@ -67,12 +64,39 @@ class WeatherService:
                 "data_source": "openweather"
             }
             
-        except httpx.HTTPError as e:
-            print(f"HTTP Error: {e}")
-            raise Exception(f"Failed to fetch weather data: {str(e)}")
-        except KeyError as e:
-            print(f"KeyError parsing response: {e}")
-            raise Exception(f"Unexpected API response format: {str(e)}")
+        except Exception as e:
+            print(f"Weather API failed ({e}). Falling back to mock data.")
+            return self._generate_mock_weather(latitude, longitude)
+
+    def _generate_mock_weather(self, lat: float, lon: float) -> dict:
+        """Generate realistic mock weather data"""
+        import random
+        import time
+        
+        # Deterministic based on location
+        random.seed(int((abs(lat) + abs(lon)) * 100))
+        
+        temp = round(random.uniform(10, 30), 1)
+        conditions = ["Clear", "Clouds", "Rain", "Mist"]
+        condition = random.choice(conditions)
+        
+        return {
+            "latitude": lat,
+            "longitude": lon,
+            "location_name": f"Location ({lat:.2f}, {lon:.2f})",
+            "temperature": temp,
+            "feels_like": round(temp + random.uniform(-2, 2), 1),
+            "humidity": random.randint(30, 90),
+            "pressure": 1013,
+            "wind_speed": round(random.uniform(0, 15), 1),
+            "wind_direction": random.randint(0, 360),
+            "weather_condition": condition,
+            "weather_description": f"{condition.lower()} and breezy",
+            "clouds": random.randint(0, 100),
+            "visibility": 10000,
+            "timestamp": int(time.time()),
+            "data_source": "mock"
+        }
 
 
 # Singleton instance
