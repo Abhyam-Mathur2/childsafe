@@ -31,10 +31,7 @@ services:
       - key: DEBUG
         value: False
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: childsaveenviro-frontend
-          property: url
+        sync: false
     healthCheckPath: /health
     
   # Frontend (Static Site)
@@ -45,10 +42,7 @@ services:
     staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: childsaveenviro-api
-          envVarKey: RENDER_EXTERNAL_URL
+        sync: false
     routes:
       - type: rewrite
         source: /*
