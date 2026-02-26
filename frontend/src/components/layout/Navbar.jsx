@@ -52,7 +52,7 @@ const Navbar = () => {
                         <Leaf size={24} />
                     </div>
                     <span className={`text-xl font-black tracking-tighter ${scrolled || !isLanding ? 'text-gray-900' : 'text-white'}`}>
-                        Childsafeenvirons
+                        Childsaveenviro
                     </span>
                 </Link>
 

@@ -1,18 +1,22 @@
 """
 FastAPI Main Application Entry Point
-Childsafeenvirons
+Childsaveenviro
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import air_quality, soil, lifestyle, health_report, weather, water, payments
 from app.database import engine, Base
+from app.config import get_settings
+import os
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+settings = get_settings()
+
 app = FastAPI(
-    title="Childsafeenvirons API",
+    title="Childsaveenviro API",
     description="Location-aware environmental health platform for personalized health risk analysis",
     version="1.0.0",
     docs_url="/docs",
@@ -20,16 +24,24 @@ app = FastAPI(
 )
 
 # CORS configuration for frontend access
+# In production, add your frontend domain
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Add production origin from environment variable
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,7 +62,7 @@ async def root():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "service": "Childsafeenvirons API",
+        "service": "Childsaveenviro API",
         "version": "1.0.0"
     }
 

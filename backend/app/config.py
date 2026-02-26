@@ -11,14 +11,19 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
     # Database
-    DATABASE_URL: str = "sqlite:///./childsafeenvirons.db"
+    DATABASE_URL: str = "sqlite:///./envhealth.db"
     
     # API Keys (for future real API integrations)
     AIR_QUALITY_API_KEY: str = ""
     OPENWEATHER_API_KEY: str = ""
     PERPLEXITY_API_KEY: str = ""
-    RAZORPAY_KEY_ID: str = ""
-    RAZORPAY_KEY_SECRET: str = ""
+    AIRPAY_MERCHANT_ID: str = ""
+    AIRPAY_USERNAME: str = ""
+    AIRPAY_PASSWORD: str = ""
+    AIRPAY_API_KEY: str = ""
+    AIRPAY_CLIENT_ID: str = ""
+    AIRPAY_SECRET_KEY: str = ""
+    AIRPAY_IS_TEST: bool = True
     
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"
@@ -27,11 +32,13 @@ class Settings(BaseSettings):
     
     # Application
     DEBUG: bool = True
-    APP_NAME: str = "Childsafeenvirons"
+    APP_NAME: str = "Environmental Health Analysis Platform"
+    FRONTEND_URL: str = "http://localhost:5173"  # Frontend URL for callbacks
     
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "allow"
 
 
 @lru_cache()

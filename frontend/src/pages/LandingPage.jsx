@@ -24,7 +24,7 @@ const LandingPage = () => {
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 drop-shadow-lg">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-300 via-emerald-200 to-teal-300">
-              Childsafeenvirons
+              Childsaveenviro
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-emerald-100 max-w-2xl mx-auto font-light leading-relaxed">

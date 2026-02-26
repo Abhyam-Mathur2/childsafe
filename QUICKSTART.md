@@ -7,7 +7,7 @@ Download from: https://www.postgresql.org/download/windows/
 
 Create database:
 ```sql
-CREATE DATABASE childsafeenvirons;
+CREATE DATABASE childsaveenviro;
 ```
 
 ### Step 2: Set Up Backend
@@ -40,10 +40,11 @@ API Docs at: http://localhost:8000/docs
 ```powershell
 # In new terminal
 cd "d:\new project\frontend"
-python -m http.server 3000
+npm install
+npm run dev
 ```
 
-Open browser: http://localhost:3000
+Open browser: http://localhost:5173
 
 ### Step 4: Test the Flow
 1. Click "Get My Location" (allow location access)
@@ -68,12 +69,12 @@ Open http://localhost:8000/docs for interactive Swagger UI
 **Database connection error?**
 - Verify PostgreSQL is running
 - Check DATABASE_URL in .env
-- Ensure database 'childsafeenvirons' exists
+- Ensure database 'childsaveenviro' exists
 
 **Frontend can't connect to API?**
 - Ensure backend is running on port 8000
 - Check browser console for CORS errors
-- Verify API_BASE_URL in app.js
+- Verify `VITE_API_BASE_URL` in `.env` (if configured)
 
 **Location not working?**
 - Use HTTPS or localhost (required for geolocation)
@@ -93,7 +94,7 @@ Open http://localhost:8000/docs for interactive Swagger UI
 - `backend/app/main.py` - Main FastAPI application
 - `backend/app/routers/` - API endpoints
 - `backend/app/services/` - Business logic
-- `frontend/app.js` - Frontend logic
+- `frontend/src/` - Frontend logic
 - `.env` - Configuration (create from .env.example)
 
 Happy coding! 🌍💚

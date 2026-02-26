@@ -1,4 +1,4 @@
-# Childsafeenvirons
+# Childsaveenviro
 
 A location-aware web platform that analyzes environmental health risks by combining real-time air quality data, soil conditions, and lifestyle factors to generate personalized health reports.
 
@@ -29,10 +29,10 @@ environmental-health-platform/
 │   ├── ml/                 # Machine learning placeholder
 │   ├── requirements.txt
 │   └── .env.example
-└── frontend/               # Simple HTML/JS frontend
-    ├── index.html
-    ├── app.js
-    └── styles.css
+└── frontend/               # React + Vite frontend
+  ├── index.html
+  ├── src/
+  └── package.json
 ```
 
 ## 🚀 Getting Started
@@ -71,12 +71,12 @@ environmental-health-platform/
 
 5. **Set up PostgreSQL database**
    ```sql
-   CREATE DATABASE childsafeenvirons;
+  CREATE DATABASE childsaveenviro;
    ```
 
 6. **Update DATABASE_URL in .env**
    ```
-   DATABASE_URL=postgresql://username:password@localhost:5432/childsafeenvirons
+  DATABASE_URL=postgresql://username:password@localhost:5432/childsaveenviro
    ```
 
 7. **Run the application**
@@ -89,14 +89,13 @@ environmental-health-platform/
 
 ### Frontend Setup
 
-1. **Open frontend in browser**
-   - Simply open `frontend/index.html` in a browser
-   - Or use a local server:
-   ```powershell
-   cd frontend
-   python -m http.server 3000
-   ```
-   Then navigate to `http://localhost:3000`
+1. **Install dependencies and start Vite**
+  ```powershell
+  cd frontend
+  npm install
+  npm run dev
+  ```
+  Then navigate to `http://localhost:5173`
 
 ## 📡 API Endpoints
 
@@ -192,9 +191,9 @@ The platform is designed to evolve from rule-based scoring to ML-based predictio
 - Pydantic (Validation)
 
 **Frontend**
-- Vanilla JavaScript
-- HTML5 Geolocation API
-- CSS3 with animations
+- React + Vite
+- React Router
+- Tailwind CSS + Framer Motion
 
 **Future ML**
 - scikit-learn
@@ -264,7 +263,7 @@ MIT License - Open for academic and commercial use
 
 ## 👥 Authors
 
-Built as a comprehensive Childsafeenvirons platform combining location intelligence, environmental science, and personalized health analytics.
+Built as a comprehensive Childsaveenviro platform combining location intelligence, environmental science, and personalized health analytics.
 
 ## 🔗 Resources
 

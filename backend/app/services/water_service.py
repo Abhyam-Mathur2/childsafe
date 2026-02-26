@@ -47,7 +47,7 @@ class WaterQualityService:
         location_str = ", ".join(location_parts) if location_parts else f"{latitude}, {longitude}"
         
         query = (
-            f"Conduct a comprehensive Childsafeenvirons analysis for water quality in {location_str}. "
+            f"Conduct a comprehensive Childsaveenviro analysis for water quality in {location_str}. "
             f"Provide a detailed, factual report covering: "
             f"1. Specific water sources and their current status (aquifers, reservoirs, rivers). "
             f"2. Recent water quality reports, violation history, and specific contaminants (e.g., PFAS, lead, arsenic, nitrates, microplastics). "

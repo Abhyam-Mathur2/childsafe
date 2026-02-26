@@ -1,0 +1,246 @@
+# 🚀 Deployment Guide - Render.com (Free Tier)
+
+This guide will help you deploy **Childsaveenviro** using Render's free tier with Docker.
+
+## 📋 Prerequisites
+
+- GitHub account
+- Render.com account (free)
+- Airpay merchant account (for payments)
+- OpenWeather API key (optional)
+
+## 🎯 Free Tier Components
+
+- **Backend**: Render Web Service (750 hours/month free)
+- **Frontend**: Render Static Site (free)
+- **Database**: 
+  - Option 1: Render PostgreSQL (free tier available)
+  - Option 2: Neon.tech (free serverless PostgreSQL)
+  - Option 3: SQLite (default, stored in container)
+
+## 📦 Step 1: Prepare Your Code
+
+### 1.1 Push to GitHub
+
+```bash
+cd "d:/new project"
+git init
+git add .
+git commit -m "Initial commit - Childsaveenviro"
+git branch -M main
+git remote add origin https://github.com/yourusername/childsaveenviro.git
+git push -u origin main
+```
+
+### 1.2 Verify Files
+
+Ensure these files exist:
+- ✅ `backend/Dockerfile`
+- ✅ `render.yaml`
+- ✅ `.dockerignore`
+
+## 🌐 Step 2: Deploy to Render
+
+### Option A: Deploy with Blueprint (Recommended)
+
+1. Go to [Render Dashboard](https://dashboard.render.com/)
+2. Click **"New"** → **"Blueprint"**
+3. Connect your GitHub repository
+4. Render will automatically detect `render.yaml` and create:
+   - Backend API service
+   - Frontend static site
+   - PostgreSQL database (if using)
+
+### Option B: Manual Deployment
+
+#### Backend API:
+
+1. **New Web Service**
+   - Name: `childsaveenviro-api`
+   - Runtime: `Docker`
+   - Repository: Your GitHub repo
+   - Dockerfile Path: `./backend/Dockerfile`
+   - Docker Context: `./backend`
+   - Instance Type: `Free`
+
+2. **Environment Variables** (add these in Render dashboard):
+   ```
+   DATABASE_URL=<your-postgres-url-or-sqlite>
+   OPENWEATHER_API_KEY=<your-key>
+   PERPLEXITY_API_KEY=<your-key>
+   AIRPAY_MERCHANT_ID=<your-merchant-id>
+   AIRPAY_USERNAME=<your-username>
+   AIRPAY_PASSWORD=<your-password>
+   AIRPAY_API_KEY=<your-api-key>
+   AIRPAY_CLIENT_ID=<your-client-id>
+   AIRPAY_SECRET_KEY=<your-secret-key>
+   AIRPAY_IS_TEST=False
+   SECRET_KEY=<generate-random-32-char-string>
+   DEBUG=False
+   FRONTEND_URL=https://childsaveenviro-frontend.onrender.com
+   ```
+
+3. **Health Check Path**: `/health`
+
+#### Frontend Static Site:
+
+1. **New Static Site**
+   - Name: `childsaveenviro-frontend`
+   - Build Command: `cd frontend && npm install && npm run build`
+   - Publish Directory: `frontend/dist`
+
+2. **Environment Variables**:
+   ```
+   VITE_API_BASE_URL=https://childsaveenviro-api.onrender.com
+   ```
+
+3. **Rewrite Rules** (for React Router):
+   - Source: `/*`
+   - Destination: `/index.html`
+
+## 🗄️ Step 3: Database Setup
+
+### Option 1: Render PostgreSQL (Free)
+
+1. Create PostgreSQL database in Render
+2. Copy the **Internal Database URL**
+3. Set `DATABASE_URL` in backend environment variables
+
+### Option 2: Neon.tech (Recommended for Free Tier)
+
+1. Sign up at [neon.tech](https://neon.tech)
+2. Create a new project
+3. Copy the connection string
+4. Set `DATABASE_URL=postgresql://...` in Render
+
+### Option 3: SQLite (Default)
+
+- No setup needed
+- Data persists in container volume
+- ⚠️ Limited to single instance
+
+## 🔐 Step 4: Configure Airpay
+
+1. Login to Airpay Merchant Dashboard
+2. Update **Callback URL**:
+   ```
+   https://childsaveenviro-api.onrender.com/api/airpay-callback
+   ```
+3. Whitelist server IP (if required by Airpay)
+4. Verify `AIRPAY_IS_TEST=False` for production
+
+## 🧪 Step 5: Test Deployment
+
+### Backend Health Check
+```bash
+curl https://childsaveenviro-api.onrender.com/health
+```
+
+### Frontend
+Visit: `https://childsaveenviro-frontend.onrender.com`
+
+### Full Flow Test
+1. Sign up / Login
+2. Get location
+3. View environmental data
+4. Complete assessment
+5. Generate report
+6. Test payment (with real card in test mode first)
+
+## ⚡ Step 6: Custom Domain (Optional)
+
+### Backend Domain
+1. Go to Render dashboard → Your API service
+2. Settings → Custom Domain
+3. Add: `api.yourdomain.com`
+4. Update DNS:
+   - Type: `CNAME`
+   - Name: `api`
+   - Value: `childsaveenviro-api.onrender.com`
+
+### Frontend Domain
+1. Go to Render dashboard → Your static site
+2. Settings → Custom Domain
+3. Add: `www.yourdomain.com` or `yourdomain.com`
+4. Update DNS as instructed
+
+### Update Environment Variables
+After adding custom domains, update:
+- Backend: `FRONTEND_URL=https://yourdomain.com`
+- Frontend: `VITE_API_BASE_URL=https://api.yourdomain.com`
+- Airpay: Update callback URL
+
+## 🔄 Continuous Deployment
+
+Render automatically deploys when you push to GitHub:
+
+```bash
+git add .
+git commit -m "Update feature"
+git push origin main
+```
+
+## 🐛 Troubleshooting
+
+### Backend won't start
+- Check logs in Render dashboard
+- Verify all environment variables are set
+- Ensure `DATABASE_URL` is correct
+
+### Frontend can't connect to API
+- Verify `VITE_API_BASE_URL` is correct
+- Check CORS settings in `backend/app/main.py`
+- Ensure backend is running
+
+### Payment fails
+- Verify Airpay credentials
+- Check callback URL in Airpay dashboard
+- Review backend logs for checksum errors
+- Ensure `AIRPAY_IS_TEST=False` for live payments
+
+### Database connection errors
+- For SQLite: Works out of the box
+- For PostgreSQL: Verify connection string
+- Check database is running
+
+## 💰 Cost Breakdown (Free Tier)
+
+| Service | Free Tier | Limits |
+|---------|-----------|---------|
+| Backend (Render) | Free | 750 hours/month, sleeps after 15 min inactivity |
+| Frontend (Render) | Free | 100 GB bandwidth/month |
+| Database (Neon) | Free | 0.5 GB storage, 10 GB transfer |
+| Total | **$0/month** | Perfect for MVP/testing |
+
+## 📈 Scaling to Paid Tier
+
+When you outgrow free tier:
+- Render Starter: $7/month (always-on, no sleep)
+- Database upgrade: $7/month (more storage/connections)
+- Custom domain: Free on Render
+
+## 🔧 Local Development
+
+To run locally after deployment setup:
+
+```bash
+# Backend
+cd backend
+uvicorn app.main:app --reload
+
+# Frontend
+cd frontend
+npm run dev
+```
+
+## 📚 Additional Resources
+
+- [Render Documentation](https://render.com/docs)
+- [Neon.tech Docs](https://neon.tech/docs)
+- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+
+---
+
+**🎉 Congratulations!** Your app is now live and accessible worldwide on Render's free tier.
+
+Need help? Check the logs in Render dashboard or open an issue on GitHub.

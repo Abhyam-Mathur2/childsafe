@@ -12,6 +12,8 @@ ENV/
 # Environment variables
 .env
 .env.local
+.env.production
+.env.*.local
 
 # Database
 *.db
@@ -32,6 +34,8 @@ Thumbs.db
 # Logs
 *.log
 logs/
+debug_*.txt
+debug_*.json
 
 # Testing
 .pytest_cache/
