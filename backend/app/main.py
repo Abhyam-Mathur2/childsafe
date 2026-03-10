@@ -24,7 +24,6 @@ app = FastAPI(
 )
 
 # CORS configuration for frontend access
-# In production, add your frontend domain
 allowed_origins = [
     "http://localhost:5173",
     "http://localhost:5174",
@@ -34,10 +33,18 @@ allowed_origins = [
     "http://127.0.0.1:3000",
 ]
 
-# Add production origin from environment variable
-frontend_url = os.getenv("FRONTEND_URL")
+# Add production origin from environment variable (strip trailing slash)
+frontend_url = os.getenv("FRONTEND_URL", "").rstrip("/")
 if frontend_url:
     allowed_origins.append(frontend_url)
+
+# Also support comma-separated ALLOWED_ORIGINS for multiple domains
+extra_origins = os.getenv("ALLOWED_ORIGINS", "")
+if extra_origins:
+    for origin in extra_origins.split(","):
+        origin = origin.strip().rstrip("/")
+        if origin and origin not in allowed_origins:
+            allowed_origins.append(origin)
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,6 +53,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Include routers
 app.include_router(air_quality.router, prefix="/api", tags=["Air Quality"])
