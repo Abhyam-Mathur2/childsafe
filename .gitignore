@@ -9,11 +9,11 @@ env/
 ENV/
 .venv
 
-# Environment variables
+# Environment variables (keep secrets out of git)
 .env
 .env.local
-.env.production
 .env.*.local
+# .env.production is intentionally committed (contains only public API URLs, no secrets)
 
 # Database
 *.db
