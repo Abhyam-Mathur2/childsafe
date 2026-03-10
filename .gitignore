@@ -42,8 +42,7 @@ debug_*.json
 .coverage
 htmlcov/
 
-# ML Models
+# ML Model binary files (do NOT ignore models/ directory - it's a Python package!)
 *.pkl
 *.h5
 *.joblib
-models/
