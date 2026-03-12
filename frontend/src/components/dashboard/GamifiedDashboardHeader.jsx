@@ -72,9 +72,14 @@ const GamifiedDashboardHeader = ({ safetyScore = 85 }) => {
                 transition={{ delay: 0.2 }}
                 className="bg-white rounded-3xl p-6 border border-gray-100 shadow-xl flex flex-col justify-between"
             >
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-black text-gray-800 uppercase tracking-wider text-sm">Achievements</h3>
-                    <Trophy className="text-yellow-500" size={20} />
+                <div className="flex flex-col mb-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-black text-gray-800 uppercase tracking-wider text-sm">Achievements & Quests</h3>
+                        <Trophy className="text-yellow-500" size={20} />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2 font-medium">
+                        Complete these themed quests—like consistently checking AQI or exploring water safety—to earn bonus XP and level up your resilience shield faster!
+                    </p>
                 </div>
                 
                 <div className="space-y-4">

@@ -3,7 +3,7 @@ Lifestyle Data Model
 Stores user lifestyle and health behavior information
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -24,12 +24,15 @@ class LifestyleData(Base):
     # Health Behaviors
     smoking_status = Column(String, nullable=False)  # never/former/current
     activity_level = Column(String, nullable=False)  # sedentary/moderate/active
+    activity_duration = Column(String, nullable=True)
     work_environment = Column(String, nullable=False)  # indoor/outdoor/mixed
     
     # Additional Lifestyle Factors
     diet_quality = Column(String, nullable=True)  # poor/average/good
     sleep_hours = Column(String, nullable=True)  # <6, 6-8, >8
     stress_level = Column(String, nullable=True)  # low/medium/high
+    water_source = Column(String, nullable=True)
+    uv_index = Column(Float, nullable=True)
 
     # Comprehensive Questionnaire Data
     medical_history = Column(JSON, nullable=True)  # List of conditions (asthma, diabetes, etc.)

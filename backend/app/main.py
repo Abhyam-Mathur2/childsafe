@@ -1,5 +1,6 @@
 """
-FastAPI Main Application Entry Point
+ChildSafeEnviro
+Main application entry point
 Childsaveenviro
 """
 
@@ -16,8 +17,8 @@ Base.metadata.create_all(bind=engine)
 settings = get_settings()
 
 app = FastAPI(
-    title="Childsaveenviro API",
-    description="Location-aware environmental health platform for personalized health risk analysis",
+    title="ChildSafeEnviro API",
+    description="API for the Environmental Health Monitoring platform for personalized health risk analysis",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -69,8 +70,8 @@ app.include_router(water.router, prefix="/api", tags=["Water Quality"])
 async def root():
     """Health check endpoint"""
     return {
-        "status": "healthy",
-        "service": "Childsaveenviro API",
+        "status": "online",
+        "service": "ChildSafeEnviro API",
         "version": "1.0.0"
     }
 

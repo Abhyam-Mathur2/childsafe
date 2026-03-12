@@ -169,7 +169,7 @@ const ReportPage = () => {
                 heightLeft -= pdfHeight;
             }
 
-            pdf.save(`Childsaveenviro_Report_${report.report_id}.pdf`);
+            pdf.save(`ChildSafeEnviro_Report_${report.report_id}.pdf`);
         } catch (err) {
             console.error("PDF generation failed", err);
             alert("Failed to generate PDF. Please try again.");

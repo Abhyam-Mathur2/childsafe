@@ -340,8 +340,88 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </div>
             </div>
 
+            {/* Section 4: Comprehensive Action Plan */}
+            <h2 className="section-title">Section 4: Comprehensive Action Plan</h2>
+            
+            <div className="action-plan-grid">
+                <div className="action-plan-col">
+                    <div className="management-header">Short-Term Considerations (Today / This Week)</div>
+                    <div className="management-card green-theme">
+                        <h4>Immediate Actions</h4>
+                        <ul>
+                            <li>Adapt to current AQI and Temperature</li>
+                            <li>Protect against today's UV index peak</li>
+                            <li>Ensure adequate hydration and indoor air circulation</li>
+                        </ul>
+                    </div>
+                </div>
+                <div className="action-plan-col">
+                    <div className="management-header">Medium-Term Considerations (This Month)</div>
+                    <div className="management-card grey-theme">
+                        <h4>Pattern Adjustments</h4>
+                        <ul>
+                            <li>Establish check-in reminders for changing patterns</li>
+                            <li>Review typical outdoor routines</li>
+                            <li>Assess home water filtration status</li>
+                        </ul>
+                    </div>
+                </div>
+                <div className="action-plan-col">
+                    <div className="management-header">Long-Term Considerations (This Season / Year)</div>
+                    <div className="management-card grey-theme">
+                        <h4>Habit Building</h4>
+                        <ul>
+                            <li>Monitor cumulative exposure risks over the year</li>
+                            <li>Integrate sustainable health habits into daily life</li>
+                            <li>Plan structural modifications (e.g., HVAC upgrades)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div className="subtitle" style={{ marginTop: '30px' }}>Additional Guidance:</div>
+            <div className="guidance-grid">
+                <div className="management-card grey-theme outline-card">
+                    <h4>Seasonal Awareness</h4>
+                    <p style={{ fontSize: '0.85rem', marginTop: '10px' }}><strong>Summer:</strong> High UV/Heat precautions<br/>
+                    <strong>Winter:</strong> Smog and indoor air quality<br/>
+                    <strong>Monsoon:</strong> Humidity and mold prevention<br/>
+                    <strong>Spring:</strong> Pollen and allergy management</p>
+                </div>
+                <div className="management-card grey-theme outline-card">
+                    <h4>Daily Pattern Suggestion</h4>
+                    <p style={{ fontSize: '0.85rem', marginTop: '10px' }}><strong>Best outdoor time:</strong> 6:00 AM – 8:00 AM<br/>
+                    <strong>Avoid outdoors:</strong> 12:00 PM – 4:00 PM (Peak UV & Temp)<br/>
+                    <strong>Evening walk:</strong> After 6:00 PM</p>
+                </div>
+            </div>
+
+            {/* Section 5: Medical & Support Resources */}
+            <h2 className="section-title">Section 5: Medical & Support Resources</h2>
+            <div className="resources-grid">
+                <div className="management-card green-theme">
+                    <h4>Health Professional Discussion Guide</h4>
+                    <p style={{ fontSize: '0.85rem', marginTop: '10px', marginBottom: '10px' }}>Bring this data to your pediatrician to tailor advice to your child's conditions:</p>
+                    <ul>
+                        <li>"Are there specific environmental triggers we should monitor based on their health history?"</li>
+                        <li>"How might the local water source impact their development?"</li>
+                        <li>"What UV protection strategies are best for their specific needs?"</li>
+                        <li>"Are there any respiratory precautions needed given the local AQI patterns?"</li>
+                    </ul>
+                </div>
+                <div className="management-card grey-theme outline-card">
+                    <h4>Support & Resources</h4>
+                    <p style={{ fontSize: '0.85rem', marginTop: '10px', marginBottom: '10px' }}>You are not alone. Caregiving requires taking care of yourself, too.</p>
+                    <ul>
+                        <li><strong>Mental Health:</strong> Local support groups for caregivers</li>
+                        <li><strong>Environmental Health:</strong> EPA guidelines for indoor air quality</li>
+                        <li><strong>Community:</strong> Connect with neighborhood parent groups for shared childcare and support</li>
+                    </ul>
+                </div>
+            </div>
+
             <div className="footer">
-                <p>Generated by Childsaveenviro Platform • www.childsaveenviro.ai • Confidential • Report ID: EHA-2026-{report.report_id}</p>
+                <p>Generated by ChildSafeEnviro Platform • www.childsafeenviro.ai • Confidential • Report ID: EHA-2026-{report.report_id}</p>
             </div>
 
             <style>{`
@@ -438,6 +518,13 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 .dot.yellow { background: #fbc02d; }
                 .dot.green { background: #388e3c; }
                 .dot.orange { background: #e65100; }
+
+                /* New Grids */
+                .action-plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+                .action-plan-col { flex: 1; }
+                .guidance-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+                .resources-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 50px; }
+                .outline-card { border: 1px solid #ccc !important; background-color: #fafafa !important; }
 
                 @media print {
                     .report-paper { padding: 20px; }

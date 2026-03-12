@@ -80,21 +80,24 @@ class AirQualityService:
             
             # OpenWeather Air Pollution API response structure
             components = data["list"][0]["components"]
-            aqi_openweather = data["list"][0]["main"]["aqi"]  # 1-5 scale
-            
-            # Convert OpenWeather AQI (1-5) to US EPA scale (0-500)
-            # This is an approximation for consistency
-            aqi_mapping = {1: 25, 2: 75, 3: 125, 4: 200, 5: 350}
-            aqi = aqi_mapping.get(aqi_openweather, 100)
+            pm25_val = round(components.get("pm2_5", 0), 1)
+            pm10_val = round(components.get("pm10", 0), 1)
+            co_val = round(components.get("co", 0) / 1000, 2)  # Convert μg/m³ to mg/m³
+            no2_val = round(components.get("no2", 0), 1)
+            so2_val = round(components.get("so2", 0), 1)
+            o3_val = round(components.get("o3", 0), 1)
+
+            # Calculate precise US EPA AQI from pollutant concentrations
+            aqi = self._calculate_precise_aqi(pm25_val, pm10_val)
             
             return AirQualityData(
                 aqi=aqi,
-                pm25=round(components.get("pm2_5", 0), 1),
-                pm10=round(components.get("pm10", 0), 1),
-                co=round(components.get("co", 0) / 1000, 2),  # Convert μg/m³ to mg/m³
-                no2=round(components.get("no2", 0), 1),
-                so2=round(components.get("so2", 0), 1),
-                o3=round(components.get("o3", 0), 1)
+                pm25=pm25_val,
+                pm10=pm10_val,
+                co=co_val,
+                no2=no2_val,
+                so2=so2_val,
+                o3=o3_val
             )
             
         except httpx.HTTPError as e:
@@ -141,6 +144,45 @@ class AirQualityService:
             "O3": data.o3 / 70
         }
         return max(pollutants, key=pollutants.get)
+
+    def _calc_aqi_subindex(self, Cp: float, breakpoints: list) -> int:
+        """Helper to calculate piece-wise linear AQI subindex for a pollutant"""
+        for (BpLo, BpHi, IqLo, IqHi) in breakpoints:
+            if BpLo <= Cp <= BpHi:
+                return int(round(((IqHi - IqLo) / (BpHi - BpLo)) * (Cp - BpLo) + IqLo))
+        
+        # If beyond maximum, extrapolate linearly from the highest bracket
+        (BpLo, BpHi, IqLo, IqHi) = breakpoints[-1]
+        return int(round(((IqHi - IqLo) / (BpHi - BpLo)) * (Cp - BpLo) + IqLo))
+
+    def _calculate_precise_aqi(self, pm25: float, pm10: float) -> int:
+        """Calculate US EPA AQI precisely using PM2.5 and PM10"""
+        # EPA PM2.5 Breakpoints (ug/m3)
+        pm25_breakpoints = [
+            (0.0, 12.0, 0, 50),
+            (12.1, 35.4, 51, 100),
+            (35.5, 55.4, 101, 150),
+            (55.5, 150.4, 151, 200),
+            (150.5, 250.4, 201, 300),
+            (250.5, 350.4, 301, 400),
+            (350.5, 500.4, 401, 500),
+        ]
+        
+        # EPA PM10 Breakpoints (ug/m3)
+        pm10_breakpoints = [
+            (0, 54, 0, 50),
+            (55, 154, 51, 100),
+            (155, 254, 101, 150),
+            (255, 354, 151, 200),
+            (355, 424, 201, 300),
+            (425, 504, 301, 400),
+            (505, 604, 401, 500),
+        ]
+        
+        aqi_pm25 = self._calc_aqi_subindex(pm25, pm25_breakpoints)
+        aqi_pm10 = self._calc_aqi_subindex(pm10, pm10_breakpoints)
+        
+        return max(aqi_pm25, aqi_pm10)
     
     def _generate_health_interpretation(self, aqi: int, risk_level: str) -> str:
         """Generate human-readable health interpretation"""

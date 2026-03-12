@@ -18,9 +18,10 @@ class LifestyleService:
     }
     
     ACTIVITY_SCORES = {
-        "active": 0,
-        "moderate": 10,
-        "sedentary": 25
+        "vigorous_90": 0,
+        "moderate_60": 5,
+        "light_30": 15,
+        "sedentary_0": 25
     }
     
     WORK_ENV_SCORES = {
@@ -122,7 +123,7 @@ class LifestyleService:
         if lifestyle.smoking_status.value == "current":
             recommendations.append("Consider smoking cessation programs - single most impactful health improvement")
         
-        if lifestyle.activity_level.value in ["sedentary", "moderate"]:
+        if lifestyle.activity_level.value in ["sedentary_0", "light_30"]:
             recommendations.append("Increase physical activity to 150+ minutes weekly - reduces environmental health risks")
         
         if lifestyle.stress_level == "high":

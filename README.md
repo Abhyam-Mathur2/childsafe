@@ -1,4 +1,4 @@
-# Childsaveenviro
+# ChildSafeEnviro
 
 A location-aware web platform that analyzes environmental health risks by combining real-time air quality data, soil conditions, and lifestyle factors to generate personalized health reports.
 
@@ -71,12 +71,12 @@ environmental-health-platform/
 
 5. **Set up PostgreSQL database**
    ```sql
-  CREATE DATABASE childsaveenviro;
+  CREATE DATABASE childsafeenviro;
    ```
 
 6. **Update DATABASE_URL in .env**
    ```
-  DATABASE_URL=postgresql://username:password@localhost:5432/childsaveenviro
+  DATABASE_URL=postgresql://username:password@localhost:5432/childsafeenviro
    ```
 
 7. **Run the application**
@@ -263,7 +263,7 @@ MIT License - Open for academic and commercial use
 
 ## 👥 Authors
 
-Built as a comprehensive Childsaveenviro platform combining location intelligence, environmental science, and personalized health analytics.
+Built as a comprehensive ChildSafeEnviro platform combining location intelligence, environmental science, and personalized health analytics.
 
 ## 🔗 Resources
 

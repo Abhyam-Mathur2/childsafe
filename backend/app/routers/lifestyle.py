@@ -29,6 +29,18 @@ async def submit_lifestyle_data(
     # Calculate risk score
     risk_score, risk_factors, positive_factors = lifestyle_service.calculate_lifestyle_risk(lifestyle)
     
+    water_src = lifestyle.water_source
+    uv_idx = lifestyle.uv_index
+    act_dur = lifestyle.activity_duration
+
+    if lifestyle.home_environment:
+        if not water_src and 'water_source' in lifestyle.home_environment:
+            water_src = lifestyle.home_environment['water_source']
+        if uv_idx is None and 'uv_index' in lifestyle.home_environment:
+            uv_idx = lifestyle.home_environment['uv_index']
+        if not act_dur and 'activity_duration' in lifestyle.home_environment:
+            act_dur = lifestyle.home_environment['activity_duration']
+            
     # Store lifestyle data in database
     lifestyle_data = LifestyleData(
         name=lifestyle.name,
@@ -37,10 +49,15 @@ async def submit_lifestyle_data(
         gender=lifestyle.gender,
         smoking_status=lifestyle.smoking_status.value,
         activity_level=lifestyle.activity_level.value,
+        activity_duration=act_dur,
         work_environment=lifestyle.work_environment.value,
         diet_quality=lifestyle.diet_quality,
         sleep_hours=lifestyle.sleep_hours,
         stress_level=lifestyle.stress_level,
+        water_source=water_src,
+        uv_index=uv_idx,
+        medical_history=lifestyle.medical_history,
+        home_environment=lifestyle.home_environment,
         quiz_responses=lifestyle.quiz_responses
     )
     

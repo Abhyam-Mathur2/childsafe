@@ -27,9 +27,10 @@ class SmokingStatus(str, Enum):
 
 class ActivityLevel(str, Enum):
     """Physical activity level"""
-    SEDENTARY = "sedentary"
-    MODERATE = "moderate"
-    ACTIVE = "active"
+    SEDENTARY_0 = "sedentary_0"
+    LIGHT_30 = "light_30"
+    MODERATE_60 = "moderate_60"
+    VIGOROUS_90 = "vigorous_90"
 
 
 class WorkEnvironment(str, Enum):
@@ -53,6 +54,11 @@ class LifestyleInput(BaseModel):
     diet_quality: Optional[str] = Field(None, description="poor/average/good")
     sleep_hours: Optional[str] = Field(None, description="<6/6-8/>8")
     stress_level: Optional[str] = Field(None, description="low/medium/high")
+    
+    # New Environmental & Lifestyle Fields
+    water_source: Optional[str] = Field(None, description="Primary water source")
+    uv_index: Optional[float] = Field(None, description="Typical Daily UV Exposure")
+    activity_duration: Optional[str] = Field(None, description="Duration of physical activity")
 
     # Comprehensive Questionnaire Fields
     medical_history: Optional[list[str]] = Field(None, description="List of pre-existing conditions")

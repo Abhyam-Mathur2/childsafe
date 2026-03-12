@@ -1,7 +1,7 @@
 services:
   # Backend API
   - type: web
-    name: childsaveenviro-api
+    name: childsafeenviro-api
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
@@ -36,7 +36,7 @@ services:
     
   # Frontend (Static Site)
   - type: web
-    name: childsaveenviro-frontend
+    name: childsafeenviro-frontend
     runtime: static
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/dist
@@ -50,7 +50,7 @@ services:
 
 # Free tier PostgreSQL database (alternative: use external like Neon.tech)
 databases:
-  - name: childsaveenviro-db
-    databaseName: childsaveenviro
-    user: childsaveenviro
+  - name: childsafeenviro-db
+    databaseName: childsafeenviro
+    user: childsafeenviro
     plan: free

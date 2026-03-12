@@ -1,6 +1,6 @@
 # 🚀 Deployment Guide - Render.com (Free Tier)
 
-This guide will help you deploy **Childsaveenviro** using Render's free tier with Docker.
+This guide will help you deploy **ChildSafeEnviro** using Render's free tier with Docker.
 
 ## 📋 Prerequisites
 
@@ -26,9 +26,9 @@ This guide will help you deploy **Childsaveenviro** using Render's free tier wit
 cd "d:/new project"
 git init
 git add .
-git commit -m "Initial commit - Childsaveenviro"
+git commit -m "Initial commit - ChildSafeEnviro"
 git branch -M main
-git remote add origin https://github.com/yourusername/childsaveenviro.git
+git remote add origin https://github.com/yourusername/childsafeenviro.git
 git push -u origin main
 ```
 
@@ -56,7 +56,7 @@ Ensure these files exist:
 #### Backend API:
 
 1. **New Web Service**
-   - Name: `childsaveenviro-api`
+   - Name: `childsafeenviro-api`
    - Runtime: `Docker`
    - Repository: Your GitHub repo
    - Dockerfile Path: `./backend/Dockerfile`
@@ -80,14 +80,14 @@ Ensure these files exist:
    FRONTEND_URL=<your-frontend-url-after-deployment>
    ```
    
-   **Note**: Set `FRONTEND_URL` after the frontend deploys (e.g., `https://childsaveenviro-frontend.onrender.com`)
+   **Note**: Set `FRONTEND_URL` after the frontend deploys (e.g., `https://childsafeenviro-frontend.onrender.com`)
 
 3. **Health Check Path**: `/health`
 
 #### Frontend Static Site:
 
 1. **New Static Site**
-   - Name: `childsaveenviro-frontend`
+   - Name: `childsafeenviro-frontend`
    - Build Command: `cd frontend && npm install && npm run build`
    - Publish Directory: `frontend/dist`
 
@@ -96,7 +96,7 @@ Ensure these files exist:
    VITE_API_BASE_URL=<your-backend-url-after-deployment>
    ```
    
-   **Note**: Set `VITE_API_BASE_URL` after the backend deploys (e.g., `https://childsaveenviro-api.onrender.com`)
+   **Note**: Set `VITE_API_BASE_URL` after the backend deploys (e.g., `https://childsafeenviro-api.onrender.com`)
 
 3. **Rewrite Rules** (for React Router):
    - Source: `/*`
@@ -128,7 +128,7 @@ Ensure these files exist:
 1. Login to Airpay Merchant Dashboard
 2. Update **Callback URL**:
    ```
-   https://childsaveenviro-api.onrender.com/api/airpay-callback
+   https://childsafeenviro-api.onrender.com/api/airpay-callback
    ```
 3. Whitelist server IP (if required by Airpay)
 4. Verify `AIRPAY_IS_TEST=False` for production
@@ -137,11 +137,11 @@ Ensure these files exist:
 
 ### Backend Health Check
 ```bash
-curl https://childsaveenviro-api.onrender.com/health
+curl https://childsafeenviro-api.onrender.com/health
 ```
 
 ### Frontend
-Visit: `https://childsaveenviro-frontend.onrender.com`
+Visit: `https://childsafeenviro-frontend.onrender.com`
 
 ### Full Flow Test
 1. Sign up / Login
@@ -160,7 +160,7 @@ Visit: `https://childsaveenviro-frontend.onrender.com`
 4. Update DNS:
    - Type: `CNAME`
    - Name: `api`
-   - Value: `childsaveenviro-api.onrender.com`
+   - Value: `childsafeenviro-api.onrender.com`
 
 ### Frontend Domain
 1. Go to Render dashboard → Your static site
