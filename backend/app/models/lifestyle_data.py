@@ -19,6 +19,7 @@ class LifestyleData(Base):
     name = Column(String, nullable=True)
     years_at_location = Column(Integer, nullable=True)
     age_range = Column(String, nullable=False)  # 18-25, 26-35, etc.
+    child_age_range = Column(String, nullable=True)
     gender = Column(String, nullable=True)
     
     # Health Behaviors

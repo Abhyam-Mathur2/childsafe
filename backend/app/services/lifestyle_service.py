@@ -103,7 +103,10 @@ class LifestyleService:
     def _get_age_multiplier(self, age_range: str) -> float:
         """Get age-based risk multiplier"""
         multipliers = {
-            "13-17": 0.8,
+            "0-2": 1.5,
+            "3-5": 1.3,
+            "6-12": 1.1,
+            "13-17": 0.9,
             "18-25": 0.9,
             "26-35": 1.0,
             "36-50": 1.1,

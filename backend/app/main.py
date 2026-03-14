@@ -88,3 +88,5 @@ async def health_check():
         "services": ["air_quality", "soil", "lifestyle", "health_report", "weather"],
         "openweather_configured": bool(settings.OPENWEATHER_API_KEY)
     }
+
+# Trigger reload
