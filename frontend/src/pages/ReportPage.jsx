@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Download, Loader, Share2, Lock, CreditCard, AlertCircle, X } from 'lucide-react';
+import { Download, Loader, Share2, Lock, CreditCard, AlertCircle, X, CheckCircle } from 'lucide-react';
 import ReportTemplate from '../components/dashboard/ReportTemplate';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -177,22 +177,22 @@ const ReportPage = () => {
     };
 
     if (loading || verifyingPayment) return (
-        <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 gap-4">
-            <Loader className="animate-spin text-green-600" size={40} />
-            <p className="text-gray-500 font-medium">
+        <div className="min-h-screen relative z-10 flex flex-col justify-center items-center gap-4 text-white">
+            <Loader className="animate-spin text-emerald-400" size={40} />
+            <p className="text-emerald-100/70 font-medium">
                 {verifyingPayment ? 'Verifying secure payment...' : 'Generating your comprehensive health report...'}
             </p>
         </div>
     );
 
     if (error) return (
-        <div className="min-h-screen pt-24 px-4 flex justify-center bg-gray-50">
-            <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg max-w-lg w-full h-fit flex gap-4">
-                <AlertCircle className="text-red-600 shrink-0" />
+        <div className="min-h-screen relative z-10 pt-24 px-4 flex justify-center text-white">
+            <div className="bg-red-900/30 backdrop-blur-md border border-red-500/50 p-6 rounded-2xl max-w-lg w-full h-fit flex gap-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                <AlertCircle className="text-red-400 shrink-0" />
                 <div>
-                    <h3 className="font-bold text-red-900">Unable to Load Report</h3>
-                    <p className="text-red-700 mt-1">{error}</p>
-                    <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-semibold text-sm">
+                    <h3 className="font-bold text-red-200">Unable to Load Report</h3>
+                    <p className="text-red-100/70 mt-1">{error}</p>
+                    <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red-500/20 text-red-100 rounded-lg hover:bg-red-500/40 transition-colors font-semibold text-sm border border-red-500/30">
                         Try Again
                     </button>
                 </div>
@@ -203,20 +203,20 @@ const ReportPage = () => {
     if (!report) return null;
 
     return (
-        <div className="min-h-screen bg-gray-100 pt-24 pb-12 px-4">
+        <div className="min-h-screen relative z-10 text-white pt-24 pb-12 px-4">
             {/* Toolbar */}
             <div className="max-w-4xl mx-auto mb-6 flex justify-end gap-3">
                 <button
                     onClick={handleDownloadPdf}
                     disabled={!report.is_paid}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${report.is_paid
-                        ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-md'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        ? 'bg-emerald-600 text-white hover:bg-emerald-500 hover:shadow-emerald-500/30'
+                        : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
                         }`}
                 >
                     <Download size={18} /> Download PDF
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium shadow-sm">
+                <button className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors font-medium shadow-sm">
                     <Share2 size={18} /> Share
                 </button>
             </div>
@@ -232,29 +232,47 @@ const ReportPage = () => {
 
                 {/* Payment Overlay */}
                 {!report.is_paid && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="bg-white p-10 rounded-2xl shadow-2xl text-center max-w-md w-full border border-gray-100"
+                            className="glass-panel text-center max-w-md w-full"
                         >
-                            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Lock size={40} className="text-blue-600" />
+                            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+                                <Lock size={40} className="text-emerald-400" />
                             </div>
-                            <h2 className="text-2xl font-bold text-gray-900 mb-3">Unlock Full Report</h2>
-                            <p className="text-gray-500 mb-8 leading-relaxed">
-                                Your personalized environmental health risk assessment is ready.
-                                Unlock the full detailed report, including all recommendations and analysis.
+                            <h2 className="text-2xl font-bold text-white mb-3 shimmer-text">Unlock Full Report</h2>
+                            <p className="text-emerald-100/70 mb-6 leading-relaxed">
+                                Your personalized environmental health risk assessment is ready. Unlock the full detailed report to access:
                             </p>
+                            
+                            <div className="text-left space-y-3 mb-8 bg-black/20 p-4 rounded-xl border border-white/5">
+                                <div className="flex items-start gap-3">
+                                    <CheckCircle size={18} className="text-emerald-400 mt-0.5 shrink-0" />
+                                    <span className="text-emerald-50/90 text-sm">Comprehensive environmental risk analysis</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <CheckCircle size={18} className="text-emerald-400 mt-0.5 shrink-0" />
+                                    <span className="text-emerald-50/90 text-sm">Personalized health & lifestyle recommendations</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <CheckCircle size={18} className="text-emerald-400 mt-0.5 shrink-0" />
+                                    <span className="text-emerald-50/90 text-sm">Detailed breakdown of air, water, and soil hazards</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <CheckCircle size={18} className="text-emerald-400 mt-0.5 shrink-0" />
+                                    <span className="text-emerald-50/90 text-sm">Actionable steps to protect your child's well-being</span>
+                                </div>
+                            </div>
 
                             <div className="space-y-4">
                                 <button
                                     onClick={() => setShowPaymentModal(true)}
-                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-3"
+                                    className="btn-modern !py-4 flex items-center justify-center gap-3 text-lg"
                                 >
                                     <CreditCard size={22} /> Pay ₹80 to Unlock
                                 </button>
-                                <p className="text-xs text-gray-400 font-medium">
+                                <p className="text-xs text-white/60 font-medium">
                                     Secure payment via Airpay. One-time fee.
                                 </p>
                             </div>
@@ -271,11 +289,11 @@ const ReportPage = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 20 }}
-                            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden"
+                            className="glass-panel !p-0 max-w-lg w-full overflow-hidden"
                         >
-                            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-                                <h3 className="font-bold text-gray-900 text-lg">Payment Details</h3>
-                                <button onClick={() => setShowPaymentModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                            <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                                <h3 className="font-bold text-white text-lg shimmer-text">Payment Details</h3>
+                                <button onClick={() => setShowPaymentModal(false)} className="text-white/60 hover:text-white transition-colors">
                                     <X size={24} />
                                 </button>
                             </div>
@@ -283,97 +301,97 @@ const ReportPage = () => {
                             <form onSubmit={handleAirpayPayment} className="p-6 space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">First Name</label>
+                                        <label className="block text-xs font-bold text-emerald-100/70 uppercase mb-1">First Name</label>
                                         <input
                                             required
                                             type="text"
                                             value={paymentDetails.buyerFirstName}
                                             onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerFirstName: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Last Name</label>
+                                        <label className="block text-xs font-bold text-emerald-100/70 uppercase mb-1">Last Name</label>
                                         <input
                                             required
                                             type="text"
                                             value={paymentDetails.buyerLastName}
                                             onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerLastName: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
+                                        <label className="block text-xs font-bold text-emerald-100/70 uppercase mb-1">Email</label>
                                         <input
                                             required
                                             type="email"
                                             value={paymentDetails.buyerEmail}
                                             onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerEmail: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Phone</label>
+                                        <label className="block text-xs font-bold text-emerald-100/70 uppercase mb-1">Phone</label>
                                         <input
                                             required
                                             type="tel"
                                             value={paymentDetails.buyerPhone}
                                             onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerPhone: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Address</label>
+                                    <label className="block text-xs font-bold text-emerald-100/70 uppercase mb-1">Address</label>
                                     <input
                                         required
                                         type="text"
                                         value={paymentDetails.buyerAddress}
                                         onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerAddress: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">City</label>
+                                        <label className="block text-xs font-bold text-emerald-100/70 uppercase mb-1">City</label>
                                         <input
                                             required
                                             type="text"
                                             value={paymentDetails.buyerCity}
                                             onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerCity: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">State</label>
+                                        <label className="block text-xs font-bold text-emerald-100/70 uppercase mb-1">State</label>
                                         <input
                                             required
                                             type="text"
                                             value={paymentDetails.buyerState}
                                             onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerState: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Pin Code</label>
+                                        <label className="block text-xs font-bold text-emerald-100/70 uppercase mb-1">Pin Code</label>
                                         <input
                                             required
                                             type="text"
                                             value={paymentDetails.buyerPinCode}
                                             onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerPinCode: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
                                 </div>
 
                                 <button
                                     type="submit"
-                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg mt-4 transition-all"
+                                    className="btn-modern !py-4 mt-4 transition-all w-full"
                                 >
                                     Proceed to Airpay
                                 </button>

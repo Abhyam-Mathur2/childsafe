@@ -21,6 +21,7 @@ const AssessmentPage = () => {
         name: '',
         years_at_location: '',
         age_range: '',
+        child_age_range: '',
         gender: '',
         smoking_status: '',
         activity_level: '',
@@ -154,26 +155,19 @@ const AssessmentPage = () => {
     };
 
     return (
-        <div 
-            className="min-h-screen flex justify-center items-center py-20 px-4"
-            style={{
-                backgroundColor: '#064e3b',
-                backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.627 0l.83.83v58.34h-58.34l-.83-.83L54.627 0zM27.314 0l.83.83v29.17h-29.17l-.83-.83L27.314 0zm0 29.171l.83.83v29.17h-29.17l-.83-.83l53.797-53.797z' fill='%23059669' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-                backgroundSize: 'cover'
-            }}
-        >
+        <div className="min-h-screen relative z-10 text-white flex justify-center items-center py-20 px-4">
             <motion.div
                 layout
-                className="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100"
+                className="w-full max-w-2xl bg-[#093520]/80 backdrop-blur-2xl border border-emerald-500/30 rounded-3xl !p-0 overflow-hidden shadow-[0_0_40px_rgba(4,120,87,0.4)] text-white"
             >
                 {/* Progress Header */}
                 {step > 0 && (
-                    <div className="h-1.5 bg-gray-100 w-full">
+                    <div className="h-1.5 bg-transparent/10 w-full">
                         <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
                             transition={{ type: "spring", stiffness: 50, damping: 20 }}
-                            className="h-full bg-green-600"
+                            className="h-full bg-emerald-500 shadow-[0_0_10px_#34d399]"
                         ></motion.div>
                     </div>
                 )}
@@ -189,14 +183,14 @@ const AssessmentPage = () => {
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: -10 }}
                                         onClick={prevStep}
-                                        className="text-gray-400 hover:text-green-700 transition-colors"
+                                        className="text-emerald-100/80 hover:text-emerald-300 transition-colors"
                                     >
                                         <ArrowLeft size={24} />
                                     </motion.button>
                                 ) : <div className="w-6"></div>}
                             </AnimatePresence>
 
-                            <span className="text-sm font-bold uppercase tracking-widest text-gray-400">
+                            <span className="text-sm font-bold uppercase tracking-widest text-emerald-100/80">
                                 Step {step} of 5
                             </span>
                             <div className="w-6"></div>
@@ -215,14 +209,14 @@ const AssessmentPage = () => {
                             {/* Step 0: Intro Screen */}
                             {step === 0 && (
                                 <div className="text-center py-8">
-                                    <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <ShieldCheck size={40} className="text-green-600" />
+                                    <div className="w-20 h-20 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <ShieldCheck size={40} className="text-emerald-400" />
                                     </div>
-                                    <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Welcome to ChildSafeEnviro</h1>
-                                    <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                                    <h1 className="text-4xl font-extrabold text-white mb-6 shimmer-text">Welcome to ChildSafeEnviro</h1>
+                                    <p className="text-emerald-50 text-lg leading-relaxed mb-8">
                                         ChildSafeEnviro helps parents and caregivers understand how your child's environment, health conditions, and daily habits interact with air quality, UV exposure, temperature, and seasonal changes — so you can make safer decisions every day.
                                     </p>
-                                    <div className="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm mb-8 flex items-start gap-3 text-left">
+                                    <div className="bg-transparent/10 text-white border border-white/20 p-4 rounded-xl text-sm mb-8 flex items-start gap-3 text-left">
                                         <Info className="shrink-0 mt-0.5" size={20} />
                                         <p>This assessment takes about 3-5 minutes. Your data is kept private and used solely to generate your personalized environmental health report.</p>
                                     </div>
@@ -231,12 +225,12 @@ const AssessmentPage = () => {
                             {/* Step 1: Personal Profile */}
                             {step === 1 && (
                                 <>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">Let's build your profile</h1>
-                                    <p className="text-gray-500 text-center mb-10 text-lg">We use this to customize your environmental risk calculations.</p>
+                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Let's build your profile</h1>
+                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">We use this to customize your environmental risk calculations.</p>
 
                                     <div className="space-y-6 mb-10">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
                                                 <User size={16} /> What is your full name?
                                             </label>
                                             <input
@@ -245,11 +239,11 @@ const AssessmentPage = () => {
                                                 value={formData.name}
                                                 onChange={handleChange}
                                                 placeholder="Enter name"
-                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-lg"
+                                                className="w-full px-5 py-4 bg-transparent/10 border-white/20 text-white placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all text-lg"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
                                                 <MapPin size={16} /> Years at current location?
                                             </label>
                                             <input
@@ -258,24 +252,24 @@ const AssessmentPage = () => {
                                                 value={formData.years_at_location}
                                                 onChange={handleChange}
                                                 placeholder="e.g. 5"
-                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-lg"
+                                                className="w-full px-5 py-4 bg-transparent/10 border-white/20 text-white placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all text-lg"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Select your age group</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {['13-17', '18-25', '26-35', '36-50', '51-65', '65+'].map((age) => (
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Age group of the child</label>
+                                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                            {['0-2', '3-5', '6-12', '13-17', '18-25', '26-35', '36-50', '51-65', '65+'].map((age) => (
                                                 <button
                                                     key={age}
-                                                    onClick={() => handleOptionSelect('age_range', age)}
+                                                    onClick={() => handleOptionSelect('age_range', formData.age_range === age ? '' : age)}
                                                     className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-2 ${formData.age_range === age
-                                                            ? 'border-green-600 bg-green-50 text-green-700'
-                                                            : 'border-gray-100 bg-white text-gray-500 hover:border-green-200'
+                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
                                                         }`}
                                                 >
-                                                    <Calendar size={20} className={formData.age_range === age ? 'text-green-600' : 'text-gray-400'} />
+                                                    <Smile size={20} className={formData.age_range === age ? 'text-emerald-400' : 'text-emerald-100/80'} />
                                                     {age}
                                                 </button>
                                             ))}
@@ -283,18 +277,18 @@ const AssessmentPage = () => {
                                     </div>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Your gender</label>
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Your gender</label>
                                         <div className="grid grid-cols-3 gap-3">
                                             {['Male', 'Female', 'Other'].map((g) => (
                                                 <button
                                                     key={g}
                                                     onClick={() => handleOptionSelect('gender', g.toLowerCase())}
                                                     className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-2 ${formData.gender?.toLowerCase() === g.toLowerCase()
-                                                            ? 'border-green-600 bg-green-50 text-green-700'
-                                                            : 'border-gray-100 bg-white text-gray-500 hover:border-green-200'
+                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
                                                         }`}
                                                 >
-                                                    <Users size={20} className={formData.gender?.toLowerCase() === g.toLowerCase() ? 'text-green-600' : 'text-gray-400'} />
+                                                    <Users size={20} className={formData.gender?.toLowerCase() === g.toLowerCase() ? 'text-emerald-400' : 'text-emerald-100/80'} />
                                                     {g}
                                                 </button>
                                             ))}
@@ -306,11 +300,11 @@ const AssessmentPage = () => {
                             {/* Step 2: Lifestyle */}
                             {step === 2 && (
                                 <>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">Your daily habits</h1>
-                                    <p className="text-gray-500 text-center mb-10 text-lg">Lifestyle choices can either protect you or increase your vulnerability.</p>
+                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Your daily habits</h1>
+                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">Lifestyle choices can either protect you or increase your vulnerability.</p>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Smoking Status</label>
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Smoking Status</label>
                                         <div className="grid grid-cols-3 gap-3">
                                             {[
                                                 { id: 'never', label: 'Never', icon: <Smile /> },
@@ -321,11 +315,11 @@ const AssessmentPage = () => {
                                                     key={item.id}
                                                     onClick={() => handleOptionSelect('smoking_status', item.id)}
                                                     className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.smoking_status === item.id
-                                                            ? 'border-green-600 bg-green-50 text-green-700'
-                                                            : 'border-gray-100 bg-white text-gray-500 hover:border-green-200'
+                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
                                                         }`}
                                                 >
-                                                    <span className={formData.smoking_status === item.id ? 'text-green-600' : 'text-gray-400'}>{item.icon}</span>
+                                                    <span className={formData.smoking_status === item.id ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
                                                     {item.label}
                                                 </button>
                                             ))}
@@ -333,7 +327,7 @@ const AssessmentPage = () => {
                                     </div>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Physical Activity</label>
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Physical Activity</label>
                                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                             {[
                                                 { level: 'sedentary_0', label: 'Sedentary', duration: '0 min', icon: <Zap className="opacity-30" /> },
@@ -348,13 +342,13 @@ const AssessmentPage = () => {
                                                         handleOptionSelect('activity_duration', item.duration);
                                                     }}
                                                     className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-2 ${formData.activity_level === item.level
-                                                            ? 'border-green-600 bg-green-50 text-green-700'
-                                                            : 'border-gray-100 bg-white text-gray-500 hover:border-green-200'
+                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
                                                         }`}
                                                 >
-                                                    <span className={formData.activity_level === item.level ? 'text-green-600' : 'text-gray-400'}>{item.icon}</span>
+                                                    <span className={formData.activity_level === item.level ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
                                                     <span>{item.label}</span>
-                                                    <span className="text-xs text-gray-400 font-normal">{item.duration}</span>
+                                                    <span className="text-xs text-emerald-100/80 font-normal">{item.duration}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -362,35 +356,35 @@ const AssessmentPage = () => {
 
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
                                                 <Moon size={16} /> Average Sleep
                                             </label>
                                             <select
                                                 name="sleep_hours"
                                                 value={formData.sleep_hours}
                                                 onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                                                className="w-full px-4 py-3 bg-transparent/10 border-white/20 text-white placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all"
                                             >
-                                                <option value="">Duration</option>
-                                                <option value="<6">Less than 6h</option>
-                                                <option value="6-8">6-8 hours</option>
-                                                <option value=">8">8+ hours</option>
+                                                <option className="bg-[#093520] text-emerald-50" value="">Duration</option>
+                                                <option className="bg-[#093520] text-emerald-50" value="<6">Less than 6h</option>
+                                                <option className="bg-[#093520] text-emerald-50" value="6-8">6-8 hours</option>
+                                                <option className="bg-[#093520] text-emerald-50" value=">8">8+ hours</option>
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
                                                 <Brain size={16} /> Stress Level
                                             </label>
                                             <select
                                                 name="stress_level"
                                                 value={formData.stress_level}
                                                 onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                                                className="w-full px-4 py-3 bg-transparent/10 border-white/20 text-white placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all"
                                             >
-                                                <option value="">Level</option>
-                                                <option value="low">Low</option>
-                                                <option value="medium">Medium</option>
-                                                <option value="high">High</option>
+                                                <option className="bg-[#093520] text-emerald-50" value="">Level</option>
+                                                <option className="bg-[#093520] text-emerald-50" value="low">Low</option>
+                                                <option className="bg-[#093520] text-emerald-50" value="medium">Medium</option>
+                                                <option className="bg-[#093520] text-emerald-50" value="high">High</option>
                                             </select>
                                         </div>
                                     </div>
@@ -400,11 +394,11 @@ const AssessmentPage = () => {
                             {/* Step 3: Environment */}
                             {step === 3 && (
                                 <>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">Home & Work</h1>
-                                    <p className="text-gray-500 text-center mb-10 text-lg">Where you spend your time significantly affects your exposure levels.</p>
+                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Home & Work</h1>
+                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">Where you spend your time significantly affects your exposure levels.</p>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Main Work Environment</label>
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Main Work Environment</label>
                                         <div className="grid grid-cols-3 gap-3">
                                             {[
                                                 { id: 'indoor', label: 'Indoor', icon: <Home /> },
@@ -415,11 +409,11 @@ const AssessmentPage = () => {
                                                     key={item.id}
                                                     onClick={() => handleOptionSelect('work_environment', item.id)}
                                                     className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.work_environment === item.id
-                                                            ? 'border-green-600 bg-green-50 text-green-700'
-                                                            : 'border-gray-100 bg-white text-gray-500 hover:border-green-200'
+                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
                                                         }`}
                                                 >
-                                                    <span className={formData.work_environment === item.id ? 'text-green-600' : 'text-gray-400'}>{item.icon}</span>
+                                                    <span className={formData.work_environment === item.id ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
                                                     {item.label}
                                                 </button>
                                             ))}
@@ -427,7 +421,7 @@ const AssessmentPage = () => {
                                     </div>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Diet Quality</label>
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Diet Quality</label>
                                         <div className="grid grid-cols-3 gap-3">
                                             {[
                                                 { id: 'good', label: 'Balanced', icon: <Utensils /> },
@@ -438,11 +432,11 @@ const AssessmentPage = () => {
                                                     key={item.id}
                                                     onClick={() => handleOptionSelect('diet_quality', item.id)}
                                                     className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.diet_quality === item.id
-                                                            ? 'border-green-600 bg-green-50 text-green-700'
-                                                            : 'border-gray-100 bg-white text-gray-500 hover:border-green-200'
+                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
                                                         }`}
                                                 >
-                                                    <span className={formData.diet_quality === item.id ? 'text-green-600' : 'text-gray-400'}>{item.icon}</span>
+                                                    <span className={formData.diet_quality === item.id ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
                                                     {item.label}
                                                 </button>
                                             ))}
@@ -450,7 +444,7 @@ const AssessmentPage = () => {
                                     </div>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Cooking Source</label>
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Cooking Source</label>
                                         <div className="grid grid-cols-3 gap-3">
                                             {[
                                                 { id: 'electric', label: 'Electric', icon: <Zap /> },
@@ -461,11 +455,11 @@ const AssessmentPage = () => {
                                                     key={item.id}
                                                     onClick={() => handleOptionSelect('cooking_method', item.id)}
                                                     className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.cooking_method === item.id
-                                                            ? 'border-green-600 bg-green-50 text-green-700'
-                                                            : 'border-gray-100 bg-white text-gray-500 hover:border-green-200'
+                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
                                                         }`}
                                                 >
-                                                    <span className={formData.cooking_method === item.id ? 'text-green-600' : 'text-gray-400'}>{item.icon}</span>
+                                                    <span className={formData.cooking_method === item.id ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
                                                     {item.label}
                                                 </button>
                                             ))}
@@ -477,11 +471,11 @@ const AssessmentPage = () => {
                             {/* Step 4: Environment & Health */}
                             {step === 4 && (
                                 <>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">Local Environment</h1>
-                                    <p className="text-gray-500 text-center mb-10 text-lg">Specific details about your home's surrounding environment.</p>
+                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Local Environment</h1>
+                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">Specific details about your home's surrounding environment.</p>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Primary Water Source</label>
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Primary Water Source</label>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                             {[
                                                 { id: 'tap', label: 'Tap Water', icon: <Droplets /> },
@@ -494,19 +488,19 @@ const AssessmentPage = () => {
                                                     onClick={() => handleOptionSelect('water_source', item.id)}
                                                     className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.water_source === item.id
                                                             ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                                            : 'border-gray-100 bg-white text-gray-500 hover:border-blue-200'
+                                                            : 'border-white/20 bg-transparent/5 text-blue-100/70 hover:bg-transparent/10 hover:border-blue-400'
                                                         }`}
                                                 >
-                                                    <span className={formData.water_source === item.id ? 'text-blue-600' : 'text-gray-400'}>{item.icon}</span>
+                                                    <span className={formData.water_source === item.id ? 'text-blue-600' : 'text-emerald-100/80'}>{item.icon}</span>
                                                     <span className="text-sm text-center">{item.label}</span>
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
 
-                                    <div className="mb-10 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                    <div className="mb-10 bg-transparent p-6 rounded-2xl border border-white/10 shadow-sm">
                                         <div className="flex justify-between items-center mb-6">
-                                            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
                                                 <Sun size={18} className="text-yellow-500" /> Typical Daily UV Exposure
                                             </label>
                                             <span className="text-2xl font-bold bg-yellow-100 text-yellow-800 w-12 h-12 flex items-center justify-center rounded-xl">
@@ -522,7 +516,7 @@ const AssessmentPage = () => {
                                             onChange={(e) => handleOptionSelect('uv_index', parseInt(e.target.value))}
                                             className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500 mb-4"
                                         />
-                                        <div className="flex justify-between text-xs font-bold text-gray-400 uppercase">
+                                        <div className="flex justify-between text-xs font-bold text-emerald-100/80 uppercase">
                                             <span>Low (0-2)</span>
                                             <span>Mod (3-5)</span>
                                             <span>High (6-7)</span>
@@ -536,8 +530,8 @@ const AssessmentPage = () => {
                             {/* Step 5: Medical */}
                             {step === 5 && (
                                 <>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">Health History</h1>
-                                    <p className="text-gray-500 text-center mb-10 text-lg">Pre-existing conditions can make environmental factors more hazardous.</p>
+                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Health History</h1>
+                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">Pre-existing conditions can make environmental factors more hazardous.</p>
 
                                     <div className="space-y-3 mb-10">
                                         {[
@@ -547,24 +541,30 @@ const AssessmentPage = () => {
                                             { id: 'diabetes', label: 'Diabetes', icon: <Activity /> },
                                             { id: 'hypertension', label: 'Hypertension', icon: <Activity /> },
                                             { id: 'allergies', label: 'Allergies', icon: <Smile /> },
-                                            { id: 'immune_disorder', label: 'Immune Disorder', icon: <ShieldCheck size={20} /> }
+                                            { id: 'immune_disorder', label: 'Immune Disorder', icon: <ShieldCheck size={20} /> },
+                                            { id: 'eczema', label: 'Eczema / Skin Conditions', icon: <Activity /> },
+                                            { id: 'cystic_fibrosis', label: 'Cystic Fibrosis', icon: <Activity /> },
+                                            { id: 'epilepsy', label: 'Epilepsy / Seizures', icon: <Brain size={20} /> },
+                                            { id: 'obesity', label: 'Obesity', icon: <Activity /> },
+                                            { id: 'congenital_heart', label: 'Congenital Heart Defect', icon: <Heart /> },
+                                            { id: 'premature_birth', label: 'Premature Birth Complications', icon: <Activity /> }
                                         ].map((cond) => (
                                             <button
                                                 key={cond.id}
                                                 onClick={() => handleCheckboxChange(cond.id)}
                                                 className={`w-full p-4 rounded-xl border-2 flex justify-between items-center transition-all ${formData.medical_history.includes(cond.id)
-                                                        ? 'border-green-600 bg-green-50 text-green-800'
-                                                        : 'border-gray-100 bg-white text-gray-600 hover:border-green-100'
+                                                        ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-green-800'
+                                                        : 'border-white/20 bg-transparent/5 text-emerald-50 hover:bg-transparent/10 hover:border-emerald-400'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-4 font-bold">
-                                                    <span className={formData.medical_history.includes(cond.id) ? 'text-green-600' : 'text-gray-400'}>
+                                                    <span className={formData.medical_history.includes(cond.id) ? 'text-emerald-400' : 'text-emerald-100/80'}>
                                                         {cond.icon}
                                                     </span>
                                                     {cond.label}
                                                 </div>
                                                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${formData.medical_history.includes(cond.id)
-                                                        ? 'border-green-600 bg-green-600 text-white'
+                                                        ? 'border-green-600 bg-emerald-500 shadow-[0_0_10px_#34d399] text-white'
                                                         : 'border-gray-200'
                                                     }`}>
                                                     {formData.medical_history.includes(cond.id) && <CheckCircle size={16} />}
@@ -573,13 +573,15 @@ const AssessmentPage = () => {
                                         ))}
                                     </div>
 
-                                    <h2 className="text-xl font-bold text-gray-800 mb-4 mt-8">Mental Health / Neurodevelopmental</h2>
+                                    <h2 className="text-xl font-bold text-white mb-4 mt-8">Mental Health / Neurodevelopmental</h2>
                                     <div className="space-y-3 mb-10">
                                         {[
                                             { id: 'anxiety', label: 'Anxiety' },
                                             { id: 'adhd', label: 'ADHD' },
                                             { id: 'autism_spectrum', label: 'Autism Spectrum' },
                                             { id: 'depression', label: 'Depression' },
+                                            { id: 'bipolar', label: 'Bipolar Disorder' },
+                                            { id: 'schizophrenia', label: 'Schizophrenia' },
                                             { id: 'ocd', label: 'OCD' },
                                             { id: 'ptsd', label: 'PTSD' },
                                             { id: 'none', label: 'None' }
@@ -588,17 +590,17 @@ const AssessmentPage = () => {
                                                 key={cond.id}
                                                 onClick={() => handleMentalHealthChange(cond.id)}
                                                 className={`w-full p-4 rounded-xl border-2 flex justify-between items-center transition-all ${formData.mental_health_conditions.includes(cond.id)
-                                                        ? 'border-indigo-600 bg-indigo-50 text-indigo-800'
-                                                        : 'border-gray-100 bg-white text-gray-600 hover:border-indigo-100'
+                                                        ? 'border-indigo-400 bg-indigo-500/30 text-indigo-200'
+                                                        : 'border-white/20 bg-transparent/5 text-indigo-50 hover:bg-transparent/10 hover:border-indigo-400'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-4 font-bold">
-                                                    <Brain size={20} className={formData.mental_health_conditions.includes(cond.id) ? 'text-indigo-600' : 'text-gray-400'} />
+                                                    <Brain size={20} className={formData.mental_health_conditions.includes(cond.id) ? 'text-indigo-600' : 'text-emerald-100/80'} />
                                                     {cond.label}
                                                 </div>
                                                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${formData.mental_health_conditions.includes(cond.id)
-                                                        ? 'border-indigo-600 bg-indigo-600 text-white'
-                                                        : 'border-gray-200'
+                                                        ? 'border-indigo-400 bg-indigo-500 shadow-[0_0_10px_rgba(129,140,248,0.5)] text-white'
+                                                        : 'border-white/20'
                                                     }`}>
                                                     {formData.mental_health_conditions.includes(cond.id) && <CheckCircle size={16} />}
                                                 </div>
@@ -606,8 +608,8 @@ const AssessmentPage = () => {
                                         ))}
                                     </div>
 
-                                    <div className="bg-gray-50 rounded-2xl p-6 flex gap-4 items-center text-gray-500 text-sm">
-                                        <Stethoscope size={24} className="shrink-0 text-gray-400" />
+                                    <div className="bg-transparent/10 border border-white/20 rounded-2xl p-6 flex gap-4 items-center text-emerald-100/90 text-sm">
+                                        <Stethoscope size={24} className="shrink-0 text-emerald-100/80" />
                                         <p>We adjust your risk multipliers based on these vulnerabilities to provide a safer assessment.</p>
                                     </div>
                                 </>
@@ -617,11 +619,11 @@ const AssessmentPage = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="p-8 border-t border-gray-100 flex justify-center">
+                <div className="p-8 border-t border-white/10 flex justify-center">
                     <button
                         onClick={step === 5 ? handleSubmit : nextStep}
                         disabled={loading || !isStepValid()}
-                        className="w-full max-w-sm py-4 bg-green-600 text-white rounded-full font-bold text-lg shadow-lg hover:bg-green-700 hover:shadow-xl hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
+                        className="w-full max-w-sm py-4 bg-emerald-500 shadow-[0_0_10px_#34d399] text-white rounded-full font-bold text-lg shadow-lg hover:bg-green-700 hover:shadow-xl hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
                     >
                         {loading ? (
                             <Zap className="animate-spin" size={24} />

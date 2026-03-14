@@ -39,7 +39,25 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+        <div className="min-h-screen relative text-white font-sans">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
+            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-400 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float-slow"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-green-600 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float-slow" style={{ animationDelay: '-4s' }}></div>
+            <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-teal-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float-slow" style={{ animationDelay: '-2s' }}></div>
+            {/* Particle dots */}
+            {[...Array(20)].map((_, i) => (
+              <div 
+                key={i} 
+                className="absolute w-1 h-1 rounded-full bg-white/20 animate-float-slow"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 8}s`,
+                  animationDuration: `${6 + Math.random() * 4}s`
+                }}
+              />
+            ))}
+          </div>
           <Navbar />
           <Routes>
             <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />

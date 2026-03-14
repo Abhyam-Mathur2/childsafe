@@ -82,7 +82,7 @@ const DashboardPage = () => {
     const safetyScore = envData.air ? 100 - (envData.air.data.aqi / 2) : 85;
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen relative z-10 text-white pt-24 pb-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Gamified Header */}
                 {location && !loading && (
@@ -92,13 +92,13 @@ const DashboardPage = () => {
                 {/* Sub-Header Actions */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Environmental Intel</h2>
-                        <p className="text-gray-500 font-medium">Real-time status of your surroundings.</p>
+                        <h2 className="text-2xl font-black text-white tracking-tight shimmer-text">Environmental Intel</h2>
+                        <p className="text-emerald-100/70 font-medium">Real-time status of your surroundings.</p>
                     </div>
                     <button
                         onClick={handleGetLocation}
                         disabled={loading}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm focus:ring-2 focus:ring-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-xs"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/20 text-white font-bold rounded-xl hover:bg-white/20 hover:border-white/30 transition-all shadow-sm focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-xs"
                     >
                         {loading ? <Loader className="animate-spin text-green-600" size={16} /> : <RefreshCw size={16} />}
                         <span>Sync Environment</span>
@@ -120,19 +120,19 @@ const DashboardPage = () => {
                 )}
 
                 {loading && !envData.air ? (
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-16 text-center max-w-2xl mx-auto mt-10">
+                    <div className="glass-panel !rounded-3xl p-16 text-center max-w-2xl mx-auto mt-10">
                         <div className="inline-block relative mb-8">
                             <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                                className="w-24 h-24 border-4 border-blue-50 border-t-blue-500 rounded-full"
+                                className="w-24 h-24 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full"
                             ></motion.div>
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <Leaf size={32} className="text-blue-500" />
+                                <Leaf size={32} className="text-emerald-400" />
                             </div>
                         </div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Decoding your environment...</h3>
-                        <p className="text-gray-500 font-medium">Gathering real-time satellite and ground data for your precise location.</p>
+                        <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Decoding your environment...</h3>
+                        <p className="text-emerald-100/70 font-medium">Gathering real-time satellite and ground data for your precise location.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -194,7 +194,7 @@ const DashboardPage = () => {
                             <div className="shrink-0 group">
                                 <Link
                                     to="/assessment"
-                                    className="px-10 py-5 bg-white text-emerald-900 font-black rounded-2xl hover:bg-emerald-50 transition-all shadow-[0_20px_40px_rgba(0,0,0,0.3)] transform hover:-translate-y-1 flex items-center gap-3 uppercase tracking-widest text-sm"
+                                    className="btn-modern !w-auto !py-4 flex items-center gap-3 uppercase tracking-widest text-sm"
                                 >
                                     Start Master Quest
                                     <Activity size={20} className="group-hover:scale-125 transition-transform" />

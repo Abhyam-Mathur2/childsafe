@@ -31,17 +31,17 @@ const SignupPage = () => {
 
     return (
         <div className="auth-container">
-            {/* Ambient Background Elements - Different variation than Login */}
-            <div className="orb orb-1 opacity-50"></div>
-            <div className="orb orb-3 opacity-60"></div>
+            {/* Ambient Background Elements */}
+            <div className="absolute w-[500px] h-[500px] bg-emerald-500 rounded-full mix-blend-screen filter blur-[80px] opacity-30 top-[-10%] left-[-10%] animate-float-slow"></div>
+            <div className="absolute w-[300px] h-[300px] bg-teal-400 rounded-full mix-blend-screen filter blur-[80px] opacity-40 top-[40%] right-[20%] animate-float-slow" style={{ animationDelay: '-2s' }}></div>
 
             <motion.div
-                className="glass-panel"
+                className="glass-panel w-full max-w-[420px] mx-4"
                 initial={{ opacity: 0, scale: 0.9, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
-                <div className="glass-content w-full max-w-[420px]">
+                <div className="w-full">
                     <div className="auth-header-modern">
                         <motion.div
                             initial={{ scale: 0, rotate: -45 }}

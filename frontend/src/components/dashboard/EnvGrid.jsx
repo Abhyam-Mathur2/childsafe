@@ -30,15 +30,15 @@ const EnvCard = ({ title, children, icon: Icon, riskLevel, delay = 0 }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.5 }}
-            className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all group"
+            className="glass-card !border-t-2 !border-t-emerald-400 overflow-hidden hover:bg-white/5 hover:shadow-lg hover:shadow-emerald-900/40 transition-all group"
         >
-            <div className={`h-1.5 w-full ${getAccentColor()}`}></div>
+            <div className={`h-1.5 w-full ${getAccentColor()} shadow-[0_0_10px_currentColor] opacity-50`}></div>
             <div className="p-5">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-gray-50 text-gray-700 group-hover:bg-gray-100 transition-colors">
+                    <div className="p-2 rounded-lg bg-white/10 text-emerald-100 group-hover:bg-white/20 transition-colors shadow-sm">
                         <Icon size={20} />
                     </div>
-                    <h3 className="font-bold text-gray-800 text-lg">{title}</h3>
+                    <h3 className="font-bold text-white text-lg shimmer-text">{title}</h3>
                 </div>
                 <div className="space-y-3">
                     {children}
@@ -49,9 +49,9 @@ const EnvCard = ({ title, children, icon: Icon, riskLevel, delay = 0 }) => {
 };
 
 const StatRow = ({ label, value, highlight = false }) => (
-    <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0 text-sm">
-        <span className="text-gray-500">{label}</span>
-        <span className={`font-semibold ${highlight ? 'text-yellow-600' : 'text-gray-900'}`}>{value}</span>
+    <div className="flex justify-between items-center py-2 border-b border-white/10 last:border-0 text-sm">
+        <span className="text-emerald-100/70">{label}</span>
+        <span className={`font-semibold ${highlight ? 'text-yellow-400 text-shadow-sm' : 'text-white'}`}>{value}</span>
     </div>
 );
 
@@ -75,26 +75,26 @@ const EnvGrid = ({ air, soil, water, weather }) => {
                 <motion.div 
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6"
+                    className="glass-panel p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6"
                 >
                     <div className="flex items-center gap-6 text-center md:text-left">
-                        <div className="p-4 bg-yellow-50 rounded-full">
+                        <div className="p-4 bg-yellow-500/20 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                             <WeatherIcon condition={weather.data.weather_condition} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">{weather.location_name}</h2>
-                            <p className="text-gray-500 font-medium flex items-center gap-2 justify-center md:justify-start">
+                            <h2 className="text-2xl font-bold text-white shimmer-text">{weather.location_name}</h2>
+                            <p className="text-emerald-100/70 font-medium flex items-center gap-2 justify-center md:justify-start">
                                 {weather.data.weather_condition} 
-                                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                                <span className="w-1 h-1 rounded-full bg-white/20"></span>
                                 <span className="capitalize">{weather.data.weather_description}</span>
                             </p>
                         </div>
                     </div>
                     <div className="flex flex-col items-center md:items-end">
-                        <div className="text-6xl font-black text-gray-900 tracking-tighter">
+                        <div className="text-6xl font-black text-white tracking-tighter drop-shadow-md">
                             {Math.round(weather.data.temperature)}°
                         </div>
-                        <div className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                        <div className="text-sm font-medium text-emerald-100/80 bg-white/10 px-3 py-1 rounded-full mt-2">
                             Feels like {Math.round(weather.data.feels_like || weather.data.temperature)}°
                         </div>
                     </div>
