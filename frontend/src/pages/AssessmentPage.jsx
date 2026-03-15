@@ -93,10 +93,10 @@ const AssessmentPage = () => {
                 water_source: formData.water_source,
                 uv_index: formData.uv_index,
                 activity_duration: formData.activity_duration
-            }
+            },
+            mental_health_conditions: formData.mental_health_conditions.filter(c => c !== 'none')
         };
         delete payload.cooking_method;
-        delete payload.mental_health_conditions;
 
         try {
             const response = await api.post('/lifestyle', payload);
@@ -260,7 +260,7 @@ const AssessmentPage = () => {
                                     <div className="mb-10">
                                         <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Age group of the child</label>
                                         <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                                            {['0-2', '3-5', '6-12', '13-17', '18-25', '26-35', '36-50', '51-65', '65+'].map((age) => (
+                                            {['0-1', '1-3', '3-12', '13-17', '18-25', '26-35', '36-50', '51-65', '65+'].map((age) => (
                                                 <button
                                                     key={age}
                                                     onClick={() => handleOptionSelect('age_range', formData.age_range === age ? '' : age)}

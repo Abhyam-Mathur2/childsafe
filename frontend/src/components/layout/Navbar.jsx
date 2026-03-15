@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Leaf, LogOut, User, Menu, X, LayoutDashboard, ClipboardList, FileText, Zap } from 'lucide-react';
+import { Leaf, LogOut, User, Menu, X, LayoutDashboard, ClipboardList, FileText, Zap, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
@@ -16,11 +16,7 @@ const Navbar = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 20) {
-                setScrolled(true);
-            } else {
-                setScrolled(false);
-            }
+            setScrolled(window.scrollY > 50);
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
@@ -41,127 +37,146 @@ const Navbar = () => {
 
     return (
         <header 
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-black/30 backdrop-blur-xl shadow-lg border-b border-white/10 ${
-                scrolled || !isLanding ? 'py-3' : 'py-5'
+            className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+                scrolled || !isLanding 
+                ? 'py-4 bg-slate-950/80 backdrop-blur-2xl border-b border-white/5 shadow-2xl' 
+                : 'py-8 bg-transparent'
             }`}
         >
             <div className="container mx-auto px-6 max-w-7xl flex justify-between items-center">
                 {/* Logo */}
-                <Link to="/" className="flex items-center gap-2 group">
-                    <div className="p-2 rounded-xl transition-all group-hover:rotate-12 bg-emerald-600 text-white shadow-emerald-500/30 shadow-lg">
-                        <Leaf size={24} />
+                <Link to="/" className="flex items-center gap-3 group">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20 group-hover:rotate-12 transition-transform duration-500">
+                        <Leaf size={28} className="fill-current" />
                     </div>
-                    <span className="text-xl font-black tracking-tighter text-white">
-                        ChildSafeEnviro
+                    <span className="text-2xl font-black tracking-tighter text-white group-hover:text-emerald-400 transition-colors duration-300">
+                        ChildSafe<span className="text-emerald-500">Enviro</span>
                     </span>
                 </Link>
 
                 {/* Desktop Navigation */}
-                <nav className="hidden md:flex items-center gap-8">
+                <nav className="hidden md:flex items-center gap-10">
                     {user ? (
                         <>
-                            <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-8">
                                 {navLinks.map((link) => (
                                      <Link 
                                         key={link.path}
                                         to={link.path} 
-                                        className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all hover:-translate-y-0.5 ${
+                                        className={`relative text-sm font-semibold tracking-wide transition-all duration-300 flex items-center gap-2 ${
                                             location.pathname === link.path 
-                                                ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]' 
-                                                : 'text-white/80 hover:text-white'
+                                                ? 'text-emerald-400' 
+                                                : 'text-slate-400 hover:text-white'
                                         }`}
                                     >
                                         {link.name}
+                                        {location.pathname === link.path && (
+                                            <motion.div 
+                                                layoutId="nav-underline"
+                                                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-emerald-400 rounded-full"
+                                            />
+                                        )}
                                     </Link>
                                 ))}
                             </div>
                             
-                            <div className="h-8 w-px bg-white/10 mx-2"></div>
+                            <div className="h-6 w-px bg-white/10"></div>
                             
-                            {/* Gamified User Stats */}
-                            <div className="flex items-center gap-4">
-                                <div className="flex flex-col items-end gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Level {level}</span>
-                                        <div className="w-32 h-1.5 rounded-full overflow-hidden bg-white/10">
+                            {/* Premium User Profile */}
+                            <div className="flex items-center gap-6">
+                                <div className="flex flex-col items-end">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Level {level}</span>
+                                        <div className="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
                                             <motion.div 
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${progress}%` }}
-                                                className="h-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
-                                            ></motion.div>
+                                                className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                            />
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                                        <Zap size={12} className="text-yellow-400 fill-yellow-400" />
+                                    <div className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                                        <Zap size={12} className="fill-current" />
                                         {xp} XP
                                     </div>
                                 </div>
 
                                 <div className="relative group">
-                                    <button className="flex items-center gap-3 pl-2 pr-4 py-1.5 rounded-2xl transition-all border bg-white/10 border-white/10 text-white hover:bg-white/20">
-                                        <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-emerald-500/30">
+                                    <button 
+                                        className="flex items-center gap-3 p-1.5 pr-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] transition-all duration-300"
+                                    >
+                                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold shadow-lg">
                                             {user.name.charAt(0).toUpperCase()}
                                         </div>
-                                        <span className="font-bold text-sm">{user.name}</span>
+                                        <span className="text-sm font-semibold text-slate-200">{user.name}</span>
+                                        <ChevronDown size={14} className="text-slate-500 group-hover:rotate-180 transition-transform duration-300" />
                                     </button>
                                     
-                                    {/* Dropdown/Logout Tooltip */}
-                                    <button 
-                                        onClick={handleLogout}
-                                        className="absolute -bottom-12 right-0 glass-panel !p-2 !rounded-xl text-emerald-400 hover:text-emerald-300 text-xs font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all flex items-center gap-2 border border-emerald-500/30"
-                                    >
-                                        <LogOut size={14} /> Logout
-                                    </button>
+                                    {/* DROPDOWN MENU - Visible on Hover or Click */}
+                                    <div className="absolute top-full right-0 mt-2 w-48 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
+                                        <div className="glass-card p-2 !rounded-2xl border border-white/10 shadow-2xl">
+                                            <div className="px-4 py-2 border-b border-white/5 mb-1">
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Signed in as</p>
+                                                <p className="text-xs font-semibold text-white truncate">{user.email}</p>
+                                            </div>
+                                            <button 
+                                                onClick={handleLogout}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors"
+                                            >
+                                                <LogOut size={16} /> Logout
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </>
                     ) : (
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-6">
                             <Link 
                                 to="/login" 
-                                className="text-xs font-black uppercase tracking-widest transition-colors text-white hover:text-emerald-300"
+                                className="text-sm font-semibold text-slate-400 hover:text-white transition-colors"
                             >
-                                Log in
+                                Sign In
                             </Link>
                             <Link 
                                 to="/signup" 
-                                className="px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all transform hover:-translate-y-1 shadow-xl bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-500/30"
+                                className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-2xl shadow-xl shadow-emerald-900/20 transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
                             >
-                                Join Platform
+                                Sign Up
                             </Link>
                         </div>
                     )}
                 </nav>
 
-                {/* Mobile Menu Button */}
+                {/* Mobile Trigger */}
                 <button 
-                    className="md:hidden p-2 rounded-xl transition-colors text-white hover:bg-white/10"
+                    className="md:hidden w-12 h-12 flex items-center justify-center rounded-2xl bg-white/[0.03] border border-white/5 text-white"
                     onClick={() => setIsOpen(!isOpen)}
                 >
                     {isOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 
-            {/* Mobile Menu Overlay */}
+            {/* Mobile Menu */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden glass-panel !rounded-b-3xl !rounded-t-none border-b border-white/10 overflow-hidden shadow-2xl !p-6"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="md:hidden absolute top-full left-0 right-0 p-6"
                     >
-                        <div className="flex flex-col gap-4">
+                        <div className="glass-panel !p-6 shadow-2xl">
                             {user ? (
-                                <>
-                                    <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl mb-2 border border-white/10">
-                                        <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-500/30">
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-4 p-4 bg-white/5 rounded-3xl mb-2">
+                                        <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white font-bold text-2xl shadow-xl">
                                             {user.name.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <div className="text-lg font-black text-white tracking-tight">{user.name}</div>
-                                            <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
-                                                <Zap size={10} fill="currentColor" /> Level {level}
+                                            <div className="text-xl font-bold text-white">{user.name}</div>
+                                            <div className="text-xs text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1">
+                                                <Zap size={10} className="fill-current" /> Level {level}
                                             </div>
                                         </div>
                                     </div>
@@ -171,34 +186,34 @@ const Navbar = () => {
                                             key={link.path}
                                             to={link.path}
                                             onClick={() => setIsOpen(false)}
-                                            className="flex items-center gap-4 px-4 py-4 rounded-2xl text-emerald-100 hover:bg-white/10 hover:text-white transition-all font-black uppercase tracking-widest text-xs border border-transparent hover:border-white/20"
+                                            className="flex items-center gap-4 px-5 py-4 rounded-2xl text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 transition-all border border-transparent hover:border-emerald-500/20"
                                         >
                                             {link.icon}
-                                            {link.name}
+                                            <span className="font-semibold">{link.name}</span>
                                         </Link>
                                     ))}
                                     
                                     <button 
-                                        onClick={() => { handleLogout(); setIsOpen(false); }}
-                                        className="flex items-center gap-4 px-4 py-4 rounded-2xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all mt-2 font-black uppercase tracking-widest text-xs border border-transparent hover:border-red-500/20"
+                                        onClick={handleLogout}
+                                        className="flex items-center gap-4 px-5 py-4 rounded-2xl text-rose-400 hover:bg-rose-500/10 transition-all mt-2 border border-transparent hover:border-rose-500/20"
                                     >
                                         <LogOut size={18} />
-                                        Sign Out
+                                        <span className="font-semibold">Sign Out</span>
                                     </button>
-                                </>
+                                </div>
                             ) : (
-                                <div className="flex flex-col gap-3">
+                                <div className="flex flex-col gap-4">
                                     <Link 
                                         to="/login"
                                         onClick={() => setIsOpen(false)}
-                                        className="w-full py-4 text-center rounded-2xl font-black uppercase tracking-widest text-xs text-white hover:bg-white/10 border border-white/20"
+                                        className="w-full py-4 text-center rounded-2xl font-bold text-slate-300 bg-white/5 border border-white/10"
                                     >
-                                        Log in
+                                        Sign In
                                     </Link>
                                     <Link 
                                         to="/signup"
                                         onClick={() => setIsOpen(false)}
-                                        className="w-full py-4 text-center rounded-2xl font-black uppercase tracking-widest text-xs text-white bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-500/30"
+                                        className="w-full py-4 text-center rounded-2xl font-bold text-white bg-emerald-600 shadow-xl"
                                     >
                                         Create Account
                                     </Link>

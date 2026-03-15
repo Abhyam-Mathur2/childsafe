@@ -63,7 +63,15 @@ async def generate_health_report(
             diet_quality=lifestyle_record.diet_quality,
             sleep_hours=lifestyle_record.sleep_hours,
             stress_level=lifestyle_record.stress_level,
-            medical_history=lifestyle_record.medical_history
+            medical_history=lifestyle_record.medical_history,
+            water_source=lifestyle_record.water_source,
+            uv_index=lifestyle_record.uv_index,
+            activity_duration=lifestyle_record.activity_duration,
+            mental_health_conditions=lifestyle_record.mental_health_conditions,
+            past_health_reports=lifestyle_record.past_health_reports,
+            chronic_exposure_years=lifestyle_record.chronic_exposure_years,
+            family_history=lifestyle_record.family_history,
+            home_environment=lifestyle_record.home_environment,
         )
     elif request.age_range and request.smoking_status:
         # Use direct inputs
@@ -148,7 +156,22 @@ async def generate_health_report(
         activity_level=get_enum_value(lifestyle_record, 'activity_level') or get_enum_value(lifestyle_data, 'activity_level'),
         age_range=get_enum_value(lifestyle_record, 'age_range') or get_enum_value(lifestyle_data, 'age_range'),
         vulnerability_multiplier=report_data.get("vulnerability_multiplier", 1.0),
-        is_paid=is_paid
+        is_paid=is_paid,
+        water_source=lifestyle_record.water_source if lifestyle_record else None,
+        uv_index=lifestyle_record.uv_index if lifestyle_record else None,
+        activity_duration=lifestyle_record.activity_duration if lifestyle_record else None,
+        mental_health_conditions=lifestyle_record.mental_health_conditions if lifestyle_record else None,
+        past_health_reports=lifestyle_record.past_health_reports if lifestyle_record else None,
+        chronic_exposure_years=lifestyle_record.chronic_exposure_years if lifestyle_record else None,
+        family_history=lifestyle_record.family_history if lifestyle_record else None,
+        home_environment=lifestyle_record.home_environment if lifestyle_record else None,
+        short_term_considerations=report_data.get("short_term_considerations"),
+        medium_term_considerations=report_data.get("medium_term_considerations"),
+        long_term_considerations=report_data.get("long_term_considerations"),
+        seasonal_awareness=report_data.get("seasonal_awareness"),
+        daily_pattern_suggestion=report_data.get("daily_pattern_suggestion"),
+        health_professional_guide=report_data.get("health_professional_guide"),
+        support_resources=report_data.get("support_resources"),
     )
 
 

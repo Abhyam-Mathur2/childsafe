@@ -340,8 +340,304 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </div>
             </div>
 
-            {/* Section 4: Comprehensive Action Plan */}
-            <h2 className="section-title">Section 4: Comprehensive Action Plan</h2>
+            {/* Section 4: Water & UV Risk Panel */}
+            <h2 className="section-title">Section 4: Water &amp; UV Risk Panel</h2>
+            <div className="water-uv-grid">
+                <div className="water-uv-card">
+                    <h3><Droplets size={18} /> Water Source</h3>
+                    <div className="water-source-display">
+                        <span className="water-source-label">{report.water_source || 'Not reported'}</span>
+                        {report.water_source && (
+                            <span className={`risk-badge ${
+                                report.water_source.toLowerCase() === 'well' ? 'risk-high' :
+                                report.water_source.toLowerCase() === 'tap' ? 'risk-moderate' : 'risk-low'
+                            }`}>
+                                {report.water_source.toLowerCase() === 'well' ? 'HIGH RISK' :
+                                 report.water_source.toLowerCase() === 'tap' ? 'MODERATE' : 'LOW RISK'}
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <div className="water-uv-card">
+                    <h3><Sun size={18} /> UV Index</h3>
+                    <div className="uv-scale-container">
+                        <div className="uv-scale-bar">
+                            <div className="uv-segment uv-low" style={{flex: 2}}>Low</div>
+                            <div className="uv-segment uv-moderate" style={{flex: 3}}>Moderate</div>
+                            <div className="uv-segment uv-high" style={{flex: 2}}>High</div>
+                            <div className="uv-segment uv-very-high" style={{flex: 3}}>Very High</div>
+                            <div className="uv-segment uv-extreme" style={{flex: 1}}>11+</div>
+                        </div>
+                        <div className="uv-indicator" style={{left: `${Math.min((report.uv_index || 0) / 12 * 100, 100)}%`}}>
+                            <div className="uv-indicator-dot"></div>
+                            <div className="uv-indicator-label">{report.uv_index ?? 'N/A'}</div>
+                        </div>
+                    </div>
+                </div>
+                <div className="water-uv-card full-width">
+                    <h3><Wind size={18} /> Activity × Air Quality Exposure</h3>
+                    {report.activity_duration ? (
+                        <div className={`exposure-risk-badge ${
+                            report.activity_duration.includes('90') && (report.feature_vector?.aqi || 0) > 100 ? 'exposure-very-high' :
+                            (report.feature_vector?.aqi || 0) > 100 ? 'exposure-high' :
+                            report.activity_duration.includes('60') ? 'exposure-moderate' : 'exposure-low'
+                        }`}>
+                            {report.activity_duration} outdoor activity with AQI {Math.round(report.feature_vector?.aqi || 0)} ={' '}
+                            {report.activity_duration.includes('90') && (report.feature_vector?.aqi || 0) > 100 ? 'Very High Exposure Risk' :
+                             (report.feature_vector?.aqi || 0) > 100 ? 'High Exposure Risk' :
+                             report.activity_duration.includes('60') ? 'Moderate Exposure' : 'Low Exposure'}
+                        </div>
+                    ) : (
+                        <p style={{fontSize: '0.9rem', color: '#666'}}>Activity duration not reported.</p>
+                    )}
+                </div>
+            </div>
+
+            {/* Section 5: Mental & Emotional Health Factors */}
+            <h2 className="section-title">Section 5: Mental &amp; Emotional Health Factors</h2>
+            <div className="mental-health-section">
+                {report.mental_health_conditions && report.mental_health_conditions.length > 0 ? (
+                    <div className="mental-conditions-grid">
+                        {report.mental_health_conditions.map((condition, idx) => (
+                            <div key={idx} className="mental-condition-card">
+                                <div className="condition-name">{condition}</div>
+                                <div className="condition-interaction">
+                                    {condition.toLowerCase().includes('anxiety') && 'Studies show air pollution worsens anxiety symptoms. Consider indoor air purification and stress-reduction practices.'}
+                                    {condition.toLowerCase().includes('depression') && 'Environmental stressors including poor air quality and noise pollution can exacerbate depressive episodes. Prioritize clean indoor environments.'}
+                                    {condition.toLowerCase().includes('adhd') && 'Environmental toxins are linked to attention difficulties in children. Minimize exposure to lead, pesticides, and high-pollution areas.'}
+                                    {!['anxiety', 'depression', 'adhd'].some(c => condition.toLowerCase().includes(c)) && `Environmental pollutants may interact with ${condition}. Consult your healthcare provider about specific environmental triggers.`}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="mental-health-clean">
+                        <CheckCircle size={20} color="#388e3c" />
+                        <span>No mental health conditions reported — maintaining low-stress environments is still recommended for overall wellbeing.</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Section 6: Age-Specific Vulnerability Analysis */}
+            <h2 className="section-title">Section 6: Age-Specific Vulnerability Analysis</h2>
+            {['0-1', '1-3', '3-12'].includes(report.age_range) && (
+                <div className="age-warning-box">
+                    <AlertTriangle size={22} color="#e65100" />
+                    <span>⚠️ Children under 12 are classified as <strong>HIGH SENSITIVITY</strong>. Developing lungs, brains, and immune systems absorb pollutants at 2–3x the rate of adults.</span>
+                </div>
+            )}
+            <table className="age-vulnerability-table">
+                <thead>
+                    <tr>
+                        <th>Age Group</th>
+                        <th>Vulnerability Level</th>
+                        <th>Key Organs at Risk</th>
+                        <th>Recommended AQI Limit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {[
+                        { range: '0-1', level: 'EXTREME', organs: 'Lungs, Brain, Immune System', aqi: '< 25' },
+                        { range: '1-3', level: 'VERY HIGH', organs: 'Lungs, Brain, Kidneys', aqi: '< 50' },
+                        { range: '3-12', level: 'HIGH', organs: 'Lungs, Neurological, Skin', aqi: '< 75' },
+                        { range: '13-17', level: 'MODERATE', organs: 'Lungs, Hormonal System', aqi: '< 100' },
+                        { range: '18-25', level: 'STANDARD', organs: 'Respiratory, Cardiovascular', aqi: '< 150' },
+                        { range: '26-35', level: 'STANDARD', organs: 'Respiratory, Cardiovascular', aqi: '< 150' },
+                        { range: '36-50', level: 'MODERATE', organs: 'Cardiovascular, Respiratory', aqi: '< 100' },
+                        { range: '51-65', level: 'HIGH', organs: 'Heart, Lungs, Joints', aqi: '< 75' },
+                        { range: '65+', level: 'VERY HIGH', organs: 'Heart, Lungs, Immune System', aqi: '< 50' },
+                    ].map((row) => (
+                        <tr key={row.range} className={report.age_range === row.range ? 'highlighted-row' : ''}>
+                            <td><strong>{row.range}</strong></td>
+                            <td><span className={`vuln-badge vuln-${row.level.toLowerCase().replace(' ', '-')}`}>{row.level}</span></td>
+                            <td>{row.organs}</td>
+                            <td>{row.aqi}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            {/* Section 7: Historical Trend (Past Reports) */}
+            <h2 className="section-title">Section 7: Historical Trend</h2>
+            {report.past_health_reports && report.past_health_reports.length > 0 ? (
+                <div className="history-section">
+                    <div className="history-chart">
+                        {report.past_health_reports.map((pr, idx) => (
+                            <div key={idx} className="history-bar-container">
+                                <div className="history-bar-wrapper">
+                                    <div
+                                        className={`history-bar ${
+                                            (pr.risk_level || '').toLowerCase() === 'high' ? 'bar-high' :
+                                            (pr.risk_level || '').toLowerCase() === 'medium' ? 'bar-medium' : 'bar-low'
+                                        }`}
+                                        style={{height: `${Math.min(pr.risk_score || 0, 100)}%`}}
+                                    >
+                                        <span className="bar-value">{Math.round(pr.risk_score || 0)}</span>
+                                    </div>
+                                </div>
+                                <div className="history-label">{pr.date || `Report ${idx + 1}`}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <table className="history-table">
+                        <thead>
+                            <tr>
+                                <th>Report Date</th>
+                                <th>Risk Score</th>
+                                <th>Risk Level</th>
+                                <th>Key Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {report.past_health_reports.map((pr, idx) => (
+                                <tr key={idx}>
+                                    <td>{pr.date || 'N/A'}</td>
+                                    <td>{Math.round(pr.risk_score || 0)}</td>
+                                    <td><span className={`risk-level-tag ${(pr.risk_level || 'low').toLowerCase()}`}>{pr.risk_level || 'N/A'}</span></td>
+                                    <td>{pr.key_change || '—'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className="first-assessment-box">
+                    <Info size={20} color="#1b4d3e" />
+                    <span>This is your first assessment. Future reports will show trends here, allowing you to track environmental health changes over time.</span>
+                </div>
+            )}
+
+            {/* Section 8: Short / Medium / Long Term Considerations */}
+            <h2 className="section-title">Section 8: Time-Based Considerations</h2>
+            <div className="timeline-grid">
+                <div className="timeline-col">
+                    <div className="timeline-header yellow-header">🟡 This Week (Short-Term)</div>
+                    <ul className="timeline-list">
+                        {(report.short_term_considerations || ['Monitor daily AQI', 'Limit outdoor exposure on high pollution days', 'Ensure adequate hydration', 'Apply sunscreen before going outside']).map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="timeline-col">
+                    <div className="timeline-header orange-header">🟠 This Month (Medium-Term)</div>
+                    <ul className="timeline-list">
+                        {(report.medium_term_considerations || ['Schedule pediatric check-up', 'Test water quality at home', 'Review indoor air filtration', 'Establish monitoring routines']).map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="timeline-col">
+                    <div className="timeline-header red-header">🔴 This Year (Long-Term)</div>
+                    <ul className="timeline-list">
+                        {(report.long_term_considerations || ['Invest in air purification', 'Consider location-based activity adjustments', 'Build seasonal health calendar', 'Plan annual assessments']).map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+
+            {/* Section 9: Seasonal Awareness */}
+            <h2 className="section-title">Section 9: Seasonal Awareness</h2>
+            <div className="seasonal-section">
+                <div className="season-header-display">
+                    <span className="season-icon">
+                        {(report.seasonal_awareness?.season || 'Spring') === 'Winter' ? '❄️' :
+                         (report.seasonal_awareness?.season || 'Spring') === 'Spring' ? '🌸' :
+                         (report.seasonal_awareness?.season || 'Spring') === 'Summer' ? '☀️' : '🍂'}
+                    </span>
+                    <span className="season-name">{report.seasonal_awareness?.season || 'Current Season'}</span>
+                </div>
+                <div className="seasonal-grid">
+                    <div className="seasonal-card risk-card">
+                        <h4>Seasonal Risk Factors</h4>
+                        <ul>
+                            {(report.seasonal_awareness?.risks || ['Seasonal variations may affect air quality', 'Temperature changes impact outdoor activity safety', 'Check local environmental reports']).map((risk, idx) => (
+                                <li key={idx}>{risk}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="seasonal-card tips-card">
+                        <h4>Actionable Tips</h4>
+                        <ul>
+                            {(report.seasonal_awareness?.tips || ['Adjust outdoor schedules based on conditions', 'Monitor indoor air quality', 'Stay informed about seasonal patterns']).map((tip, idx) => (
+                                <li key={idx}>{tip}</li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {/* Section 10: Daily Pattern Suggestion */}
+            <h2 className="section-title">Section 10: Daily Pattern Suggestion</h2>
+            <div className="daily-pattern-grid">
+                {[
+                    { period: 'Morning', time: '6 AM – 12 PM', icon: '🌅', key: 'morning', defaultColor: '#e8f5e9', defaultBorder: '#388e3c' },
+                    { period: 'Afternoon', time: '12 PM – 5 PM', icon: '☀️', key: 'afternoon', defaultColor: '#fff8e1', defaultBorder: '#fbc02d' },
+                    { period: 'Evening', time: '5 PM – 10 PM', icon: '🌙', key: 'evening', defaultColor: '#e8f5e9', defaultBorder: '#388e3c' },
+                ].map((slot) => {
+                    const suggestion = report.daily_pattern_suggestion?.[slot.key] || '';
+                    const isWarning = suggestion.toLowerCase().includes('avoid') || suggestion.toLowerCase().includes('limit') || suggestion.toLowerCase().includes('closed');
+                    return (
+                        <div key={slot.key} className={`daily-pattern-card ${isWarning ? 'pattern-caution' : 'pattern-safe'}`}>
+                            <div className="pattern-icon">{slot.icon}</div>
+                            <div className="pattern-period">{slot.period}</div>
+                            <div className="pattern-time">{slot.time}</div>
+                            <div className="pattern-suggestion">{suggestion || 'No specific recommendation'}</div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Section 11: Health Professional Discussion Guide */}
+            <h2 className="section-title">Section 11: Health Professional Discussion Guide</h2>
+            <div className="professional-guide">
+                <div className="guide-header">
+                    <strong>📋 Take this to your next doctor's appointment</strong>
+                </div>
+                <div className="guide-checklist">
+                    {(report.health_professional_guide || [
+                        'Discuss current AQI levels and safe thresholds for your child',
+                        'Review UV protection strategies for their specific needs',
+                        'Ask about respiratory precautions given local air quality patterns',
+                        'Discuss water source and any filtration needs'
+                    ]).map((item, idx) => (
+                        <div key={idx} className="checklist-item">
+                            <span className="checkbox-char">☐</span>
+                            <span>{item}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Section 12: Support & Resources */}
+            <h2 className="section-title">Section 12: Support &amp; Resources</h2>
+            <div className="support-section">
+                <div className="resource-cards-grid">
+                    {(report.support_resources || [
+                        'WHO Air Quality Guidelines: who.int/air-quality',
+                        'IQAir Real-Time Maps: iqair.com',
+                        'EPA Indoor Air Quality Guide: epa.gov/indoor-air-quality-iaq',
+                        'Skin Cancer Foundation UV Guide: skincancer.org',
+                        'National Institute of Mental Health: nimh.nih.gov',
+                        'American Academy of Pediatrics: aap.org'
+                    ]).map((resource, idx) => {
+                        const parts = resource.split(': ');
+                        return (
+                            <div key={idx} className="resource-card">
+                                <div className="resource-name">{parts[0]}</div>
+                                {parts[1] && <div className="resource-link">{parts[1]}</div>}
+                            </div>
+                        );
+                    })}
+                </div>
+                <div className="caregiver-note">
+                    <Info size={18} color="#1b4d3e" />
+                    <span>Taking care of a child's environmental health can be stressful. Remember to look after yourself too — your wellbeing matters.</span>
+                </div>
+            </div>
+
+            {/* Section 13: Comprehensive Action Plan (previously Section 4) */}
+            <h2 className="section-title">Section 13: Comprehensive Action Plan</h2>
             
             <div className="action-plan-grid">
                 <div className="action-plan-col">
@@ -391,13 +687,13 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 <div className="management-card grey-theme outline-card">
                     <h4>Daily Pattern Suggestion</h4>
                     <p style={{ fontSize: '0.85rem', marginTop: '10px' }}><strong>Best outdoor time:</strong> 6:00 AM – 8:00 AM<br/>
-                    <strong>Avoid outdoors:</strong> 12:00 PM – 4:00 PM (Peak UV & Temp)<br/>
+                    <strong>Avoid outdoors:</strong> 12:00 PM – 4:00 PM (Peak UV &amp; Temp)<br/>
                     <strong>Evening walk:</strong> After 6:00 PM</p>
                 </div>
             </div>
 
-            {/* Section 5: Medical & Support Resources */}
-            <h2 className="section-title">Section 5: Medical & Support Resources</h2>
+            {/* Section 14: Medical & Support Resources (previously Section 5) */}
+            <h2 className="section-title">Section 14: Medical &amp; Support Resources</h2>
             <div className="resources-grid">
                 <div className="management-card green-theme">
                     <h4>Health Professional Discussion Guide</h4>
@@ -410,7 +706,7 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                     </ul>
                 </div>
                 <div className="management-card grey-theme outline-card">
-                    <h4>Support & Resources</h4>
+                    <h4>Support &amp; Resources</h4>
                     <p style={{ fontSize: '0.85rem', marginTop: '10px', marginBottom: '10px' }}>You are not alone. Caregiving requires taking care of yourself, too.</p>
                     <ul>
                         <li><strong>Mental Health:</strong> Local support groups for caregivers</li>
@@ -519,12 +815,134 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 .dot.green { background: #388e3c; }
                 .dot.orange { background: #e65100; }
 
-                /* New Grids */
+                /* Existing Grids */
                 .action-plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
                 .action-plan-col { flex: 1; }
                 .guidance-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
                 .resources-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 50px; }
                 .outline-card { border: 1px solid #ccc !important; background-color: #fafafa !important; }
+
+                /* ===== NEW SECTION STYLES ===== */
+
+                /* Section 4: Water & UV */
+                .water-uv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+                .water-uv-card { background: #f9f9f9; border: 1px solid #eee; padding: 24px; }
+                .water-uv-card.full-width { grid-column: 1 / -1; }
+                .water-uv-card h3 { display: flex; align-items: center; gap: 8px; font-size: 1rem; margin-top: 0; margin-bottom: 16px; }
+                .water-source-display { display: flex; align-items: center; gap: 15px; }
+                .water-source-label { font-size: 1.3rem; font-weight: 600; text-transform: capitalize; }
+                .risk-badge { padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
+                .risk-high { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+                .risk-moderate { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
+                .risk-low { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+                .uv-scale-container { position: relative; margin-top: 10px; padding-bottom: 30px; }
+                .uv-scale-bar { display: flex; height: 24px; border-radius: 12px; overflow: hidden; }
+                .uv-segment { display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; color: #fff; }
+                .uv-low { background: #4caf50; }
+                .uv-moderate { background: #fbc02d; color: #333; }
+                .uv-high { background: #ff9800; }
+                .uv-very-high { background: #f44336; }
+                .uv-extreme { background: #9c27b0; }
+                .uv-indicator { position: absolute; top: -6px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+                .uv-indicator-dot { width: 14px; height: 14px; background: #1b4d3e; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 6px rgba(0,0,0,0.3); }
+                .uv-indicator-label { margin-top: 28px; font-weight: 700; font-size: 0.9rem; color: #1b4d3e; }
+
+                .exposure-risk-badge { padding: 16px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; text-align: center; }
+                .exposure-very-high { background: #ffebee; color: #b71c1c; border: 2px solid #ef9a9a; }
+                .exposure-high { background: #fff3e0; color: #e65100; border: 2px solid #ffcc80; }
+                .exposure-moderate { background: #fff8e1; color: #f57f17; border: 2px solid #ffe082; }
+                .exposure-low { background: #e8f5e9; color: #2e7d32; border: 2px solid #a5d6a7; }
+
+                /* Section 5: Mental Health */
+                .mental-health-section { margin-bottom: 40px; }
+                .mental-conditions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+                .mental-condition-card { background: #fdf5f0; border-left: 4px solid #e65100; padding: 18px; }
+                .condition-name { font-weight: 700; font-size: 1rem; color: #e65100; margin-bottom: 8px; text-transform: capitalize; }
+                .condition-interaction { font-size: 0.88rem; line-height: 1.5; color: #444; }
+                .mental-health-clean { display: flex; align-items: center; gap: 12px; background: #e8f5e9; padding: 18px; font-size: 0.92rem; color: #2e7d32; }
+
+                /* Section 6: Age Vulnerability */
+                .age-warning-box { display: flex; align-items: start; gap: 12px; background: #fff3e0; border: 2px solid #e65100; padding: 18px; margin-bottom: 20px; font-size: 0.95rem; color: #bf360c; line-height: 1.5; }
+                .age-vulnerability-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 0.88rem; }
+                .age-vulnerability-table th { text-align: left; background: #1b4d3e; color: white; padding: 12px 14px; font-family: 'Merriweather', serif; font-size: 0.85rem; }
+                .age-vulnerability-table td { padding: 10px 14px; border-bottom: 1px solid #eee; }
+                .age-vulnerability-table .highlighted-row { background: #e8f5e9; font-weight: 600; }
+                .vuln-badge { padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; }
+                .vuln-extreme { background: #b71c1c; color: white; }
+                .vuln-very-high { background: #d32f2f; color: white; }
+                .vuln-high { background: #e65100; color: white; }
+                .vuln-moderate { background: #fbc02d; color: #333; }
+                .vuln-standard { background: #4caf50; color: white; }
+
+                /* Section 7: Historical Trend */
+                .history-section { margin-bottom: 40px; }
+                .history-chart { display: flex; gap: 16px; align-items: flex-end; height: 160px; padding: 20px; background: #f9f9f9; border: 1px solid #eee; margin-bottom: 20px; }
+                .history-bar-container { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 80px; }
+                .history-bar-wrapper { width: 40px; height: 120px; display: flex; align-items: flex-end; }
+                .history-bar { width: 100%; border-radius: 4px 4px 0 0; display: flex; align-items: flex-end; justify-content: center; transition: height 0.3s ease; min-height: 10px; }
+                .bar-value { font-size: 0.7rem; font-weight: 700; color: white; padding-bottom: 4px; }
+                .bar-high { background: linear-gradient(180deg, #d32f2f, #b71c1c); }
+                .bar-medium { background: linear-gradient(180deg, #fbc02d, #f9a825); }
+                .bar-low { background: linear-gradient(180deg, #4caf50, #388e3c); }
+                .history-label { font-size: 0.7rem; color: #666; margin-top: 6px; text-align: center; }
+                .history-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+                .history-table th { text-align: left; background: #f3f1e9; padding: 10px 14px; font-family: 'Merriweather', serif; font-size: 0.82rem; }
+                .history-table td { padding: 10px 14px; border-bottom: 1px solid #eee; }
+                .risk-level-tag { padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; }
+                .risk-level-tag.high { background: #ffebee; color: #c62828; }
+                .risk-level-tag.medium { background: #fff8e1; color: #e65100; }
+                .risk-level-tag.low { background: #e8f5e9; color: #2e7d32; }
+                .first-assessment-box { display: flex; align-items: center; gap: 12px; background: #e8f5e9; border-left: 4px solid #1b4d3e; padding: 18px; margin-bottom: 40px; font-size: 0.92rem; color: #333; }
+
+                /* Section 8: Timeline */
+                .timeline-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+                .timeline-col { background: #f9f9f9; border: 1px solid #eee; padding: 0; }
+                .timeline-header { padding: 14px 18px; font-weight: 700; font-size: 0.9rem; }
+                .yellow-header { background: #fff8e1; border-bottom: 3px solid #fbc02d; color: #f57f17; }
+                .orange-header { background: #fff3e0; border-bottom: 3px solid #ff9800; color: #e65100; }
+                .red-header { background: #ffebee; border-bottom: 3px solid #d32f2f; color: #c62828; }
+                .timeline-list { padding: 16px 18px 16px 30px; margin: 0; font-size: 0.85rem; line-height: 1.7; }
+
+                /* Section 9: Seasonal */
+                .seasonal-section { margin-bottom: 40px; }
+                .season-header-display { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+                .season-icon { font-size: 2.4rem; }
+                .season-name { font-family: 'Merriweather', serif; font-size: 1.6rem; color: #1b4d3e; }
+                .seasonal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                .seasonal-card { padding: 22px; font-size: 0.88rem; }
+                .seasonal-card h4 { margin-top: 0; margin-bottom: 12px; font-size: 0.95rem; }
+                .seasonal-card ul { padding-left: 18px; margin: 0; line-height: 1.7; }
+                .risk-card { background: #fff3e0; border-left: 4px solid #e65100; }
+                .risk-card h4 { color: #e65100; }
+                .tips-card { background: #e8f5e9; border-left: 4px solid #2e7d32; }
+                .tips-card h4 { color: #2e7d32; }
+
+                /* Section 10: Daily Pattern */
+                .daily-pattern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+                .daily-pattern-card { padding: 24px; text-align: center; border-radius: 8px; border: 2px solid; }
+                .pattern-safe { background: #e8f5e9; border-color: #a5d6a7; }
+                .pattern-caution { background: #fff8e1; border-color: #ffe082; }
+                .pattern-icon { font-size: 2rem; margin-bottom: 8px; }
+                .pattern-period { font-family: 'Merriweather', serif; font-size: 1.1rem; font-weight: 700; color: #1b4d3e; }
+                .pattern-time { font-size: 0.82rem; color: #666; margin-bottom: 12px; }
+                .pattern-suggestion { font-size: 0.85rem; line-height: 1.5; color: #333; }
+
+                /* Section 11: Professional Guide */
+                .professional-guide { background: #f9f9f9; border: 2px solid #1b4d3e; padding: 0; margin-bottom: 40px; }
+                .guide-header { background: #1b4d3e; color: white; padding: 16px 24px; font-size: 1rem; }
+                .guide-checklist { padding: 20px 24px; }
+                .checklist-item { display: flex; align-items: start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; line-height: 1.5; }
+                .checklist-item:last-child { border-bottom: none; }
+                .checkbox-char { font-size: 1.2rem; color: #1b4d3e; flex-shrink: 0; margin-top: -2px; }
+
+                /* Section 12: Support */
+                .support-section { margin-bottom: 40px; }
+                .resource-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+                .resource-card { background: #f3f1e9; padding: 18px; border-left: 3px solid #1b4d3e; }
+                .resource-name { font-weight: 700; font-size: 0.88rem; color: #1b4d3e; margin-bottom: 4px; }
+                .resource-link { font-size: 0.78rem; color: #666; word-break: break-all; }
+                .caregiver-note { display: flex; align-items: center; gap: 12px; background: #e8f5e9; border-left: 4px solid #1b4d3e; padding: 18px; font-size: 0.9rem; color: #333; line-height: 1.5; }
 
                 @media print {
                     .report-paper { padding: 20px; }

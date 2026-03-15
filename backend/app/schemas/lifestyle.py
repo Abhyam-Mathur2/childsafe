@@ -4,15 +4,15 @@ Request and response models for lifestyle/quiz data
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, List, Dict, Any
 from enum import Enum
 
 
 class AgeRange(str, Enum):
     """Age range categories"""
-    INFANT = "0-2"
-    TODDLER = "3-5"
-    CHILD = "6-12"
+    NEWBORN = "0-1"
+    INFANT = "1-3"
+    CHILD = "3-12"
     TEEN = "13-17"
     YOUNG_ADULT = "18-25"
     ADULT = "26-35"
@@ -59,14 +59,17 @@ class LifestyleInput(BaseModel):
     stress_level: Optional[str] = Field(None, description="low/medium/high")
     
     # New Environmental & Lifestyle Fields
-    water_source: Optional[str] = Field(None, description="Primary water source")
-    uv_index: Optional[float] = Field(None, description="Typical Daily UV Exposure")
-    activity_duration: Optional[str] = Field(None, description="Duration of physical activity")
+    water_source: Optional[str] = Field(None, description="tap/filtered/bottled/well")
+    uv_index: Optional[float] = Field(None, description="UV index 0-11+")
+    activity_duration: Optional[str] = Field(None, description="0min/30min/60min/90min+")
+    mental_health_conditions: Optional[List[str]] = Field(None, description="List of mental health conditions")
+    past_health_reports: Optional[List[Dict[str, Any]]] = Field(None, description="Previous report summaries")
+    chronic_exposure_years: Optional[int] = Field(None, description="Years of environmental exposure")
 
     # Comprehensive Questionnaire Fields
-    medical_history: Optional[list[str]] = Field(None, description="List of pre-existing conditions")
-    medications: Optional[list[Dict[str, Any]]] = Field(None, description="List of medications")
-    family_history: Optional[list[str]] = Field(None, description="Family history of diseases")
+    medical_history: Optional[List[str]] = Field(None, description="List of pre-existing conditions")
+    medications: Optional[List[Dict[str, Any]]] = Field(None, description="List of medications")
+    family_history: Optional[List[str]] = Field(None, description="Family history of diseases")
     home_environment: Optional[Dict[str, Any]] = Field(None, description="Home details: floor, cooking, etc.")
     occupational_details: Optional[Dict[str, Any]] = Field(None, description="Detailed job info")
 

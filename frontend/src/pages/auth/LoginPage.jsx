@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Loader, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import VideoBackground from '../../components/ui/VideoBackground';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -20,42 +22,38 @@ const LoginPage = () => {
 
         try {
             await login(email, password);
-            // Small delay for exit animation
             setTimeout(() => navigate('/dashboard'), 500);
         } catch (err) {
-            setError('Failed to login. Please check your credentials.');
+            setError('The email or password you entered is incorrect.');
             setLoading(false);
         }
     };
 
     return (
         <div className="auth-container">
-            {/* Ambient Background Elements */}
-            <div className="absolute w-[500px] h-[500px] bg-emerald-500 rounded-full mix-blend-screen filter blur-[80px] opacity-30 top-[-10%] left-[-10%] animate-float-slow"></div>
-            <div className="absolute w-[400px] h-[400px] bg-green-500 rounded-full mix-blend-screen filter blur-[80px] opacity-30 bottom-[-10%] right-[-10%] animate-float-slow" style={{ animationDelay: '-4s' }}></div>
-            <div className="absolute w-[300px] h-[300px] bg-teal-400 rounded-full mix-blend-screen filter blur-[80px] opacity-30 top-[40%] right-[20%] animate-float-slow" style={{ animationDelay: '-2s' }}></div>
+            <VideoBackground opacity={0.4} />
 
             <motion.div
-                className="glass-panel w-full max-w-[420px] mx-4"
-                initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-panel w-full max-w-[460px]"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
             >
                 <div className="w-full">
                     <div className="auth-header-modern">
                         <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                            className="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-emerald-500/30"
+                            initial={{ scale: 0, rotate: -20 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ delay: 0.2, type: "spring", stiffness: 150 }}
+                            className="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-[2rem] mx-auto mb-8 flex items-center justify-center shadow-2xl shadow-emerald-500/30"
                         >
-                            <ShieldCheck className="text-white w-9 h-9" />
+                            <ShieldCheck className="text-white w-10 h-10" />
                         </motion.div>
 
                         <motion.h2
                             className="auth-title-modern"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
                         >
                             Welcome Back
@@ -66,16 +64,16 @@ const LoginPage = () => {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
                         >
-                            Sign in to access your environmental data
+                            Securely sign in to your health dashboard
                         </motion.p>
                     </div>
 
-                    <AnimatePresence>
+                    <AnimatePresence mode="wait">
                         {error && (
                             <motion.div
-                                className="bg-red-500/10 border border-red-500/20 text-red-200 p-3 rounded-xl text-sm mb-6 text-center"
-                                initial={{ opacity: 0, height: 0, y: -10 }}
-                                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                className="bg-rose-500/10 border border-rose-500/20 text-rose-200 p-4 rounded-2xl text-sm mb-8 text-center"
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
                             >
                                 {error}
@@ -83,13 +81,8 @@ const LoginPage = () => {
                         )}
                     </AnimatePresence>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <motion.div
-                            className="input-group-modern"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.5 }}
-                        >
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="input-group-modern">
                             <Mail className="input-icon-modern" size={20} />
                             <input
                                 type="email"
@@ -99,46 +92,55 @@ const LoginPage = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            className="input-group-modern"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.6 }}
-                        >
+                        <div className="input-group-modern">
                             <Lock className="input-icon-modern" size={20} />
                             <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 className="input-field-modern"
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
-                        </motion.div>
+                            <button 
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <button type="button" className="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors">
+                                Forgot password?
+                            </button>
+                        </div>
 
                         <motion.button
                             type="submit"
-                            className="btn-modern"
+                            className="btn-modern group"
                             disabled={loading}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.7 }}
                         >
-                            {loading ? <Loader className="spin mx-auto" size={24} /> : "Sign In"}
+                            {loading ? (
+                                <Loader className="animate-spin mx-auto" size={24} />
+                            ) : (
+                                <span className="flex items-center justify-center gap-2">
+                                    Sign In <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </span>
+                            )}
                         </motion.button>
                     </form>
 
                     <motion.div
-                        className="mt-8 text-center text-sm text-gray-400"
+                        className="mt-10 text-center text-slate-400"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8 }}
+                        transition={{ delay: 0.6 }}
                     >
-                        <p>Don't have an account? <Link to="/signup" className="modern-link">Create Account</Link></p>
+                        <p>New to ChildSafeEnviro? <Link to="/signup" className="modern-link">Create an account</Link></p>
                     </motion.div>
                 </div>
             </motion.div>

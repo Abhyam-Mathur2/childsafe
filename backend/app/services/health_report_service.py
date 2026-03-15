@@ -3,7 +3,7 @@ Health Report Service
 Combines environmental and lifestyle data to generate comprehensive health reports
 """
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from datetime import datetime
 from app.schemas.health_report import (
     ContributingFactor,
@@ -154,7 +154,9 @@ class HealthReportService:
                 lifestyle_service.calculate_lifestyle_risk(lifestyle_data)
             
             # Calculate personal vulnerability multiplier
-            vulnerability_multiplier = self._calculate_vulnerability_multiplier(lifestyle_data)
+            vulnerability_multiplier = self._calculate_vulnerability_multiplier(
+                lifestyle_data, air_quality.data.aqi
+            )
 
         # Apply multiplier to environmental risk (vulnerable people suffer more from environment)
         env_risk = min(env_risk_base * vulnerability_multiplier, 100)
@@ -176,9 +178,15 @@ class HealthReportService:
             air_quality, soil_response, water_response, lifestyle_data, risk_level
         )
         
+        # Generate detailed sections
+        detailed_sections = self._generate_detailed_sections(
+            lifestyle_data, air_quality, None,
+            lifestyle_data.uv_index if lifestyle_data else None
+        )
+        
         # Generate report summary
         report_summary = self._generate_report_summary(
-            combined_risk, risk_level, env_risk, lifestyle_risk
+            combined_risk, risk_level, env_risk, lifestyle_risk, lifestyle_data
         )
         
         # Create feature vector for future ML
@@ -200,20 +208,32 @@ class HealthReportService:
             "feature_vector": feature_vector,
             "noise_data": noise_data,
             "radiation_data": radiation_data,
-            "vulnerability_multiplier": vulnerability_multiplier
+            "vulnerability_multiplier": vulnerability_multiplier,
+            "short_term_considerations": detailed_sections.get("short_term"),
+            "medium_term_considerations": detailed_sections.get("medium_term"),
+            "long_term_considerations": detailed_sections.get("long_term"),
+            "seasonal_awareness": detailed_sections.get("seasonal_awareness"),
+            "daily_pattern_suggestion": detailed_sections.get("daily_pattern"),
+            "health_professional_guide": detailed_sections.get("health_professional_guide"),
+            "support_resources": detailed_sections.get("support_resources"),
         }
     
-    def _calculate_vulnerability_multiplier(self, data: LifestyleInput) -> float:
-        """Calculate a multiplier (e.g., 1.0 to 2.0) based on health status"""
-        multiplier = 1.0
-        
-        # Age Factor
+    def _calculate_vulnerability_multiplier(self, data: LifestyleInput, aqi: float = 50) -> float:
+        """Calculate a multiplier based on age, health, environment, and history"""
+        # Start with age-based multiplier
         age_value = data.age_range.value if hasattr(data.age_range, 'value') else data.age_range
-        
-        if age_value in ["51-65", "65+"]:
-            multiplier += 0.2
-        elif age_value in ["13-17"]:
-            multiplier += 0.1 # Developing bodies
+        age_multipliers = {
+            "0-1": 2.5,    # Newborns - extremely vulnerable
+            "1-3": 2.2,    # Infants
+            "3-12": 1.8,   # Children - developing systems
+            "13-17": 1.3,  # Teens
+            "18-25": 1.0,
+            "26-35": 1.0,
+            "36-50": 1.1,
+            "51-65": 1.3,
+            "65+": 1.5
+        }
+        multiplier = age_multipliers.get(age_value, 1.0)
             
         # Respiratory Issues (High impact on Air Quality risk)
         if data.medical_history:
@@ -230,6 +250,38 @@ class HealthReportService:
         if data.gender and data.gender.lower() == "female" and data.medical_history:
              if any("pregnan" in c.lower() for c in data.medical_history):
                  multiplier += 0.4
+
+        # Mental health conditions: +0.15 per condition
+        if data.mental_health_conditions:
+            multiplier += len(data.mental_health_conditions) * 0.15
+
+        # UV index > 6: +0.2
+        if data.uv_index and data.uv_index > 6:
+            multiplier += 0.2
+
+        # Water source risk
+        if data.water_source:
+            ws = data.water_source.lower()
+            if ws == "well":
+                multiplier += 0.15
+            elif ws == "tap":
+                multiplier += 0.05
+
+        # High activity in bad air: +0.25
+        if data.activity_duration and "90" in str(data.activity_duration) and aqi > 100:
+            multiplier += 0.25
+
+        # Chronic exposure years: +0.1 per 5 years, capped at +0.4
+        if data.chronic_exposure_years and data.chronic_exposure_years > 5:
+            exposure_bonus = min((data.chronic_exposure_years // 5) * 0.1, 0.4)
+            multiplier += exposure_bonus
+
+        # Past health reports: if any previous risk_level was "high", add +0.2
+        if data.past_health_reports:
+            for past_report in data.past_health_reports:
+                if isinstance(past_report, dict) and past_report.get("risk_level", "").lower() == "high":
+                    multiplier += 0.2
+                    break
 
         return round(multiplier, 2)
 
@@ -408,14 +460,133 @@ class HealthReportService:
         
         return recommendations
     
+    def _generate_detailed_sections(
+        self,
+        lifestyle_data: Optional[LifestyleInput],
+        air_quality: Any,
+        weather: Any,
+        uv_index: Optional[float]
+    ) -> Dict[str, Any]:
+        """Generate all new detailed report sections"""
+        aqi = air_quality.data.aqi if air_quality else 50
+        age_value = ""
+        if lifestyle_data:
+            age_value = lifestyle_data.age_range.value if hasattr(lifestyle_data.age_range, 'value') else str(lifestyle_data.age_range)
+
+        # Short-term considerations
+        short_term = [
+            f"Check today's AQI (currently {aqi}) before any outdoor activity",
+            "Keep windows closed during peak traffic hours (8-10 AM, 6-8 PM)",
+            "Ensure children drink at least 6-8 glasses of filtered water today",
+            "Apply SPF 30+ sunscreen if UV index exceeds 3",
+        ]
+        if aqi > 100:
+            short_term.append("AQI is elevated — limit outdoor playtime to under 30 minutes")
+            short_term.append("Use N95 masks if outdoor exposure is unavoidable")
+        if uv_index and uv_index > 6:
+            short_term.append(f"UV index is {uv_index} (High) — avoid direct sun exposure between 11 AM and 3 PM")
+
+        # Medium-term considerations
+        medium_term = [
+            "Schedule a pediatric check-up to discuss environmental exposure risks",
+            "Test home water quality if using tap or well water",
+            "Establish a daily indoor air quality monitoring routine",
+            "Review and improve home ventilation — check air filters and seals",
+        ]
+        if lifestyle_data and lifestyle_data.water_source and lifestyle_data.water_source.lower() == "well":
+            medium_term.append("Get well water tested for heavy metals and bacterial contamination this month")
+
+        # Long-term considerations
+        long_term = [
+            "Invest in a HEPA air purifier for the child's bedroom and play area",
+            "Consider relocating outdoor activities to lower-pollution zones (parks, green belts)",
+            "Build a seasonal health calendar tracking AQI, UV, and pollen patterns",
+            "Plan annual comprehensive environmental health assessments",
+        ]
+        if lifestyle_data and lifestyle_data.chronic_exposure_years and lifestyle_data.chronic_exposure_years > 5:
+            long_term.append(f"With {lifestyle_data.chronic_exposure_years} years of exposure, consider a specialist consultation on cumulative environmental impact")
+
+        # Seasonal awareness based on current month
+        month = datetime.now().month
+        if month in [12, 1, 2]:
+            season_name = "Winter"
+            season_risks = ["Winter smog and temperature inversions trap pollutants near ground level", "Indoor air quality degrades due to sealed windows and heater use", "Heater fumes (kerosene, wood) release CO and particulate matter"]
+            season_tips = ["Use electric heaters instead of fuel-burning ones", "Run air purifiers indoors and ventilate briefly during midday", "Monitor CO levels if using gas heating"]
+        elif month in [3, 4, 5]:
+            season_name = "Spring"
+            season_risks = ["Rising pollen counts trigger allergies and asthma", "UV index begins climbing — skin damage risk increases", "Dust storms possible in arid regions"]
+            season_tips = ["Start antihistamines before peak pollen season", "Begin daily sunscreen application routine", "Keep windows closed on high-pollen days"]
+        elif month in [6, 7, 8]:
+            season_name = "Summer"
+            season_risks = ["Heat stress and dehydration — dangerous for children under 5", "Peak UV radiation — highest skin cancer risk", "Ground-level ozone peaks in hot weather"]
+            season_tips = ["Schedule outdoor activities before 8 AM or after 6 PM", "Ensure 8+ glasses of water for children daily", "Use UPF-rated clothing and broad-spectrum sunscreen"]
+        else:
+            season_name = "Autumn"
+            season_risks = ["Crop/harvest burning causes severe air quality drops", "Transition weather increases respiratory infection risk", "Falling temperatures may lead to early heater use"]
+            season_tips = ["Track regional burning schedules and AQI forecasts", "Boost vitamin D intake as sunlight decreases", "Service heating systems before heavy use"]
+
+        seasonal_awareness = {
+            "season": season_name,
+            "risks": season_risks,
+            "tips": season_tips
+        }
+
+        # Daily pattern suggestion
+        daily_pattern = {
+            "morning": "Best outdoor time 6-8 AM — AQI typically lowest, UV minimal",
+            "afternoon": "Avoid outdoor exertion 12-4 PM — peak heat, UV, and ozone levels",
+            "evening": "Window ventilation 7-9 PM if AQI < 50; light outdoor walk acceptable"
+        }
+        if aqi > 100:
+            daily_pattern["morning"] = "Even morning outdoor time should be limited — AQI is elevated"
+            daily_pattern["evening"] = "Keep windows closed — AQI too high for natural ventilation"
+
+        # Health professional guide
+        health_professional_guide = [
+            f"Share current AQI level of {aqi} and ask about safe thresholds for your child",
+            f"Discuss UV index of {uv_index or 'N/A'} and appropriate skin/eye protection for age group {age_value}",
+            "Review the child's respiratory health in context of local air quality patterns",
+            "Ask about recommended indoor air quality monitors for your home",
+            "Discuss whether current water source requires additional filtration",
+        ]
+        if lifestyle_data and lifestyle_data.mental_health_conditions:
+            health_professional_guide.append(
+                f"Discuss how environmental stressors may interact with: {', '.join(lifestyle_data.mental_health_conditions)}"
+            )
+        if lifestyle_data and lifestyle_data.medical_history:
+            health_professional_guide.append(
+                f"Review environmental triggers for existing conditions: {', '.join(lifestyle_data.medical_history[:3])}"
+            )
+
+        # Support resources
+        support_resources = [
+            "WHO Air Quality Guidelines: who.int/air-quality",
+            "IQAir Real-Time Maps: iqair.com",
+            "EPA Indoor Air Quality Guide: epa.gov/indoor-air-quality-iaq",
+            "Skin Cancer Foundation UV Guide: skincancer.org",
+            "National Institute of Mental Health: nimh.nih.gov",
+            "American Academy of Pediatrics: aap.org",
+        ]
+
+        return {
+            "short_term": short_term,
+            "medium_term": medium_term,
+            "long_term": long_term,
+            "seasonal_awareness": seasonal_awareness,
+            "daily_pattern": daily_pattern,
+            "health_professional_guide": health_professional_guide,
+            "support_resources": support_resources,
+        }
+
     def _generate_report_summary(
         self,
         combined_risk: float,
         risk_level: str,
         env_risk: float,
-        lifestyle_risk: float
+        lifestyle_risk: float,
+        lifestyle_data: Optional[LifestyleInput] = None
     ) -> str:
-        """Generate human-readable report summary"""
+        """Generate human-readable report summary with age-specific warnings"""
         summaries = {
             "low": "Your overall health risk is low. ",
             "medium": "Your health risk is moderate. ",
@@ -430,6 +601,12 @@ class HealthReportService:
             summary += "Lifestyle factors are the primary concern. "
         else:
             summary += "Both environmental and lifestyle factors contribute to your risk. "
+
+        # Age-specific vulnerability warning
+        if lifestyle_data:
+            age_value = lifestyle_data.age_range.value if hasattr(lifestyle_data.age_range, 'value') else str(lifestyle_data.age_range)
+            if age_value in ["0-1", "1-3", "3-12"]:
+                summary += "Children under 12 are 2\u20133x more sensitive to environmental pollutants as their organs are still developing. Extra precaution is strongly advised."
             
         return summary
     

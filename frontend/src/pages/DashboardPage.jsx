@@ -4,8 +4,9 @@ import api from '../services/api';
 import EnvGrid from '../components/dashboard/EnvGrid';
 import GamifiedDashboardHeader from '../components/dashboard/GamifiedDashboardHeader';
 import DailyQuests from '../components/dashboard/DailyQuests';
-import { MapPin, Loader, RefreshCw, Activity, AlertTriangle, Leaf, Zap } from 'lucide-react';
+import { MapPin, Loader, RefreshCw, Activity, AlertTriangle, Leaf, Zap, ShieldCheck, Compass } from 'lucide-react';
 import { motion } from 'framer-motion';
+import VideoBackground from '../components/ui/VideoBackground';
 
 const DashboardPage = () => {
     const [location, setLocation] = useState(null);
@@ -82,78 +83,104 @@ const DashboardPage = () => {
     const safetyScore = envData.air ? 100 - (envData.air.data.aqi / 2) : 85;
 
     return (
-        <div className="min-h-screen relative z-10 text-white pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen relative overflow-hidden pt-28 pb-12 px-4 sm:px-6 lg:px-8">
+            <VideoBackground opacity={0.4} />
+            
+            <div className="max-w-7xl mx-auto relative z-10">
                 {/* Gamified Header */}
                 {location && !loading && (
                     <GamifiedDashboardHeader safetyScore={Math.round(safetyScore)} />
                 )}
 
                 {/* Sub-Header Actions */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                     <div>
-                        <h2 className="text-2xl font-black text-white tracking-tight shimmer-text">Environmental Intel</h2>
-                        <p className="text-emerald-100/70 font-medium">Real-time status of your surroundings.</p>
+                        <motion.h2 
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="text-3xl font-black text-white tracking-tight shimmer-text"
+                        >
+                            Environmental Intel
+                        </motion.h2>
+                        <motion.p 
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="text-slate-400 font-medium"
+                        >
+                            Real-time intelligence from your immediate surroundings.
+                        </motion.p>
                     </div>
-                    <button
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={handleGetLocation}
                         disabled={loading}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/20 text-white font-bold rounded-xl hover:bg-white/20 hover:border-white/30 transition-all shadow-sm focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-xs"
+                        className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-white/[0.03] border border-white/10 text-white font-bold rounded-2xl hover:bg-white/[0.08] hover:border-white/20 transition-all shadow-xl backdrop-blur-md group"
                     >
-                        {loading ? <Loader className="animate-spin text-green-600" size={16} /> : <RefreshCw size={16} />}
-                        <span>Sync Environment</span>
-                    </button>
+                        {loading ? <Loader className="animate-spin text-emerald-400" size={20} /> : <RefreshCw className="group-hover:rotate-180 transition-transform duration-500" size={20} />}
+                        <span className="uppercase tracking-widest text-xs">Sync Intelligence</span>
+                    </motion.button>
                 </div>
 
                 {error && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-8 flex items-start gap-3"
+                        className="bg-rose-500/10 border border-rose-500/20 p-5 rounded-2xl mb-10 flex items-start gap-4 backdrop-blur-md"
                     >
-                        <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={20} />
+                        <AlertTriangle className="text-rose-500 shrink-0" size={24} />
                         <div>
-                            <h3 className="text-sm font-bold text-red-800">Error Loading Data</h3>
-                            <p className="text-sm text-red-700 mt-1">{error}</p>
+                            <h3 className="text-lg font-bold text-rose-200 tracking-tight">System Interruption</h3>
+                            <p className="text-rose-200/70 mt-1 font-medium">{error}</p>
                         </div>
                     </motion.div>
                 )}
 
                 {loading && !envData.air ? (
-                    <div className="glass-panel !rounded-3xl p-16 text-center max-w-2xl mx-auto mt-10">
-                        <div className="inline-block relative mb-8">
+                    <div className="glass-panel !rounded-[2.5rem] p-20 text-center max-w-3xl mx-auto mt-10">
+                        <div className="relative mb-12">
                             <motion.div
                                 animate={{ rotate: 360 }}
-                                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                                className="w-24 h-24 border-4 border-emerald-500/20 border-t-emerald-400 rounded-full"
+                                transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+                                className="w-32 h-32 border-4 border-emerald-500/10 border-t-emerald-400 rounded-full mx-auto"
                             ></motion.div>
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <Leaf size={32} className="text-emerald-400" />
+                                <Compass size={40} className="text-emerald-400 animate-pulse" />
                             </div>
                         </div>
-                        <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Decoding your environment...</h3>
-                        <p className="text-emerald-100/70 font-medium">Gathering real-time satellite and ground data for your precise location.</p>
+                        <h3 className="text-3xl font-black text-white mb-4 tracking-tight">Calibrating Local Sensors</h3>
+                        <p className="text-slate-400 text-lg font-light max-w-md mx-auto leading-relaxed">
+                            Synchronizing with orbital satellites and ground stations to fetch ultra-precise environmental metrics.
+                        </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
                         {/* Environmental Grid takes more space */}
                         <div className="lg:col-span-3">
                             {!location ? (
-                                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-16 text-center max-w-xl mx-auto mt-10">
-                                    <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-emerald-50/50">
-                                        <MapPin size={48} className="text-emerald-600" />
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="glass-panel !rounded-[3rem] p-20 text-center max-w-2xl mx-auto mt-10"
+                                >
+                                    <div className="w-24 h-24 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-emerald-500/20 shadow-2xl">
+                                        <MapPin size={48} className="text-emerald-400" />
                                     </div>
-                                    <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Location Required</h2>
-                                    <p className="text-gray-600 mb-10 leading-relaxed font-medium">
-                                        We need your location to synchronize with local environmental sensors and provide accurate safety data.
+                                    <h2 className="text-4xl font-black text-white mb-6 tracking-tight">Telemetry Restricted</h2>
+                                    <p className="text-slate-400 mb-12 text-lg leading-relaxed font-light">
+                                        Active location data is required to establish a secure link with local environmental sensors and provide critical safety metrics.
                                     </p>
                                     <button
                                         onClick={handleGetLocation}
-                                        className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl transition-all shadow-lg hover:shadow-emerald-200 transform hover:-translate-y-1 uppercase tracking-widest text-sm"
+                                        className="btn-modern !py-5 !rounded-2xl text-lg flex items-center justify-center gap-3 group"
                                     >
-                                        Sync Now
+                                        Authorize Access
+                                        <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                                     </button>
-                                </div>
+                                </motion.div>
                             ) : (
                                 <EnvGrid
                                     air={envData.air}
@@ -173,35 +200,41 @@ const DashboardPage = () => {
 
                 {!loading && location && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="mt-12 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-emerald-950 to-emerald-900 text-white shadow-2xl"
+                        transition={{ delay: 0.5, duration: 0.8 }}
+                        className="mt-16 relative overflow-hidden rounded-[3rem] glass-panel !p-0 border-white/10 shadow-3xl group"
                     >
-                        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
-
-                        <div className="relative z-10 p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10">
+                        {/* Interactive glow effect */}
+                        <div className="absolute top-0 right-0 -mt-24 -mr-24 w-96 h-96 bg-emerald-500/20 rounded-full blur-[100px] group-hover:bg-emerald-500/30 transition-colors duration-700"></div>
+                        
+                        <div className="relative z-10 p-12 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12">
                             <div className="flex-1 text-center md:text-left">
-                                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-400/20 text-yellow-300 text-[10px] font-black uppercase tracking-widest mb-6 border border-yellow-400/20">
-                                    <Zap size={12} />
-                                    Master Quest Available
+                                <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-widest mb-8 backdrop-blur-md">
+                                    <ShieldCheck size={16} />
+                                    Critical Optimization
                                 </div>
-                                <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">The Personal Shield</h2>
-                                <p className="text-emerald-100/70 text-lg max-w-2xl leading-relaxed font-medium">
-                                    Your environmental data is just the foundation. Integrate your lifestyle patterns to unlock a <span className="text-emerald-400 font-bold">100% Accurate Resilience Score</span> and personalized protection plan.
+                                <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight text-white leading-tight">Forge Your <br />Child's Health Shield</h2>
+                                <p className="text-slate-400 text-xl max-w-2xl leading-relaxed font-light">
+                                    Passive monitoring is just the start. Integrate your child's lifestyle patterns with environmental intelligence to unlock the <span className="text-white font-bold">Resilience Engine</span>.
                                 </p>
                             </div>
-                            <div className="shrink-0 group">
+                            <div className="shrink-0 flex flex-col items-center">
                                 <Link
                                     to="/assessment"
-                                    className="btn-modern !w-auto !py-4 flex items-center gap-3 uppercase tracking-widest text-sm"
+                                    className="btn-modern !px-10 !py-5 flex items-center gap-4 text-xl group shadow-emerald-900/40"
                                 >
-                                    Start Master Quest
-                                    <Activity size={20} className="group-hover:scale-125 transition-transform" />
+                                    Initiate Assessment
+                                    <Zap size={24} className="group-hover:scale-125 transition-transform duration-500 text-yellow-300 fill-current" />
                                 </Link>
-                                <p className="text-center mt-4 text-[10px] font-black uppercase tracking-widest text-emerald-400/60">
-                                    Rewards: +500 XP • Epic Badge
-                                </p>
+                                <div className="mt-6 flex items-center gap-3">
+                                    <div className="flex -space-x-2">
+                                        {[1,2,3].map(i => (
+                                            <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 bg-emerald-600 flex items-center justify-center text-[10px] font-bold">P{i}</div>
+                                        ))}
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Join 12k+ Secure Families</span>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
@@ -210,5 +243,23 @@ const DashboardPage = () => {
         </div>
     );
 };
+
+// Internal ArrowRight component since it's not imported
+const ArrowRight = ({ className, size = 20 }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        width={size} 
+        height={size} 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="3" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        className={className}
+    >
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+);
 
 export default DashboardPage;

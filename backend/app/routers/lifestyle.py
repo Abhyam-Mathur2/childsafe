@@ -57,7 +57,13 @@ async def submit_lifestyle_data(
         water_source=water_src,
         uv_index=uv_idx,
         medical_history=lifestyle.medical_history,
+        medications=lifestyle.medications,
+        family_history=lifestyle.family_history,
         home_environment=lifestyle.home_environment,
+        occupational_details=lifestyle.occupational_details,
+        mental_health_conditions=lifestyle.mental_health_conditions,
+        past_health_reports=lifestyle.past_health_reports,
+        chronic_exposure_years=lifestyle.chronic_exposure_years,
         quiz_responses=lifestyle.quiz_responses
     )
     

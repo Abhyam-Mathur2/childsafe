@@ -100,6 +100,25 @@ class HealthReportResponse(BaseModel):
     # ML Feature Vector (for future use)
     feature_vector: Optional[Dict[str, float]] = None
     
+    # New detailed fields
+    water_source: Optional[str] = None
+    uv_index: Optional[float] = None
+    activity_duration: Optional[str] = None
+    mental_health_conditions: Optional[List[str]] = None
+    past_health_reports: Optional[List[Dict[str, Any]]] = None
+    chronic_exposure_years: Optional[int] = None
+    family_history: Optional[List[str]] = None
+    home_environment: Optional[Dict[str, Any]] = None
+    
+    # New report sections
+    short_term_considerations: Optional[List[str]] = None
+    medium_term_considerations: Optional[List[str]] = None
+    long_term_considerations: Optional[List[str]] = None
+    seasonal_awareness: Optional[Dict[str, Any]] = None
+    daily_pattern_suggestion: Optional[Dict[str, Any]] = None
+    health_professional_guide: Optional[List[str]] = None
+    support_resources: Optional[List[str]] = None
+    
     class Config:
         json_schema_extra = {
             "example": {

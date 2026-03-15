@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/layout/Navbar';
 import LandingPage from './pages/LandingPage';
@@ -8,6 +8,9 @@ import SignupPage from './pages/auth/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
 import ReportPage from './pages/ReportPage';
+import { AnimatePresence } from 'framer-motion';
+import CursorEffect from './components/ui/CursorEffect';
+import FallingLeaves from './components/ui/FallingLeaves';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -35,62 +38,73 @@ const PublicOnlyRoute = ({ children }) => {
     return children;
 };
 
+const Layout = ({ children }) => {
+    const location = useLocation();
+    // Hide Navbar on login and signup pages
+    const showNavbar = !['/login', '/signup'].includes(location.pathname);
+
+    return (
+        <div className="min-h-screen relative text-white font-sans">
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+                {/* 2025 Aurora Animated Blobs */}
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#00ff88] rounded-full mix-blend-screen filter blur-[80px] opacity-15 animate-aurora"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#00ccff] rounded-full mix-blend-screen filter blur-[80px] opacity-15 animate-aurora" style={{ animationDelay: '-4s', animationDirection: 'reverse' }}></div>
+                <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-[#7b2fff] rounded-full mix-blend-screen filter blur-[80px] opacity-15 animate-aurora" style={{ animationDelay: '-8s' }}></div>
+            </div>
+            <FallingLeaves />
+            {showNavbar && <Navbar />}
+            {children}
+        </div>
+    );
+};
+
+const AnimatedRoutes = () => {
+    const location = useLocation();
+    return (
+        <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
+                <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+                <Route path="/signup" element={<PublicOnlyRoute><SignupPage /></PublicOnlyRoute>} />
+                
+                <Route
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <DashboardPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/assessment"
+                    element={
+                        <ProtectedRoute>
+                            <AssessmentPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/report"
+                    element={
+                        <ProtectedRoute>
+                            <ReportPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </AnimatePresence>
+    );
+};
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen relative text-white font-sans">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
-            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-400 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float-slow"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-green-600 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float-slow" style={{ animationDelay: '-4s' }}></div>
-            <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-teal-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-float-slow" style={{ animationDelay: '-2s' }}></div>
-            {/* Particle dots */}
-            {[...Array(20)].map((_, i) => (
-              <div 
-                key={i} 
-                className="absolute w-1 h-1 rounded-full bg-white/20 animate-float-slow"
-                style={{
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 8}s`,
-                  animationDuration: `${6 + Math.random() * 4}s`
-                }}
-              />
-            ))}
-          </div>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
-            <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
-            <Route path="/signup" element={<PublicOnlyRoute><SignupPage /></PublicOnlyRoute>} />
-            
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessment"
-              element={
-                <ProtectedRoute>
-                  <AssessmentPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/report"
-              element={
-                <ProtectedRoute>
-                  <ReportPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
+        <CursorEffect />
+        <Layout>
+            <AnimatedRoutes />
+        </Layout>
       </Router>
     </AuthProvider>
   );

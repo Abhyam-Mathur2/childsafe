@@ -34,6 +34,9 @@ class LifestyleData(Base):
     stress_level = Column(String, nullable=True)  # low/medium/high
     water_source = Column(String, nullable=True)
     uv_index = Column(Float, nullable=True)
+    mental_health_conditions = Column(JSON, nullable=True)
+    past_health_reports = Column(JSON, nullable=True)
+    chronic_exposure_years = Column(Integer, nullable=True)
 
     # Comprehensive Questionnaire Data
     medical_history = Column(JSON, nullable=True)  # List of conditions (asthma, diabetes, etc.)

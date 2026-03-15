@@ -129,7 +129,7 @@ const ReportPage = () => {
     };
 
     const handleDownloadPdf = async () => {
-        if (!report.is_paid) {
+        if (!report.is_paid && user?.email !== 'abhyammath78@gmail.com') {
             alert("Please unlock the full report to download PDF.");
             return;
         }
@@ -208,8 +208,8 @@ const ReportPage = () => {
             <div className="max-w-4xl mx-auto mb-6 flex justify-end gap-3">
                 <button
                     onClick={handleDownloadPdf}
-                    disabled={!report.is_paid}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${report.is_paid
+                    disabled={!report.is_paid && user?.email !== 'abhyammath78@gmail.com'}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || user?.email === 'abhyammath78@gmail.com')
                         ? 'bg-emerald-600 text-white hover:bg-emerald-500 hover:shadow-emerald-500/30'
                         : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
                         }`}
@@ -223,15 +223,15 @@ const ReportPage = () => {
 
             {/* Printable Area - Centered Paper */}
             <div className="relative max-w-[210mm] mx-auto bg-white shadow-xl min-h-[297mm]">
-                {/* Blurring effect if not paid */}
+                {/* Blurring effect if not paid and not admin */}
                 <div
-                    className={`transition-all duration-500 ${!report.is_paid ? 'blur-sm select-none pointer-events-none' : ''}`}
+                    className={`transition-all duration-500 ${(!report.is_paid && user?.email !== 'abhyammath78@gmail.com') ? 'blur-sm select-none pointer-events-none' : ''}`}
                 >
                     <ReportTemplate ref={printRef} report={report} user={user} />
                 </div>
 
                 {/* Payment Overlay */}
-                {!report.is_paid && (
+                {(!report.is_paid && user?.email !== 'abhyammath78@gmail.com') && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
