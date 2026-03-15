@@ -16,6 +16,51 @@ settings = get_settings()
 # In-memory store for pending Airpay payment data (for server-side proxy POST)
 _airpay_pending_payments = {}
 
+
+def _clean_secret(value: Optional[str]) -> str:
+    """Normalize environment values to avoid hidden whitespace/quotes issues."""
+    if value is None:
+        return ""
+    cleaned = str(value).strip()
+    if len(cleaned) >= 2 and cleaned[0] == cleaned[-1] and cleaned[0] in ('"', "'"):
+        cleaned = cleaned[1:-1].strip()
+    return cleaned
+
+
+def _get_airpay_creds() -> dict:
+    """Return sanitized Airpay credentials and fail fast when required values are missing."""
+    creds = {
+        "merchant_id": _clean_secret(settings.AIRPAY_MERCHANT_ID),
+        "username": _clean_secret(settings.AIRPAY_USERNAME),
+        "password": _clean_secret(settings.AIRPAY_PASSWORD),
+        "api_key": _clean_secret(settings.AIRPAY_API_KEY),
+        "client_id": _clean_secret(settings.AIRPAY_CLIENT_ID),
+        "secret_key": _clean_secret(settings.AIRPAY_SECRET_KEY),
+    }
+
+    missing = [
+        name for name in ("merchant_id", "username", "password", "client_id")
+        if not creds[name] or creds[name].lower().startswith("your_")
+    ]
+    if missing:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Airpay is not configured correctly. Missing/placeholder: {', '.join(missing)}"
+        )
+
+    if not creds["api_key"] and not creds["secret_key"]:
+        raise HTTPException(
+            status_code=500,
+            detail="Airpay is not configured correctly. Provide AIRPAY_API_KEY or AIRPAY_SECRET_KEY."
+        )
+
+    return creds
+
+def _get_airpay_url() -> str:
+    """Return the Airpay payment endpoint URL (allow override via env)."""
+    base = _clean_secret(getattr(settings, "AIRPAY_BASE_URL", "")) or "https://payments.airpay.co.in/pay/index.php"
+    return base
+
 class AirpayOrderRequest(BaseModel):
     report_id: int
     buyerEmail: str
@@ -30,6 +75,8 @@ class AirpayOrderRequest(BaseModel):
 
 @router.post("/create-airpay-order")
 async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends(get_db)):
+    creds = _get_airpay_creds()
+
     report = db.query(HealthReport).filter(HealthReport.id == request.report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -69,12 +116,12 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
     
     # 2. Derive Private Key
     # Prefer API key when provided; fallback to secret key for older accounts
-    merchant_key = settings.AIRPAY_API_KEY or settings.AIRPAY_SECRET_KEY
-    _private_key_raw_string = f"{merchant_key}@{settings.AIRPAY_USERNAME}:|:{settings.AIRPAY_PASSWORD}"
+    merchant_key = creds["api_key"] or creds["secret_key"]
+    _private_key_raw_string = f"{merchant_key}@{creds['username']}:|:{creds['password']}"
     private_key = hashlib.sha256(_private_key_raw_string.encode('utf-8')).hexdigest()
     
     # 3. Checksum (SHA256): sKey@allData (per Airpay integration docs)
-    _skey_raw = f"{settings.AIRPAY_USERNAME}~:~{settings.AIRPAY_PASSWORD}"
+    _skey_raw = f"{creds['username']}~:~{creds['password']}"
     s_key = hashlib.sha256(_skey_raw.encode('utf-8')).hexdigest()
     checksum_data = (
         buyer_email
@@ -95,10 +142,12 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
     # Build the FINAL POST payload in the EXACT order verified to work
     from collections import OrderedDict
     post_data = OrderedDict([
-        ("mercid",         settings.AIRPAY_MERCHANT_ID),
+        ("mercid",         creds["merchant_id"]),
         ("orderid",        orderid),
         ("amount",         amount),
         ("currency",       "356"),
+        ("isocurrency",    "INR"),
+        ("clientid",       creds["client_id"]),
         ("buyerEmail",     buyer_email),
         ("buyerPhone",     buyer_phone),
         ("buyerFirstName", buyer_fname),
@@ -110,8 +159,7 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
         ("buyerPinCode",   buyer_pin),
         ("privatekey",     private_key),
         ("checksum",       checksum),
-        ("date",           date),
-        ("isocurrency",    "INR")
+        ("date",           date)
     ])
 
     # POST to Airpay from the SERVER using urllib
@@ -121,7 +169,7 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
     encoded = urllib.parse.urlencode(post_data).encode('utf-8')
 
     airpay_req = urllib.request.Request(
-        "https://payments.airpay.co.in/pay/index.php", 
+        _get_airpay_url(),
         data=encoded,
         headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
@@ -160,9 +208,11 @@ async def airpay_callback(
     CHECKSUM: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    creds = _get_airpay_creds()
+
     # Verify checksum
     custom_var = CUSTOMVAR if CUSTOMVAR else ""
-    checksum_string = f"{TRANSACTIONSTATUS}~:{TRANSACTIONID}~:{APTRANSACTIONID}~:{AMOUNT}~:{TRANSACTIONTIME}~:{MESSAGE}~:{settings.AIRPAY_MERCHANT_ID}~:{custom_var}~:{settings.AIRPAY_SECRET_KEY}"
+    checksum_string = f"{TRANSACTIONSTATUS}~:{TRANSACTIONID}~:{APTRANSACTIONID}~:{AMOUNT}~:{TRANSACTIONTIME}~:{MESSAGE}~:{creds['merchant_id']}~:{custom_var}~:{creds['secret_key']}"
     calculated_checksum = hashlib.md5(checksum_string.encode('utf-8')).hexdigest()
     
     # Get frontend URL from environment or default to localhost
@@ -194,7 +244,7 @@ async def airpay_proxy(orderid: str):
     
     # POST to Airpay from the SERVER (Python urllib works, browser form POST doesn't)
     encoded = urllib.parse.urlencode(post_data).encode()
-    req = urllib.request.Request("https://payments.airpay.co.in/pay/index.php", data=encoded)
+    req = urllib.request.Request(_get_airpay_url(), data=encoded)
     
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
@@ -219,6 +269,8 @@ async def airpay_proxy(orderid: str):
 @router.get("/test-airpay")
 async def test_airpay_form():
     """Server-side proxy: POSTs to Airpay from the backend (bypasses browser encoding issue)."""
+    creds = _get_airpay_creds()
+
     import urllib.request
     import urllib.parse
     from datetime import timezone
@@ -228,7 +280,7 @@ async def test_airpay_form():
     date = datetime.now().strftime("%Y-%m-%d")
     
     pk = hashlib.sha256(
-        f"{settings.AIRPAY_API_KEY}@{settings.AIRPAY_USERNAME}:|:{settings.AIRPAY_PASSWORD}".encode()
+        f"{(creds['api_key'] or creds['secret_key'])}@{creds['username']}:|:{creds['password']}".encode()
     ).hexdigest()
     
     alldata = "test@example.com" + "Test" + "User" + "123 Main St" + "Mumbai" + "Maharashtra" + "India" + amount + orderid
@@ -239,13 +291,13 @@ async def test_airpay_form():
         "buyerFirstName": "Test", "buyerLastName": "User",
         "buyerAddress": "123 Main St", "buyerCity": "Mumbai",
         "buyerState": "Maharashtra", "buyerCountry": "India", "buyerPinCode": "400001",
-        "amount": amount, "orderid": orderid, "mercid": settings.AIRPAY_MERCHANT_ID,
+        "amount": amount, "orderid": orderid, "mercid": creds["merchant_id"],
         "privatekey": pk, "checksum": checksum, "currency": "356", "isocurrency": "INR", "date": date,
     }
     
     # POST to Airpay from the SERVER (this works, unlike browser POST)
     encoded = urllib.parse.urlencode(post_data).encode()
-    req = urllib.request.Request("https://payments.airpay.co.in/pay/index.php", data=encoded)
+    req = urllib.request.Request(_get_airpay_url(), data=encoded)
     
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:

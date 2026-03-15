@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     AIRPAY_CLIENT_ID: str = ""
     AIRPAY_SECRET_KEY: str = ""
     AIRPAY_IS_TEST: bool = True
+    # Optional override for Airpay payment endpoint (useful for sandbox vs live)
+    AIRPAY_BASE_URL: str = ""
     
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"

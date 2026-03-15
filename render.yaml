@@ -24,6 +24,8 @@ services:
         sync: false
       - key: AIRPAY_SECRET_KEY
         sync: false
+      - key: AIRPAY_BASE_URL
+        sync: false
       - key: AIRPAY_IS_TEST
         value: False
       - key: SECRET_KEY
