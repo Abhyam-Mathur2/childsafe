@@ -82,7 +82,7 @@ const SignupPage = () => {
                     </AnimatePresence>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="input-group-modern">
+                        <div className="input-group-modern group">
                             <User className="input-icon-modern" size={20} />
                             <input
                                 type="text"
@@ -94,7 +94,7 @@ const SignupPage = () => {
                             />
                         </div>
 
-                        <div className="input-group-modern">
+                        <div className="input-group-modern group">
                             <Mail className="input-icon-modern" size={20} />
                             <input
                                 type="email"
@@ -106,7 +106,7 @@ const SignupPage = () => {
                             />
                         </div>
 
-                        <div className="input-group-modern">
+                        <div className="input-group-modern group">
                             <Lock className="input-icon-modern" size={20} />
                             <input
                                 type="password"

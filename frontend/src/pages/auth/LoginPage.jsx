@@ -82,7 +82,7 @@ const LoginPage = () => {
                     </AnimatePresence>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="input-group-modern">
+                        <div className="input-group-modern group">
                             <Mail className="input-icon-modern" size={20} />
                             <input
                                 type="email"
@@ -94,7 +94,7 @@ const LoginPage = () => {
                             />
                         </div>
 
-                        <div className="input-group-modern">
+                        <div className="input-group-modern group">
                             <Lock className="input-icon-modern" size={20} />
                             <input
                                 type={showPassword ? "text" : "password"}

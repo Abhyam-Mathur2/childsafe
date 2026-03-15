@@ -77,7 +77,7 @@ body {
 }
 
 .input-group-modern {
-  @apply relative group;
+  position: relative;
 }
 
 .input-field-modern {
