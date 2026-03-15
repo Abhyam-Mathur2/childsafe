@@ -2,14 +2,13 @@ import React, { useRef, useEffect } from 'react';
 
 const VideoBackground = ({ opacity = 0.5 }) => {
   const videoRef = useRef(null);
-  
-  // Directly using the local file in the public/assets folder
   const videoUrl = "/assets/auth-bg.mp4";
 
   // Professional Backup in case local file fails
   const premiumPlaceholder = "https://assets.mixkit.co/videos/preview/mixkit-forest-stream-in-the-sunlight-529-large.mp4";
 
   useEffect(() => {
+    // Attempt to force play on mount
     if (videoRef.current) {
       videoRef.current.play().catch(error => {
         console.warn("Autoplay was prevented. This is normal for some browsers until user interaction.", error);
@@ -28,11 +27,11 @@ const VideoBackground = ({ opacity = 0.5 }) => {
         loop
         muted
         playsInline
-        className="absolute top-1/2 left-1/2 min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-1000"
-        style={{ opacity: 0 }} // Start invisible and fade in when loaded
+        preload="auto"
+        className="absolute top-1/2 left-1/2 min-w-full min-h-full -translate-x-1/2 -translate-y-1/2 object-cover"
+        style={{ opacity }}
         onLoadedData={(e) => {
             console.log("Local environment video loaded successfully");
-            e.target.style.opacity = opacity;
         }}
         onError={(e) => {
             console.warn("Local video failed to load, trying fallback...");
