@@ -258,8 +258,7 @@ const AssessmentPage = () => {
                                     </div>
 
                                     <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Age group of the child</label>
-                                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Age Group</label>                                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                                             {['0-1', '1-3', '3-12', '13-17', '18-25', '26-35', '36-50', '51-65', '65+'].map((age) => (
                                                 <button
                                                     key={age}
