@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     AIRPAY_IS_TEST: bool = True
     # Optional override for Airpay payment endpoint (useful for sandbox vs live)
     AIRPAY_BASE_URL: str = ""
+    # Domain to send as 'Referer' to Airpay (must match your registered domain)
+    AIRPAY_REFERER_DOMAIN: str = "childsafeenviron.netlify.app"
     
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"

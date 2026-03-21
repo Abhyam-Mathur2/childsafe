@@ -721,232 +721,191 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
             </div>
 
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;500;600&display=swap');
 
                 .report-paper {
                     background: #fff;
                     color: #1a1a1a;
                     font-family: 'Inter', sans-serif;
-                    padding: 50px;
+                    padding: 60px 50px;
                     max-width: 100%;
                     box-sizing: border-box;
+                    position: relative;
                 }
 
                 h1, h2, h3, h4 { font-family: 'Merriweather', serif; color: #1b4d3e; }
 
-                .report-header { margin-bottom: 40px; }
-                .report-header h1 { font-size: 2.4rem; border-bottom: none; margin-bottom: 25px; }
+                .report-header { margin-bottom: 50px; border-bottom: 2px solid #1b4d3e; padding-bottom: 30px; }
+                .report-header h1 { font-size: 2.6rem; margin-bottom: 25px; line-height: 1.2; }
                 
                 .meta-grid, .user-meta-grid {
                     display: flex;
                     justify-content: space-between;
-                    border-bottom: 1px solid #ddd;
-                    padding-bottom: 10px;
+                    padding-bottom: 12px;
                     margin-bottom: 15px;
                     font-size: 0.95rem;
                     color: #444;
                 }
+                
+                .meta-grid { border-bottom: 1px solid #eee; }
 
-                .section-spacer { margin-bottom: 40px; }
-                .disclaimer-header { display: flex; alignItems: center; gap: 10px; margin-bottom: 15px; }
-                .disclaimer-header h2 { font-size: 1.6rem; margin: 0; }
+                .section-spacer { margin-bottom: 50px; }
+                .disclaimer-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+                .disclaimer-header h2 { font-size: 1.6rem; margin: 0; color: #b71c1c; }
                 
                 .disclaimer-box {
-                    background: #e8f5e9;
-                    border-left: 5px solid #1b4d3e;
-                    padding: 25px;
+                    background: #fff5f5;
+                    border: 1px solid #ffcdd2;
+                    border-left: 6px solid #b71c1c;
+                    padding: 30px;
+                    border-radius: 4px;
                 }
-                .disclaimer-primary { display: flex; gap: 15px; align-items: start; margin-bottom: 15px; }
-                .disclaimer-title { font-weight: bold; font-size: 1.1rem; color: #1b4d3e; }
-                .disclaimer-secondary { margin-left: 35px; font-size: 0.95rem; line-height: 1.5; color: #333; }
-                .disclaimer-footer-line { margin-top: 15px; font-weight: bold; border-left: 3px solid #1b4d3e; padding-left: 10px; }
+                .disclaimer-primary { display: flex; gap: 15px; align-items: start; margin-bottom: 18px; }
+                .disclaimer-title { font-weight: 800; font-size: 1.1rem; color: #b71c1c; letter-spacing: 0.5px; }
+                .disclaimer-secondary { margin-left: 35px; font-size: 0.95rem; line-height: 1.6; color: #333; }
+                .disclaimer-secondary ul { margin-top: 10px; }
+                .disclaimer-footer-line { margin-top: 20px; font-weight: bold; border-top: 1px solid #ffcdd2; padding-top: 15px; color: #b71c1c; text-align: center; font-size: 0.9rem; }
 
-                .section-title { font-size: 1.8rem; border-bottom: none; margin-top: 40px; margin-bottom: 25px; }
-                .subtitle { font-family: 'Merriweather', serif; font-size: 1.2rem; color: #1b4d3e; margin-bottom: 15px; }
+                .section-title { font-size: 1.9rem; margin-top: 60px; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+                .subtitle { font-family: 'Merriweather', serif; font-size: 1.2rem; color: #1b4d3e; margin-bottom: 20px; font-weight: 700; }
 
                 /* Summary */
-                .summary-container { display: flex; gap: 30px; margin-bottom: 30px; }
-                .summary-left, .summary-right { flex: 1; background: #f3f1e9; padding: 25px; }
-                .summary-label { font-family: 'Merriweather', serif; font-size: 1.1rem; margin-bottom: 10px; }
-                .summary-score { font-size: 3.5rem; font-weight: bold; font-family: 'Merriweather', serif; line-height: 1; }
-                .summary-score span { font-size: 1.2rem; color: #666; font-family: 'Inter', sans-serif; font-weight: normal; }
-                .priority-text { font-weight: bold; margin-bottom: 10px; }
-                .attention-badge { display: inline-flex; align-items: center; gap: 5px; background: #fff; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; color: #e65100; }
+                .summary-container { display: flex; gap: 30px; margin-bottom: 40px; }
+                .summary-left, .summary-right { flex: 1; background: #f3f1e9; padding: 30px; border-radius: 8px; border: 1px solid #e0ddd0; }
+                .summary-label { font-family: 'Merriweather', serif; font-size: 1.2rem; margin-bottom: 15px; font-weight: 700; }
+                .summary-score { font-size: 4rem; font-weight: bold; font-family: 'Merriweather', serif; line-height: 1; color: #1b4d3e; }
+                .summary-score span { font-size: 1.5rem; color: #666; font-family: 'Inter', sans-serif; font-weight: 400; }
+                .priority-text { font-weight: 800; margin-bottom: 15px; font-size: 1.1rem; letter-spacing: 1px; }
+                .attention-badge { display: inline-flex; align-items: center; gap: 8px; background: #fff; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; color: #e65100; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-                .summary-text-grid { display: flex; gap: 40px; margin-bottom: 40px; }
+                .summary-text-grid { display: flex; gap: 40px; margin-bottom: 50px; }
                 .summary-text-col { flex: 1; }
-                .text-col-title { font-size: 1.1rem; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 10px; }
+                .text-col-title { font-size: 1.15rem; border-bottom: 2px solid #1b4d3e; padding-bottom: 10px; margin-bottom: 15px; font-weight: 700; }
+                .summary-text-col p { margin-bottom: 15px; line-height: 1.6; }
 
                 /* Exposure Grid */
-                .exposure-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-                .exposure-card { background: #f9f9f9; border: 1px solid #eee; display: flex; flex-direction: row; }
-                .card-top-strip { width: 6px; flex-shrink: 0; }
-                .card-body { padding: 20px; flex: 1; }
-                .card-body h3 { font-size: 0.95rem; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; margin-top: 0; }
-                .card-body ul { padding-left: 15px; margin: 0; font-size: 0.85rem; line-height: 1.6; }
+                .exposure-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 50px; }
+                .exposure-card { background: #fff; border: 1px solid #e0e0e0; display: flex; flex-direction: row; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+                .card-top-strip { width: 8px; flex-shrink: 0; }
+                .card-body { padding: 25px; flex: 1; }
+                .card-body h3 { font-size: 1.1rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; margin-top: 0; }
+                .card-body ul { padding-left: 18px; margin: 0; font-size: 0.9rem; line-height: 1.7; color: #444; }
+                .card-body li { margin-bottom: 6px; }
 
                 /* Personal Factors */
-                .personal-factors-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 0.95rem; }
-                .personal-factors-table th { text-align: left; background: #f9f9f9; padding: 12px; font-family: 'Merriweather', serif; }
-                .personal-factors-table td { padding: 12px; border-bottom: 1px solid #eee; }
+                .personal-factors-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 0.95rem; border: 1px solid #eee; }
+                .personal-factors-table th { text-align: left; background: #f8f9fa; padding: 15px; font-family: 'Merriweather', serif; border-bottom: 2px solid #eee; }
+                .personal-factors-table td { padding: 15px; border-bottom: 1px solid #eee; }
 
-                .interactions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-                .interaction-box { background: #f9f9f9; padding: 15px; display: flex; gap: 15px; }
-                .interaction-num { background: #eee; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Merriweather', serif; }
-                .interaction-content { font-size: 0.9rem; line-height: 1.4; }
+                .interactions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 50px; }
+                .interaction-box { background: #f8fbf9; padding: 20px; display: flex; gap: 20px; border: 1px solid #e8f5e9; border-radius: 8px; }
+                .interaction-num { background: #1b4d3e; color: white; width: 28px; height: 28px; min-width: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; font-size: 0.9rem; }
+                .interaction-content { font-size: 0.95rem; line-height: 1.5; color: #333; }
 
                 /* Management */
-                .management-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 50px; }
-                .management-header { font-family: 'Inter', sans-serif; border-top: 2px solid #ddd; padding-top: 10px; margin-bottom: 15px; font-size: 0.9rem; font-weight: bold; }
-                .management-card { padding: 20px; font-size: 0.85rem; }
-                .management-card h4 { font-size: 0.95rem; margin-top: 0; margin-bottom: 10px; }
+                .management-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 60px; }
+                .management-header { font-family: 'Inter', sans-serif; border-bottom: 2px solid #1b4d3e; padding-bottom: 10px; margin-bottom: 20px; font-size: 0.95rem; font-weight: 800; color: #1b4d3e; text-transform: uppercase; letter-spacing: 0.5px; }
+                .management-card { padding: 25px; font-size: 0.9rem; border-radius: 8px; height: 100%; box-sizing: border-box; }
+                .management-card h4 { font-size: 1rem; margin-top: 0; margin-bottom: 15px; }
                 .management-card ul { padding-left: 20px; margin: 0; }
-                .management-card li { margin-bottom: 6px; }
+                .management-card li { margin-bottom: 10px; line-height: 1.5; }
                 .green-theme { background-color: #1b4d3e; color: white; }
-                .green-theme h4 { color: white; }
-                .grey-theme { background-color: #f3f1e9; color: #333; }
+                .green-theme h4 { color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; }
+                .grey-theme { background-color: #f3f1e9; color: #333; border: 1px solid #e0ddd0; }
+                .grey-theme h4 { border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 8px; }
 
-                .footer { border-top: 1px solid #eee; padding-top: 20px; font-size: 0.8rem; color: #888; text-align: center; }
+                .footer { border-top: 1px solid #eee; padding-top: 30px; margin-top: 60px; font-size: 0.85rem; color: #888; text-align: center; font-family: 'Inter', sans-serif; }
 
                 /* Dots */
-                .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 5px; }
-                .dot.red { background: #d32f2f; }
-                .dot.yellow { background: #fbc02d; }
-                .dot.green { background: #388e3c; }
-                .dot.orange { background: #e65100; }
+                .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-left: 8px; }
+                .dot.red { background: #d32f2f; box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1); }
+                .dot.yellow { background: #fbc02d; box-shadow: 0 0 0 3px rgba(251, 192, 45, 0.1); }
+                .dot.green { background: #388e3c; box-shadow: 0 0 0 3px rgba(56, 142, 60, 0.1); }
+                .dot.orange { background: #e65100; box-shadow: 0 0 0 3px rgba(230, 81, 0, 0.1); }
 
-                /* Existing Grids */
-                .action-plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-                .action-plan-col { flex: 1; }
-                .guidance-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+                /* Grids */
+                .action-plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+                .guidance-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 40px; }
                 .resources-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 50px; }
-                .outline-card { border: 1px solid #ccc !important; background-color: #fafafa !important; }
+                .outline-card { border: 1px solid #e0ddd0 !important; background-color: #fbfaf7 !important; }
 
-                /* ===== NEW SECTION STYLES ===== */
-
-                /* Section 4: Water & UV */
-                .water-uv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
-                .water-uv-card { background: #f9f9f9; border: 1px solid #eee; padding: 24px; }
+                /* Water & UV */
+                .water-uv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 50px; }
+                .water-uv-card { background: #fff; border: 1px solid #eee; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
                 .water-uv-card.full-width { grid-column: 1 / -1; }
-                .water-uv-card h3 { display: flex; align-items: center; gap: 8px; font-size: 1rem; margin-top: 0; margin-bottom: 16px; }
-                .water-source-display { display: flex; align-items: center; gap: 15px; }
-                .water-source-label { font-size: 1.3rem; font-weight: 600; text-transform: capitalize; }
-                .risk-badge { padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
-                .risk-high { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
-                .risk-moderate { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
-                .risk-low { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+                .water-uv-card h3 { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px; }
+                .water-source-display { display: flex; align-items: center; gap: 20px; background: #f9f9f9; padding: 15px; border-radius: 6px; }
+                .water-source-label { font-size: 1.4rem; font-weight: 700; text-transform: capitalize; color: #1b4d3e; }
+                .risk-badge { padding: 6px 14px; border-radius: 4px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.5px; }
 
-                .uv-scale-container { position: relative; margin-top: 10px; padding-bottom: 30px; }
-                .uv-scale-bar { display: flex; height: 24px; border-radius: 12px; overflow: hidden; }
-                .uv-segment { display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; color: #fff; }
-                .uv-low { background: #4caf50; }
-                .uv-moderate { background: #fbc02d; color: #333; }
-                .uv-high { background: #ff9800; }
-                .uv-very-high { background: #f44336; }
-                .uv-extreme { background: #9c27b0; }
-                .uv-indicator { position: absolute; top: -6px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
-                .uv-indicator-dot { width: 14px; height: 14px; background: #1b4d3e; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 6px rgba(0,0,0,0.3); }
-                .uv-indicator-label { margin-top: 28px; font-weight: 700; font-size: 0.9rem; color: #1b4d3e; }
+                .uv-scale-container { position: relative; margin-top: 15px; padding-bottom: 40px; }
+                .uv-scale-bar { display: flex; height: 28px; border-radius: 14px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+                .uv-segment { display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
-                .exposure-risk-badge { padding: 16px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; text-align: center; }
-                .exposure-very-high { background: #ffebee; color: #b71c1c; border: 2px solid #ef9a9a; }
-                .exposure-high { background: #fff3e0; color: #e65100; border: 2px solid #ffcc80; }
-                .exposure-moderate { background: #fff8e1; color: #f57f17; border: 2px solid #ffe082; }
-                .exposure-low { background: #e8f5e9; color: #2e7d32; border: 2px solid #a5d6a7; }
+                .uv-indicator { position: absolute; top: -8px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; transition: left 1s ease-out; }
+                .uv-indicator-dot { width: 18px; height: 18px; background: #1b4d3e; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+                .uv-indicator-label { margin-top: 32px; font-weight: 800; font-size: 1.1rem; color: #1b4d3e; background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid #1b4d3e; }
 
-                /* Section 5: Mental Health */
-                .mental-health-section { margin-bottom: 40px; }
-                .mental-conditions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-                .mental-condition-card { background: #fdf5f0; border-left: 4px solid #e65100; padding: 18px; }
-                .condition-name { font-weight: 700; font-size: 1rem; color: #e65100; margin-bottom: 8px; text-transform: capitalize; }
-                .condition-interaction { font-size: 0.88rem; line-height: 1.5; color: #444; }
-                .mental-health-clean { display: flex; align-items: center; gap: 12px; background: #e8f5e9; padding: 18px; font-size: 0.92rem; color: #2e7d32; }
+                .exposure-risk-badge { padding: 20px 30px; border-radius: 10px; font-size: 1.1rem; font-weight: 700; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
-                /* Section 6: Age Vulnerability */
-                .age-warning-box { display: flex; align-items: start; gap: 12px; background: #fff3e0; border: 2px solid #e65100; padding: 18px; margin-bottom: 20px; font-size: 0.95rem; color: #bf360c; line-height: 1.5; }
-                .age-vulnerability-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 0.88rem; }
-                .age-vulnerability-table th { text-align: left; background: #1b4d3e; color: white; padding: 12px 14px; font-family: 'Merriweather', serif; font-size: 0.85rem; }
-                .age-vulnerability-table td { padding: 10px 14px; border-bottom: 1px solid #eee; }
-                .age-vulnerability-table .highlighted-row { background: #e8f5e9; font-weight: 600; }
-                .vuln-badge { padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; }
-                .vuln-extreme { background: #b71c1c; color: white; }
-                .vuln-very-high { background: #d32f2f; color: white; }
-                .vuln-high { background: #e65100; color: white; }
-                .vuln-moderate { background: #fbc02d; color: #333; }
-                .vuln-standard { background: #4caf50; color: white; }
+                /* Mental Health */
+                .mental-health-section { margin-bottom: 50px; }
+                .mental-conditions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+                .mental-condition-card { background: #fffcf9; border-left: 6px solid #e65100; padding: 22px; border-radius: 4px; border-right: 1px solid #fff3e0; border-top: 1px solid #fff3e0; border-bottom: 1px solid #fff3e0; }
+                .condition-name { font-weight: 800; font-size: 1.1rem; color: #e65100; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+                .condition-interaction { font-size: 0.95rem; line-height: 1.6; color: #444; }
+                .mental-health-clean { display: flex; align-items: center; gap: 15px; background: #f1f8f1; padding: 25px; font-size: 1rem; color: #2e7d32; border-radius: 8px; border: 1px solid #e8f5e9; }
 
-                /* Section 7: Historical Trend */
-                .history-section { margin-bottom: 40px; }
-                .history-chart { display: flex; gap: 16px; align-items: flex-end; height: 160px; padding: 20px; background: #f9f9f9; border: 1px solid #eee; margin-bottom: 20px; }
-                .history-bar-container { display: flex; flex-direction: column; align-items: center; flex: 1; max-width: 80px; }
-                .history-bar-wrapper { width: 40px; height: 120px; display: flex; align-items: flex-end; }
-                .history-bar { width: 100%; border-radius: 4px 4px 0 0; display: flex; align-items: flex-end; justify-content: center; transition: height 0.3s ease; min-height: 10px; }
-                .bar-value { font-size: 0.7rem; font-weight: 700; color: white; padding-bottom: 4px; }
-                .bar-high { background: linear-gradient(180deg, #d32f2f, #b71c1c); }
-                .bar-medium { background: linear-gradient(180deg, #fbc02d, #f9a825); }
-                .bar-low { background: linear-gradient(180deg, #4caf50, #388e3c); }
-                .history-label { font-size: 0.7rem; color: #666; margin-top: 6px; text-align: center; }
-                .history-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-                .history-table th { text-align: left; background: #f3f1e9; padding: 10px 14px; font-family: 'Merriweather', serif; font-size: 0.82rem; }
-                .history-table td { padding: 10px 14px; border-bottom: 1px solid #eee; }
-                .risk-level-tag { padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; }
-                .risk-level-tag.high { background: #ffebee; color: #c62828; }
-                .risk-level-tag.medium { background: #fff8e1; color: #e65100; }
-                .risk-level-tag.low { background: #e8f5e9; color: #2e7d32; }
-                .first-assessment-box { display: flex; align-items: center; gap: 12px; background: #e8f5e9; border-left: 4px solid #1b4d3e; padding: 18px; margin-bottom: 40px; font-size: 0.92rem; color: #333; }
+                /* Age Vulnerability */
+                .age-warning-box { display: flex; align-items: start; gap: 15px; background: #fff8e1; border: 2px solid #ffe082; border-left: 8px solid #fbc02d; padding: 25px; margin-bottom: 30px; font-size: 1.05rem; color: #333; line-height: 1.6; border-radius: 4px; }
+                .age-vulnerability-table { width: 100%; border-collapse: collapse; margin-bottom: 50px; font-size: 0.9rem; border: 1px solid #eee; }
+                .age-vulnerability-table th { text-align: left; background: #1b4d3e; color: white; padding: 15px; font-family: 'Merriweather', serif; font-size: 0.95rem; }
+                .age-vulnerability-table td { padding: 12px 15px; border-bottom: 1px solid #eee; }
+                .age-vulnerability-table .highlighted-row { background: #f1f8f1; font-weight: 700; outline: 2px solid #1b4d3e; outline-offset: -2px; }
+                .vuln-badge { padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
 
-                /* Section 8: Timeline */
-                .timeline-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-                .timeline-col { background: #f9f9f9; border: 1px solid #eee; padding: 0; }
-                .timeline-header { padding: 14px 18px; font-weight: 700; font-size: 0.9rem; }
-                .yellow-header { background: #fff8e1; border-bottom: 3px solid #fbc02d; color: #f57f17; }
-                .orange-header { background: #fff3e0; border-bottom: 3px solid #ff9800; color: #e65100; }
-                .red-header { background: #ffebee; border-bottom: 3px solid #d32f2f; color: #c62828; }
-                .timeline-list { padding: 16px 18px 16px 30px; margin: 0; font-size: 0.85rem; line-height: 1.7; }
+                /* Timeline */
+                .timeline-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 50px; }
+                .timeline-col { background: #fff; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+                .timeline-header { padding: 18px; font-weight: 800; font-size: 1rem; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+                .timeline-list { padding: 20px 20px 25px 35px; margin: 0; font-size: 0.9rem; line-height: 1.8; color: #444; }
+                .timeline-list li { margin-bottom: 10px; }
 
-                /* Section 9: Seasonal */
-                .seasonal-section { margin-bottom: 40px; }
-                .season-header-display { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
-                .season-icon { font-size: 2.4rem; }
-                .season-name { font-family: 'Merriweather', serif; font-size: 1.6rem; color: #1b4d3e; }
-                .seasonal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                .seasonal-card { padding: 22px; font-size: 0.88rem; }
-                .seasonal-card h4 { margin-top: 0; margin-bottom: 12px; font-size: 0.95rem; }
-                .seasonal-card ul { padding-left: 18px; margin: 0; line-height: 1.7; }
-                .risk-card { background: #fff3e0; border-left: 4px solid #e65100; }
-                .risk-card h4 { color: #e65100; }
-                .tips-card { background: #e8f5e9; border-left: 4px solid #2e7d32; }
-                .tips-card h4 { color: #2e7d32; }
-
-                /* Section 10: Daily Pattern */
-                .daily-pattern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-                .daily-pattern-card { padding: 24px; text-align: center; border-radius: 8px; border: 2px solid; }
-                .pattern-safe { background: #e8f5e9; border-color: #a5d6a7; }
-                .pattern-caution { background: #fff8e1; border-color: #ffe082; }
-                .pattern-icon { font-size: 2rem; margin-bottom: 8px; }
-                .pattern-period { font-family: 'Merriweather', serif; font-size: 1.1rem; font-weight: 700; color: #1b4d3e; }
-                .pattern-time { font-size: 0.82rem; color: #666; margin-bottom: 12px; }
-                .pattern-suggestion { font-size: 0.85rem; line-height: 1.5; color: #333; }
-
-                /* Section 11: Professional Guide */
-                .professional-guide { background: #f9f9f9; border: 2px solid #1b4d3e; padding: 0; margin-bottom: 40px; }
-                .guide-header { background: #1b4d3e; color: white; padding: 16px 24px; font-size: 1rem; }
-                .guide-checklist { padding: 20px 24px; }
-                .checklist-item { display: flex; align-items: start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; line-height: 1.5; }
-                .checklist-item:last-child { border-bottom: none; }
-                .checkbox-char { font-size: 1.2rem; color: #1b4d3e; flex-shrink: 0; margin-top: -2px; }
-
-                /* Section 12: Support */
-                .support-section { margin-bottom: 40px; }
-                .resource-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
-                .resource-card { background: #f3f1e9; padding: 18px; border-left: 3px solid #1b4d3e; }
-                .resource-name { font-weight: 700; font-size: 0.88rem; color: #1b4d3e; margin-bottom: 4px; }
-                .resource-link { font-size: 0.78rem; color: #666; word-break: break-all; }
-                .caregiver-note { display: flex; align-items: center; gap: 12px; background: #e8f5e9; border-left: 4px solid #1b4d3e; padding: 18px; font-size: 0.9rem; color: #333; line-height: 1.5; }
+                /* Support */
+                .resource-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+                .resource-card { background: #f9f9f9; padding: 20px; border-left: 4px solid #1b4d3e; border-radius: 4px; transition: transform 0.2s; }
+                .resource-name { font-weight: 800; font-size: 0.95rem; color: #1b4d3e; margin-bottom: 8px; }
+                .resource-link { font-size: 0.8rem; color: #666; word-break: break-all; font-family: monospace; }
+                .caregiver-note { display: flex; align-items: center; gap: 15px; background: #f0f7f4; border-left: 6px solid #1b4d3e; padding: 25px; font-size: 1rem; color: #333; line-height: 1.6; border-radius: 4px; }
 
                 @media print {
-                    .report-paper { padding: 20px; }
-                    body { -webkit-print-color-adjust: exact; }
+                    @page {
+                        size: A4;
+                        margin: 15mm;
+                    }
+                    body {
+                        background: white;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    .report-paper {
+                        padding: 0 !important;
+                        box-shadow: none !important;
+                        width: 100% !important;
+                    }
+                    .section-title {
+                        page-break-before: always;
+                        padding-top: 30px;
+                    }
+                    .exposure-card, .management-card, .interaction-box, .water-uv-card, .mental-condition-card, .timeline-col, .resource-card, tr {
+                        page-break-inside: avoid;
+                    }
+                    .no-print {
+                        display: none;
+                    }
+                    .uv-scale-bar {
+                        border: 1px solid #ddd;
+                    }
                 }
             `}</style>
         </div>

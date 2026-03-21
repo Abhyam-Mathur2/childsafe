@@ -6,9 +6,11 @@ from app.config import get_settings
 from app.models.health_report import HealthReport
 from pydantic import BaseModel
 import hashlib
+import base64
 from datetime import datetime, timezone
 from typing import Optional
 import os
+from urllib.parse import urlparse
 
 router = APIRouter()
 settings = get_settings()
@@ -74,7 +76,7 @@ class AirpayOrderRequest(BaseModel):
     buyerPinCode: str
 
 @router.post("/create-airpay-order")
-async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends(get_db)):
+async def create_airpay_order(request: AirpayOrderRequest, http_request: Request, db: Session = Depends(get_db)):
     creds = _get_airpay_creds()
 
     report = db.query(HealthReport).filter(HealthReport.id == request.report_id).first()
@@ -107,6 +109,18 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
 
     amount = "80.00"
     orderid = f"REP{report.id}T{int(datetime.utcnow().timestamp())}"
+
+    # Airpay requires merchant domain in Base64 (mer_dom)
+    origin = (http_request.headers.get("origin") or "").strip()
+    referer = (http_request.headers.get("referer") or "").strip()
+    fallback_domain = (os.getenv("FRONTEND_URL", "") or "https://childsafeenvirons.com").strip()
+    source_url = origin or referer or fallback_domain
+    parsed = urlparse(source_url)
+    if parsed.scheme and parsed.netloc:
+        merchant_domain = f"{parsed.scheme}://{parsed.netloc}"
+    else:
+        merchant_domain = source_url.rstrip("/")
+    mer_dom = base64.b64encode(merchant_domain.encode("utf-8")).decode("ascii")
     
     # Store orderid in database to verify later
     report.stripe_session_id = orderid
@@ -114,10 +128,9 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
     
     date = datetime.now().strftime("%Y-%m-%d")
     
-    # 2. Derive Private Key
-    # Prefer API key when provided; fallback to secret key for older accounts
-    merchant_key = creds["api_key"] or creds["secret_key"]
-    _private_key_raw_string = f"{merchant_key}@{creds['username']}:|:{creds['password']}"
+    # Always use SECRET_KEY for private key generation
+    merchant_key = settings.AIRPAY_SECRET_KEY
+    _private_key_raw_string = f"{merchant_key}@{settings.AIRPAY_USERNAME}:|:{settings.AIRPAY_PASSWORD}"
     private_key = hashlib.sha256(_private_key_raw_string.encode('utf-8')).hexdigest()
     
     # 3. Checksum (SHA256): sKey@allData (per Airpay integration docs)
@@ -143,6 +156,7 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
     from collections import OrderedDict
     post_data = OrderedDict([
         ("mercid",         creds["merchant_id"]),
+        ("mer_dom",        mer_dom),
         ("orderid",        orderid),
         ("amount",         amount),
         ("currency",       "356"),
@@ -183,7 +197,10 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
             final_url = resp.url
             
             if "error" in final_url.lower():
-                return HTMLResponse(content=body)
+                return HTMLResponse(
+                    content=body,
+                    headers={"X-Airpay-Transaction-Id": orderid}
+                )
             else:
                 # Fix relative URLs to point to Airpay's domain
                 body = body.replace('href="/', 'href="https://payments.airpay.co.in/')
@@ -192,9 +209,52 @@ async def create_airpay_order(request: AirpayOrderRequest, db: Session = Depends
                 body = body.replace("src='/", "src='https://payments.airpay.co.in/")
                 body = body.replace('action="/', 'action="https://payments.airpay.co.in/')
                 body = body.replace("action='/", "action='https://payments.airpay.co.in/")
-                return HTMLResponse(content=body)
+                return HTMLResponse(
+                    content=body,
+                    headers={"X-Airpay-Transaction-Id": orderid}
+                )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Airpay connection error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": f"Airpay connection error: {str(e)}",
+                "transaction_id": orderid,
+                "report_id": report.id,
+            },
+        )
+
+
+@router.get("/payment-transactions/recent")
+async def get_recent_transactions(limit: int = 20, db: Session = Depends(get_db)):
+    """Return recent payment transactions for testing and debugging."""
+    reports = db.query(HealthReport).order_by(HealthReport.created_at.desc()).limit(limit).all()
+    return {
+        "total": len([r for r in reports if r.stripe_session_id]),
+        "transactions": [
+            {
+                "report_id": report.id,
+                "transaction_id": report.stripe_session_id,
+                "is_paid": bool(report.is_paid),
+                "created_at": report.created_at.isoformat() if report.created_at else None,
+            }
+            for report in reports if report.stripe_session_id
+        ]
+    }
+
+
+@router.get("/payment-transaction/{report_id}")
+async def get_payment_transaction(report_id: int, db: Session = Depends(get_db)):
+    """Return the latest generated Airpay transaction id for a report."""
+    report = db.query(HealthReport).filter(HealthReport.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    return {
+        "report_id": report.id,
+        "transaction_id": report.stripe_session_id,
+        "is_paid": bool(report.is_paid),
+        "created_at": report.created_at.isoformat() if report.created_at else None,
+    }
 
 @router.post("/airpay-callback")
 async def airpay_callback(
@@ -227,6 +287,8 @@ async def airpay_callback(
             return RedirectResponse(url=f"{frontend_url}?payment=success", status_code=303)
     
         return RedirectResponse(url=f"{frontend_url}?payment=failed", status_code=303)
+
+    return RedirectResponse(url=f"{frontend_url}?payment=failed", status_code=303)
 
 
 @router.get("/airpay-proxy/{orderid}")
@@ -278,22 +340,63 @@ async def test_airpay_form():
     amount = "80.00"
     orderid = f"BTEST{int(datetime.now(timezone.utc).timestamp())}"
     date = datetime.now().strftime("%Y-%m-%d")
-    
-    pk = hashlib.sha256(
-        f"{(creds['api_key'] or creds['secret_key'])}@{creds['username']}:|:{creds['password']}".encode()
+
+    # Airpay requires merchant domain in Base64 (mer_dom)
+    fallback_domain = (os.getenv("FRONTEND_URL", "") or "https://childsafeenvirons.com").strip()
+    parsed = urlparse(fallback_domain)
+    if parsed.scheme and parsed.netloc:
+        merchant_domain = f"{parsed.scheme}://{parsed.netloc}"
+    else:
+        merchant_domain = fallback_domain.rstrip("/")
+    mer_dom = base64.b64encode(merchant_domain.encode("utf-8")).decode("ascii")
+
+    # Private key using SECRET_KEY
+    private_key = hashlib.sha256(
+        f"{settings.AIRPAY_SECRET_KEY}@{settings.AIRPAY_USERNAME}:|:{settings.AIRPAY_PASSWORD}".encode('utf-8')
     ).hexdigest()
-    
-    alldata = "test@example.com" + "Test" + "User" + "123 Main St" + "Mumbai" + "Maharashtra" + "India" + amount + orderid
-    checksum = hashlib.md5((alldata + date + pk).encode()).hexdigest()
-    
-    post_data = {
-        "buyerEmail": "test@example.com", "buyerPhone": "9876543210",
-        "buyerFirstName": "Test", "buyerLastName": "User",
-        "buyerAddress": "123 Main St", "buyerCity": "Mumbai",
-        "buyerState": "Maharashtra", "buyerCountry": "India", "buyerPinCode": "400001",
-        "amount": amount, "orderid": orderid, "mercid": creds["merchant_id"],
-        "privatekey": pk, "checksum": checksum, "currency": "356", "isocurrency": "INR", "date": date,
-    }
+
+    # Checksum using SHA256 (same as create_airpay_order)
+    _skey_raw = f"{settings.AIRPAY_USERNAME}~:~{settings.AIRPAY_PASSWORD}"
+    s_key = hashlib.sha256(_skey_raw.encode('utf-8')).hexdigest()
+
+    checksum_data = (
+        "test@example.com"
+        + "Test"
+        + "User"
+        + "123 Main St"
+        + "Mumbai"
+        + "Maharashtra"
+        + "India"
+        + amount
+        + orderid
+        + ""
+        + date
+    )
+    checksum = hashlib.sha256(
+        f"{s_key}@{checksum_data}".encode('utf-8')
+    ).hexdigest()
+
+    from collections import OrderedDict
+    post_data = OrderedDict([
+        ("mercid",         settings.AIRPAY_MERCHANT_ID),
+        ("mer_dom",        mer_dom),
+        ("orderid",        orderid),
+        ("amount",         amount),
+        ("currency",       "356"),
+        ("buyerEmail",     "test@example.com"),
+        ("buyerPhone",     "9876543210"),
+        ("buyerFirstName", "Test"),
+        ("buyerLastName",  "User"),
+        ("buyerAddress",   "123 Main St"),
+        ("buyerCity",      "Mumbai"),
+        ("buyerState",     "Maharashtra"),
+        ("buyerCountry",   "India"),
+        ("buyerPinCode",   "400001"),
+        ("privatekey",     private_key),
+        ("checksum",       checksum),
+        ("date",           date),
+        ("isocurrency",    "INR")
+    ])
     
     # POST to Airpay from the SERVER (this works, unlike browser POST)
     encoded = urllib.parse.urlencode(post_data).encode()
@@ -305,7 +408,19 @@ async def test_airpay_form():
             final_url = resp.url
             
             if "error" in final_url.lower():
-                return HTMLResponse(content=f"<h2>FAILED</h2><p>URL: {final_url}</p><pre>{body[:2000]}</pre>")
+                return HTMLResponse(content=f"""
+        <h2>❌ FAILED</h2>
+        <p><strong>Final URL:</strong> {final_url}</p>
+        <p><strong>Merchant ID:</strong> {settings.AIRPAY_MERCHANT_ID}</p>
+        <p><strong>Username:</strong> {settings.AIRPAY_USERNAME}</p>
+        <p><strong>Secret Key set:</strong> {bool(settings.AIRPAY_SECRET_KEY)}</p>
+        <p><strong>Private Key (first 10):</strong> {private_key[:10]}...</p>
+        <p><strong>Checksum (first 10):</strong> {checksum[:10]}...</p>
+        <p><strong>Order ID:</strong> {orderid}</p>
+        <p><strong>Date:</strong> {date}</p>
+        <hr/>
+        <pre>{body[:3000]}</pre>
+    """)
             else:
                 return HTMLResponse(content=f"<h2>SUCCESS! Payment page loaded.</h2><p>URL: {final_url}</p><p>The server-side POST works. Now applying this to the main flow...</p>")
     except Exception as e:

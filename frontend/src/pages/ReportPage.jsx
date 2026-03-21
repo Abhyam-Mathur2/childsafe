@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Download, Loader, Share2, Lock, CreditCard, AlertCircle, X, CheckCircle } from 'lucide-react';
+import { Download, Loader, Share2, Lock, CreditCard, AlertCircle, X, CheckCircle, Printer } from 'lucide-react';
 import ReportTemplate from '../components/dashboard/ReportTemplate';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -102,6 +102,13 @@ const ReportPage = () => {
                 ...paymentDetails
             }, { responseType: 'text' });  // Expect text/HTML, not JSON
 
+            const transactionId = res.headers?.['x-airpay-transaction-id'];
+            if (transactionId) {
+                localStorage.setItem('lastAirpayTransactionId', transactionId);
+                localStorage.setItem('lastAirpayReportId', String(report.report_id));
+                console.info('Airpay transaction id:', transactionId);
+            }
+
             const data = res.data;
 
             // Check if it's a JSON bypass response
@@ -124,8 +131,24 @@ const ReportPage = () => {
 
         } catch (err) {
             console.error("Payment initiation failed", err);
-            alert("Failed to start payment process. Please try again.");
+            const txFromServer = err?.response?.data?.transaction_id || err?.response?.data?.detail?.transaction_id;
+            const txFromStorage = localStorage.getItem('lastAirpayTransactionId');
+            const txId = txFromServer || txFromStorage;
+
+            if (txId) {
+                alert(`Failed to start payment process. Transaction ID: ${txId}. Please share this ID with support.`);
+            } else {
+                alert("Failed to start payment process. Please try again.");
+            }
         }
+    };
+
+    const handlePrint = () => {
+        if (!report.is_paid && user?.email !== 'abhyammath78@gmail.com') {
+            alert("Please unlock the full report to print.");
+            return;
+        }
+        window.print();
     };
 
     const handleDownloadPdf = async () => {
@@ -136,16 +159,21 @@ const ReportPage = () => {
         const element = printRef.current;
         if (!element) return;
 
+        // Visual feedback
+        const btn = document.activeElement;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "Generating...";
+        btn.disabled = true;
+
         try {
             const canvas = await html2canvas(element, {
                 scale: 2,
                 useCORS: true,
-                allowedTaint: true,
-                scrollY: -window.scrollY,
-                windowWidth: document.documentElement.offsetWidth,
-                windowHeight: document.documentElement.scrollHeight
+                logging: false,
+                backgroundColor: "#ffffff",
+                windowWidth: 794, // A4 width at 96 DPI
             });
-            const imgData = canvas.toDataURL('image/png');
+            const imgData = canvas.toDataURL('image/png', 1.0);
 
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -158,14 +186,14 @@ const ReportPage = () => {
             let position = 0;
 
             // First page
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
             heightLeft -= pdfHeight;
 
             // Add new pages if the content is longer than one page
             while (heightLeft > 0) {
                 position = heightLeft - imgHeight;
                 pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
                 heightLeft -= pdfHeight;
             }
 
@@ -173,6 +201,11 @@ const ReportPage = () => {
         } catch (err) {
             console.error("PDF generation failed", err);
             alert("Failed to generate PDF. Please try again.");
+        } finally {
+            if (btn) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
     };
 
@@ -205,20 +238,39 @@ const ReportPage = () => {
     return (
         <div className="min-h-screen relative z-10 text-white pt-24 pb-12 px-4">
             {/* Toolbar */}
-            <div className="max-w-4xl mx-auto mb-6 flex justify-end gap-3">
-                <button
-                    onClick={handleDownloadPdf}
-                    disabled={!report.is_paid && user?.email !== 'abhyammath78@gmail.com'}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || user?.email === 'abhyammath78@gmail.com')
-                        ? 'bg-emerald-600 text-white hover:bg-emerald-500 hover:shadow-emerald-500/30'
-                        : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
-                        }`}
-                >
-                    <Download size={18} /> Download PDF
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors font-medium shadow-sm">
-                    <Share2 size={18} /> Share
-                </button>
+            <div className="max-w-4xl mx-auto mb-6 flex justify-between items-center no-print">
+                <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-500/20">C</div>
+                    <div className="hidden sm:block">
+                        <h1 className="text-lg font-bold leading-none">ChildSafe</h1>
+                        <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Environmental</p>
+                    </div>
+                </div>
+                <div className="flex gap-3">
+                    <button
+                        onClick={handlePrint}
+                        disabled={!report.is_paid && user?.email !== 'abhyammath78@gmail.com'}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || user?.email === 'abhyammath78@gmail.com')
+                            ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-blue-500/30'
+                            : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
+                            }`}
+                    >
+                        <Printer size={18} /> <span className="hidden xs:inline">Print</span>
+                    </button>
+                    <button
+                        onClick={handleDownloadPdf}
+                        disabled={!report.is_paid && user?.email !== 'abhyammath78@gmail.com'}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || user?.email === 'abhyammath78@gmail.com')
+                            ? 'bg-emerald-600 text-white hover:bg-emerald-500 hover:shadow-emerald-500/30'
+                            : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
+                            }`}
+                    >
+                        <Download size={18} /> <span className="hidden xs:inline">PDF</span>
+                    </button>
+                    <button className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors font-medium shadow-sm">
+                        <Share2 size={18} /> <span className="hidden xs:inline">Share</span>
+                    </button>
+                </div>
             </div>
 
             {/* Printable Area - Centered Paper */}
