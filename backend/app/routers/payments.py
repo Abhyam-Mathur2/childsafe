@@ -40,8 +40,13 @@ def _get_airpay_creds() -> dict:
         "secret_key": _clean_secret(settings.AIRPAY_SECRET_KEY),
     }
 
+    # Airpay often uses 'api_key' and 'secret_key' interchangeably.
+    # Ensure we have a valid key for privatekey generation.
+    if not creds["secret_key"] and creds["api_key"]:
+        creds["secret_key"] = creds["api_key"]
+
     missing = [
-        name for name in ("merchant_id", "username", "password", "client_id")
+        name for name in ("merchant_id", "username", "password")
         if not creds[name] or creds[name].lower().startswith("your_")
     ]
     if missing:
@@ -50,10 +55,10 @@ def _get_airpay_creds() -> dict:
             detail=f"Airpay is not configured correctly. Missing/placeholder: {', '.join(missing)}"
         )
 
-    if not creds["api_key"] and not creds["secret_key"]:
+    if not creds["secret_key"]:
         raise HTTPException(
             status_code=500,
-            detail="Airpay is not configured correctly. Provide AIRPAY_API_KEY or AIRPAY_SECRET_KEY."
+            detail="Airpay is not configured correctly. Provide AIRPAY_SECRET_KEY or AIRPAY_API_KEY."
         )
 
     return creds
@@ -84,7 +89,7 @@ async def create_airpay_order(request: AirpayOrderRequest, http_request: Request
         raise HTTPException(status_code=404, detail="Report not found")
     
     # Bypass for specific email
-    if request.buyerEmail.lower() == "abhyammath78@gamil.com":
+    if request.buyerEmail.lower() == "abhyammath78@gmail.com":
         report.is_paid = 1
         db.commit()
         return {
@@ -108,18 +113,25 @@ async def create_airpay_order(request: AirpayOrderRequest, http_request: Request
     buyer_pin = clean(request.buyerPinCode)
 
     amount = "80.00"
-    orderid = f"REP{report.id}T{int(datetime.utcnow().timestamp())}"
+    orderid = f"REP{report.id}T{int(datetime.now(timezone.utc).timestamp())}"
 
-    # Airpay requires merchant domain in Base64 (mer_dom)
-    origin = (http_request.headers.get("origin") or "").strip()
-    referer = (http_request.headers.get("referer") or "").strip()
-    fallback_domain = (os.getenv("FRONTEND_URL", "") or "https://childsafeenvirons.com").strip()
-    source_url = origin or referer or fallback_domain
-    parsed = urlparse(source_url)
-    if parsed.scheme and parsed.netloc:
-        merchant_domain = f"{parsed.scheme}://{parsed.netloc}"
-    else:
-        merchant_domain = source_url.rstrip("/")
+    # Airpay requires merchant domain in Base64 (mer_dom).
+    # Use AIRPAY_REFERER_DOMAIN from settings as primary, fallback to request origin.
+    merchant_domain = _clean_secret(settings.AIRPAY_REFERER_DOMAIN)
+    
+    if not merchant_domain or merchant_domain.lower().startswith("your_"):
+        origin = (http_request.headers.get("origin") or "").strip()
+        referer = (http_request.headers.get("referer") or "").strip()
+        fallback_domain = (os.getenv("FRONTEND_URL", "") or "https://childsafeenvirons.com").strip()
+        source_url = origin or referer or fallback_domain
+        parsed = urlparse(source_url)
+        if parsed.netloc:
+            merchant_domain = parsed.netloc
+        else:
+            merchant_domain = source_url.replace("http://", "").replace("https://", "").split("/")[0]
+    
+    # Airpay mer_dom should typically NOT have protocol or trailing slash
+    merchant_domain = merchant_domain.replace("http://", "").replace("https://", "").split("/")[0].rstrip("/")
     mer_dom = base64.b64encode(merchant_domain.encode("utf-8")).decode("ascii")
     
     # Store orderid in database to verify later
@@ -128,14 +140,16 @@ async def create_airpay_order(request: AirpayOrderRequest, http_request: Request
     
     date = datetime.now().strftime("%Y-%m-%d")
     
-    # Always use SECRET_KEY for private key generation
-    merchant_key = settings.AIRPAY_SECRET_KEY
-    _private_key_raw_string = f"{merchant_key}@{settings.AIRPAY_USERNAME}:|:{settings.AIRPAY_PASSWORD}"
+    # 2. Private Key (SHA256): SecretKey@username:|:password
+    merchant_key = creds["secret_key"]
+    _private_key_raw_string = f"{merchant_key}@{creds['username']}:|:{creds['password']}"
     private_key = hashlib.sha256(_private_key_raw_string.encode('utf-8')).hexdigest()
     
     # 3. Checksum (SHA256): sKey@allData (per Airpay integration docs)
     _skey_raw = f"{creds['username']}~:~{creds['password']}"
     s_key = hashlib.sha256(_skey_raw.encode('utf-8')).hexdigest()
+    
+    # Order of data for checksum (without empty siindexvar if not needed)
     checksum_data = (
         buyer_email
         + buyer_fname
@@ -146,13 +160,12 @@ async def create_airpay_order(request: AirpayOrderRequest, http_request: Request
         + buyer_country
         + amount
         + orderid
-        + ""  # siindexvar for subscription; blank for normal txn
         + date
     )
     _checksum_raw_input_create = f"{s_key}@{checksum_data}"
     checksum = hashlib.sha256(_checksum_raw_input_create.encode('utf-8')).hexdigest()
 
-    # Build the FINAL POST payload in the EXACT order verified to work
+    # Build the FINAL POST payload
     from collections import OrderedDict
     post_data = OrderedDict([
         ("mercid",         creds["merchant_id"]),
@@ -341,22 +354,19 @@ async def test_airpay_form():
     orderid = f"BTEST{int(datetime.now(timezone.utc).timestamp())}"
     date = datetime.now().strftime("%Y-%m-%d")
 
-    # Airpay requires merchant domain in Base64 (mer_dom)
-    fallback_domain = (os.getenv("FRONTEND_URL", "") or "https://childsafeenvirons.com").strip()
-    parsed = urlparse(fallback_domain)
-    if parsed.scheme and parsed.netloc:
-        merchant_domain = f"{parsed.scheme}://{parsed.netloc}"
-    else:
-        merchant_domain = fallback_domain.rstrip("/")
+    # Airpay requires merchant domain in Base64 (mer_dom).
+    # Use settings if available, else hardcoded fallback.
+    merchant_domain = _clean_secret(settings.AIRPAY_REFERER_DOMAIN) or "childsafeenvirons.com"
+    merchant_domain = merchant_domain.replace("http://", "").replace("https://", "").rstrip("/")
     mer_dom = base64.b64encode(merchant_domain.encode("utf-8")).decode("ascii")
 
-    # Private key using SECRET_KEY
+    # Private key using SECRET_KEY (which has fallback to API_KEY in _get_airpay_creds)
     private_key = hashlib.sha256(
-        f"{settings.AIRPAY_SECRET_KEY}@{settings.AIRPAY_USERNAME}:|:{settings.AIRPAY_PASSWORD}".encode('utf-8')
+        f"{creds['secret_key']}@{creds['username']}:|:{creds['password']}".encode('utf-8')
     ).hexdigest()
 
     # Checksum using SHA256 (same as create_airpay_order)
-    _skey_raw = f"{settings.AIRPAY_USERNAME}~:~{settings.AIRPAY_PASSWORD}"
+    _skey_raw = f"{creds['username']}~:~{creds['password']}"
     s_key = hashlib.sha256(_skey_raw.encode('utf-8')).hexdigest()
 
     checksum_data = (
@@ -369,7 +379,6 @@ async def test_airpay_form():
         + "India"
         + amount
         + orderid
-        + ""
         + date
     )
     checksum = hashlib.sha256(
@@ -378,7 +387,7 @@ async def test_airpay_form():
 
     from collections import OrderedDict
     post_data = OrderedDict([
-        ("mercid",         settings.AIRPAY_MERCHANT_ID),
+        ("mercid",         creds["merchant_id"]),
         ("mer_dom",        mer_dom),
         ("orderid",        orderid),
         ("amount",         amount),
