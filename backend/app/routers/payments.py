@@ -165,7 +165,7 @@ async def create_airpay_order(request: AirpayOrderRequest, http_request: Request
     _checksum_raw_input_create = f"{s_key}@{checksum_data}"
     checksum = hashlib.sha256(_checksum_raw_input_create.encode('utf-8')).hexdigest()
 
-    # Build the FINAL POST payload
+    # Build the FINAL POST payload in the EXACT order required by Airpay
     from collections import OrderedDict
     post_data = OrderedDict([
         ("mercid",         creds["merchant_id"]),
@@ -189,6 +189,9 @@ async def create_airpay_order(request: AirpayOrderRequest, http_request: Request
         ("date",           date)
     ])
 
+    # Ensure test-airpay also uses this order if it's updated
+    # (The test-airpay route in the file should be updated similarly)
+    
     # POST to Airpay from the SERVER using urllib
     import urllib.request
     import urllib.parse
