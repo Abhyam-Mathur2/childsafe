@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Environment variables (keep secrets out of git)
+.env
+.env.local
+.env.*.local
+# .env.production is intentionally committed (contains only public API URLs, no secrets)
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+debug_*.txt
+debug_*.json
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ML Model binary files (do NOT ignore models/ directory - it's a Python package!)
+*.pkl
+*.h5
+*.joblib

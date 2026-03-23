@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #10b981;
+  --color-secondary: #0ea5e9;
+  --color-accent: #f59e0b;
+  --color-dark: #020617;
+  --color-light: #f8fafc;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: "Merriweather", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+@utility glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+  @apply rounded-2xl text-slate-200 transition-all duration-300;
+}
+
+@utility glass-card-hover {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px -1px rgba(16, 185, 129, 0.15);
+  @apply -translate-y-1;
+}
+
+@utility glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  @apply rounded-[2rem] text-slate-200 relative z-10 p-10;
+}
+
+@utility shimmer-text {
+  @apply bg-gradient-to-r from-emerald-300 via-white to-teal-300 bg-clip-text text-transparent;
+  background-size: 200% auto;
+  animation: shimmer 4s linear infinite;
+}
+
+body {
+  @apply font-sans antialiased text-slate-200 min-h-screen bg-slate-950;
+  background: radial-gradient(circle at top right, #064e3b, #020617 60%),
+              radial-gradient(circle at bottom left, #0f172a, #020617 60%);
+}
+
+/* Premium Animations */
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-15px) rotate(1deg); }
+}
+
+@keyframes aurora {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.1; }
+  33% { transform: translate(5%, -5%) scale(1.1); opacity: 0.2; }
+  66% { transform: translate(-5%, 5%) scale(0.9); opacity: 0.15; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.1; }
+}
+
+.animate-aurora {
+  animation: aurora 20s ease-in-out infinite alternate;
+}
+
+.animate-float-slow {
+  animation: float 10s ease-in-out infinite;
+}
+
+/* Auth Page Enhancements */
+.auth-container {
+  @apply min-h-screen w-full relative overflow-hidden flex items-center justify-center p-6;
+}
+
+.input-group-modern {
+  position: relative;
+}
+
+.input-field-modern {
+  @apply w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 pl-12 text-white placeholder-slate-500 outline-none transition-all duration-500;
+}
+
+.input-field-modern:focus {
+  @apply border-emerald-500/50 bg-white/[0.06] ring-4 ring-emerald-500/10;
+}
+
+.input-icon-modern {
+  @apply absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors duration-500;
+}
+
+.btn-modern {
+  @apply w-full relative overflow-hidden bg-emerald-600 text-white font-semibold py-4 rounded-2xl transition-all duration-500 shadow-xl shadow-emerald-900/20 active:scale-95 hover:bg-emerald-500 hover:shadow-emerald-500/30;
+}
+
+.btn-modern::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full;
+  transition: transform 0.6s ease;
+}
+
+.btn-modern:hover::after {
+  @apply translate-x-full;
+}
+
+.auth-header-modern {
+  @apply text-center mb-10;
+}
+
+.auth-title-modern {
+  @apply text-4xl font-extrabold mb-3 tracking-tight shimmer-text;
+}
+
+.auth-subtitle-modern {
+  @apply text-slate-400 text-base font-light;
+}
+
+.modern-link {
+  @apply text-emerald-400 hover:text-emerald-300 transition-colors font-semibold relative;
+}
+
+.modern-link::after {
+  content: '';
+  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-emerald-400 transition-all duration-300;
+}
+
+.modern-link:hover::after {
+  @apply w-full;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-950;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-800 rounded-full hover:bg-slate-700 transition-colors;
+}
