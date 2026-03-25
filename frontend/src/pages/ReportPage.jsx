@@ -96,46 +96,67 @@ const ReportPage = () => {
     const handleAirpayPayment = async (e) => {
         e.preventDefault();
         try {
-            // Call backend which proxies POST to Airpay and returns HTML
+            // Get signed Airpay payload from backend.
             const res = await api.post('/create-airpay-order', {
                 report_id: report.report_id,
                 ...paymentDetails
-            }, { responseType: 'text' });  // Expect text/HTML, not JSON
+            });
 
-            const transactionId = res.headers?.['x-airpay-transaction-id'];
+            const data = res.data || {};
+            const transactionId = data.transaction_id;
             if (transactionId) {
                 localStorage.setItem('lastAirpayTransactionId', transactionId);
                 localStorage.setItem('lastAirpayReportId', String(report.report_id));
                 console.info('Airpay transaction id:', transactionId);
             }
 
-            const data = res.data;
-
-            // Check if it's a JSON bypass response
-            try {
-                const jsonData = typeof data === 'string' ? JSON.parse(data) : data;
-                if (jsonData.is_bypassed) {
-                    alert("Welcome back! Your report has been automatically unlocked.");
-                    fetchReport();
-                    setShowPaymentModal(false);
-                    return;
-                }
-            } catch (parseErr) {
-                // Not JSON — it's the Airpay payment page HTML
+            if (data.is_bypassed) {
+                alert("Welcome back! Your report has been automatically unlocked.");
+                fetchReport();
+                setShowPaymentModal(false);
+                return;
             }
 
-            // Render the Airpay payment page HTML
-            document.open();
-            document.write(data);
-            document.close();
+            if (!data.post_url || !data.form_fields) {
+                throw new Error('Invalid payment initiation response from server.');
+            }
+
+            // Stable payment redirect: top-level form POST directly to Airpay.
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = data.post_url;
+            form.style.display = 'none';
+
+            Object.entries(data.form_fields).forEach(([key, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value == null ? '' : String(value);
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
 
         } catch (err) {
             console.error("Payment initiation failed", err);
-            const txFromServer = err?.response?.data?.transaction_id || err?.response?.data?.detail?.transaction_id;
+            const detailObj = err?.response?.data?.detail;
+            const txFromServer = err?.response?.data?.transaction_id || detailObj?.transaction_id;
             const txFromStorage = localStorage.getItem('lastAirpayTransactionId');
             const txId = txFromServer || txFromStorage;
 
-            if (txId) {
+            const backendMessage = typeof detailObj === 'string'
+                ? detailObj
+                : detailObj?.message || err?.response?.data?.message;
+            const domainsTried = Array.isArray(detailObj?.domains_tried)
+                ? ` Domains tried: ${detailObj.domains_tried.join(', ')}`
+                : '';
+
+            if (backendMessage && txId) {
+                alert(`Failed to start payment process. ${backendMessage}${domainsTried} Transaction ID: ${txId}. Please share this ID with support.`);
+            } else if (backendMessage) {
+                alert(`Failed to start payment process. ${backendMessage}${domainsTried}`);
+            } else if (txId) {
                 alert(`Failed to start payment process. Transaction ID: ${txId}. Please share this ID with support.`);
             } else {
                 alert("Failed to start payment process. Please try again.");
@@ -322,7 +343,7 @@ const ReportPage = () => {
                                     onClick={() => setShowPaymentModal(true)}
                                     className="btn-modern !py-4 flex items-center justify-center gap-3 text-lg"
                                 >
-                                    <CreditCard size={22} /> Pay ₹80 to Unlock
+                                    <CreditCard size={22} /> Pay ₹95 to Unlock
                                 </button>
                                 <p className="text-xs text-white/60 font-medium">
                                     Secure payment via Airpay. One-time fee.
@@ -391,7 +412,10 @@ const ReportPage = () => {
                                             required
                                             type="tel"
                                             value={paymentDetails.buyerPhone}
-                                            onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerPhone: e.target.value })}
+                                            inputMode="numeric"
+                                            pattern="[0-9]{10}"
+                                            maxLength={10}
+                                            onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerPhone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                                             className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
@@ -435,7 +459,10 @@ const ReportPage = () => {
                                             required
                                             type="text"
                                             value={paymentDetails.buyerPinCode}
-                                            onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerPinCode: e.target.value })}
+                                            inputMode="numeric"
+                                            pattern="[0-9]{6}"
+                                            maxLength={6}
+                                            onChange={(e) => setPaymentDetails({ ...paymentDetails, buyerPinCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                                             className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none placeholder-white/40"
                                         />
                                     </div>
