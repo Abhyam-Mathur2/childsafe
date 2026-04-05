@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Loader, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import VideoBackground from '../../components/ui/VideoBackground';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -31,10 +30,8 @@ const LoginPage = () => {
 
     return (
         <div className="auth-container">
-            <VideoBackground opacity={0.4} />
-
             <motion.div
-                className="glass-panel w-full max-w-[460px]"
+                className="glass-panel w-full max-w-[460px] border-[var(--color-border)] shadow-3xl"
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
@@ -45,21 +42,22 @@ const LoginPage = () => {
                             initial={{ scale: 0, rotate: -20 }}
                             animate={{ scale: 1, rotate: 0 }}
                             transition={{ delay: 0.2, type: "spring", stiffness: 150 }}
-                            className="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-[2rem] mx-auto mb-8 flex items-center justify-center shadow-2xl shadow-emerald-500/30"
+                            className="w-20 h-20 bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-secondary)] rounded-[2.5rem] mx-auto mb-8 flex items-center justify-center shadow-2xl shadow-[var(--color-glow)]"
                         >
                             <ShieldCheck className="text-white w-10 h-10" />
                         </motion.div>
 
                         <motion.h2
-                            className="auth-title-modern"
+                            className="auth-title-modern text-[var(--color-text)]"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 }}
+                            style={{ fontFamily: 'var(--font-heading)' }}
                         >
                             Welcome Back
                         </motion.h2>
                         <motion.p
-                            className="auth-subtitle-modern"
+                            className="auth-subtitle-modern text-[var(--color-text-muted)]"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
@@ -86,7 +84,7 @@ const LoginPage = () => {
                             <Mail className="input-icon-modern" size={20} />
                             <input
                                 type="email"
-                                className="input-field-modern"
+                                className="input-field-modern !bg-[var(--color-surface)] !border-[var(--color-border)]"
                                 placeholder="Email Address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -98,7 +96,7 @@ const LoginPage = () => {
                             <Lock className="input-icon-modern" size={20} />
                             <input
                                 type={showPassword ? "text" : "password"}
-                                className="input-field-modern"
+                                className="input-field-modern !bg-[var(--color-surface)] !border-[var(--color-border)]"
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -107,40 +105,40 @@ const LoginPage = () => {
                             <button 
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[var(--color-primary)] transition-colors"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
                         </div>
 
                         <div className="flex justify-end">
-                            <button type="button" className="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors">
+                            <button type="button" className="text-sm font-bold text-[var(--color-primary)] hover:brightness-110 transition-colors">
                                 Forgot password?
                             </button>
                         </div>
 
                         <motion.button
                             type="submit"
-                            className="btn-modern group"
+                            className="btn-modern group !rounded-2xl"
                             disabled={loading}
                         >
                             {loading ? (
-                                <Loader className="animate-spin mx-auto" size={24} />
+                                <Loader className="animate-spin mx-auto text-white" size={24} />
                             ) : (
-                                <span className="flex items-center justify-center gap-2">
-                                    Sign In <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                <span className="flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs">
+                                    Sign In <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                                 </span>
                             )}
                         </motion.button>
                     </form>
 
                     <motion.div
-                        className="mt-10 text-center text-slate-400"
+                        className="mt-10 text-center text-[var(--color-text-muted)]"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.6 }}
                     >
-                        <p>New to ChildSafeEnviro? <Link to="/signup" className="modern-link">Create an account</Link></p>
+                        <p className="font-medium">New to ChildSafeEnviro? <Link to="/signup" className="modern-link">Create account</Link></p>
                     </motion.div>
                 </div>
             </motion.div>

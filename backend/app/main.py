@@ -4,12 +4,20 @@ Main application entry point
 Childsaveenviro
 """
 
+import sys
+import os
+from pathlib import Path
+
+# Add the backend directory to the path to allow 'app' imports
+backend_dir = Path(__file__).parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import air_quality, soil, lifestyle, health_report, weather, water, payments
 from app.database import engine, Base
 from app.config import get_settings
-import os
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
