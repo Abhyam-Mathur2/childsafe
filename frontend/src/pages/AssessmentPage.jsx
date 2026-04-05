@@ -2,20 +2,22 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ArrowRight, ArrowLeft, CheckCircle, Activity, User, Calendar,
+    ArrowRight, ArrowLeft, CheckCircle, Activity, User,
     MapPin, Users, Cigarette, Zap, Moon, Brain, Home, Utensils,
-    Flame, Stethoscope, Briefcase, Heart, Smile, ShieldCheck, Info,
+    Flame, Stethoscope, Heart, Smile, ShieldCheck, Info,
     Sun, Droplets
 } from 'lucide-react';
 
 const AssessmentPage = () => {
     const navigate = useNavigate();
     const { gainXp } = useAuth();
+    const { theme } = useTheme();
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [direction, setDirection] = useState(1); // 1 for next, -1 for back
+    const [direction, setDirection] = useState(1);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -101,18 +103,17 @@ const AssessmentPage = () => {
         try {
             const response = await api.post('/lifestyle', payload);
             localStorage.setItem('lifestyleId', response.data.id);
-            gainXp(500); // Massive XP for finishing
+            gainXp(500);
             navigate('/report');
         } catch (error) {
             console.error("Assessment submission error", error);
-            alert("Failed to submit assessment. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
     const nextStep = () => {
-        gainXp(100); // Small reward for each step
+        gainXp(100);
         setDirection(1);
         setStep(prev => prev + 1);
     };
@@ -130,507 +131,258 @@ const AssessmentPage = () => {
         return true;
     };
 
-    const progress = step > 0 ? (step / 5) * 100 : 0;
+    const progress = (step / 5) * 100;
 
     const variants = {
-        enter: (direction) => ({
-            x: direction > 0 ? 50 : -50,
-            opacity: 0,
-        }),
-        center: {
-            x: 0,
-            opacity: 1,
-            transition: {
-                duration: 0.3,
-                ease: "easeOut"
-            }
-        },
-        exit: (direction) => ({
-            x: direction < 0 ? 50 : -50,
-            opacity: 0,
-            transition: {
-                duration: 0.2
-            }
-        })
+        enter: (dir) => ({ x: dir > 0 ? 30 : -30, opacity: 0 }),
+        center: { x: 0, opacity: 1 },
+        exit: (dir) => ({ x: dir < 0 ? 30 : -30, opacity: 0 })
     };
 
     return (
-        <div className="min-h-screen relative z-10 text-white flex justify-center items-center py-20 px-4">
-            <motion.div
-                layout
-                className="w-full max-w-2xl bg-[#093520]/80 backdrop-blur-2xl border border-emerald-500/30 rounded-3xl !p-0 overflow-hidden shadow-[0_0_40px_rgba(4,120,87,0.4)] text-white"
-            >
-                {/* Progress Header */}
-                {step > 0 && (
-                    <div className="h-1.5 bg-transparent/10 w-full">
-                        <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${progress}%` }}
-                            transition={{ type: "spring", stiffness: 50, damping: 20 }}
-                            className="h-full bg-emerald-500 shadow-[0_0_10px_#34d399]"
-                        ></motion.div>
-                    </div>
-                )}
+        <div className="min-h-screen pt-32 pb-20 px-6 flex justify-center items-start overflow-x-hidden">
+            <div className="w-full max-w-2xl">
+                <div className="flex gap-2 mb-12 justify-center">
+                    {[0, 1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className={`h-1 w-12 rounded-full transition-all duration-700 ${step >= i ? 'bg-white' : 'bg-white/10'}`} />
+                    ))}
+                </div>
 
-                <div className="p-8 md:p-12">
-                    {/* Navigation Header */}
-                    {step > 0 && (
-                        <div className="flex justify-between items-center mb-10">
-                            <AnimatePresence mode="wait">
-                                {step > 1 ? (
-                                    <motion.button
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: -10 }}
-                                        onClick={prevStep}
-                                        className="text-emerald-100/80 hover:text-emerald-300 transition-colors"
-                                    >
-                                        <ArrowLeft size={24} />
-                                    </motion.button>
-                                ) : <div className="w-6"></div>}
-                            </AnimatePresence>
-
-                            <span className="text-sm font-bold uppercase tracking-widest text-emerald-100/80">
-                                Step {step} of 5
-                            </span>
-                            <div className="w-6"></div>
+                <motion.div
+                    key={step}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="glass-panel !p-10 md:!p-16 border-white/5"
+                >
+                    {step === 0 && (
+                        <div className="text-center">
+                            <span className="text-5xl mb-8 block">{theme.greeting.flag}</span>
+                            <h1 className="text-4xl font-bold mb-6 tracking-tight">Environmental Resilience</h1>
+                            <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-lg mx-auto">
+                                We'll analyze your daily patterns and surroundings to generate a high-precision health security report.
+                            </p>
+                            <div className="flex items-start gap-4 text-left p-6 bg-white/5 rounded-2xl text-xs text-slate-500 mb-12 border border-white/5">
+                                <Info size={20} className="shrink-0 text-[var(--color-primary)]" />
+                                <p className="leading-relaxed">This process takes approximately 4 minutes. Your data is encrypted and used exclusively for your personal risk assessment profile.</p>
+                            </div>
+                            <button onClick={nextStep} className="btn-modern !rounded-full w-full !py-5 text-lg font-bold">Initiate Sequence</button>
                         </div>
                     )}
 
-                    <AnimatePresence custom={direction} mode="wait">
-                        <motion.div
-                            key={step}
-                            custom={direction}
-                            variants={variants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                        >
-                            {/* Step 0: Intro Screen */}
-                            {step === 0 && (
-                                <div className="text-center py-8">
-                                    <div className="w-20 h-20 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <ShieldCheck size={40} className="text-emerald-400" />
+                    {step === 1 && (
+                        <div className="space-y-10">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-2">Base Profile</h2>
+                                <p className="text-slate-500 text-sm">Essential identifiers for localized analysis.</p>
+                            </div>
+                            <div className="space-y-8">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Legal Name</label>
+                                    <input type="text" name="name" value={formData.name} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10" placeholder="Identifier" />
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Years at Residence</label>
+                                    <input type="number" name="years_at_location" value={formData.years_at_location} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10" placeholder="e.g. 5" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Age Range</label>
+                                        <select name="age_range" value={formData.age_range} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10">
+                                            <option value="" className="bg-black">Select</option>
+                                            {['0-1', '1-3', '3-12', '13-17', '18-25', '26-35', '36-50', '51-65', '65+'].map(a => <option key={a} value={a} className="bg-black">{a}</option>)}
+                                        </select>
                                     </div>
-                                    <h1 className="text-4xl font-extrabold text-white mb-6 shimmer-text">Welcome to ChildSafeEnviro</h1>
-                                    <p className="text-emerald-50 text-lg leading-relaxed mb-8">
-                                        ChildSafeEnviro helps parents and caregivers understand how your child's environment, health conditions, and daily habits interact with air quality, UV exposure, temperature, and seasonal changes — so you can make safer decisions every day.
-                                    </p>
-                                    <div className="bg-transparent/10 text-white border border-white/20 p-4 rounded-xl text-sm mb-8 flex items-start gap-3 text-left">
-                                        <Info className="shrink-0 mt-0.5" size={20} />
-                                        <p>This assessment takes about 3-5 minutes. Your data is kept private and used solely to generate your personalized environmental health report.</p>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Gender</label>
+                                        <select name="gender" value={formData.gender} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10">
+                                            <option value="" className="bg-black">Select</option>
+                                            <option value="male" className="bg-black">Male</option>
+                                            <option value="female" className="bg-black">Female</option>
+                                            <option value="other" className="bg-black">Other</option>
+                                        </select>
                                     </div>
                                 </div>
-                            )}
-                            {/* Step 1: Personal Profile */}
-                            {step === 1 && (
-                                <>
-                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Let's build your profile</h1>
-                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">We use this to customize your environmental risk calculations.</p>
+                            </div>
+                            <div className="flex gap-4 pt-6">
+                                <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
+                                <button onClick={nextStep} disabled={!isStepValid()} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-30">Continue Sequence</button>
+                            </div>
+                        </div>
+                    )}
 
-                                    <div className="space-y-6 mb-10">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
-                                                <User size={16} /> What is your full name?
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                placeholder="Enter name"
-                                                className="w-full px-5 py-4 bg-transparent/10 border-white/20 text-white placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all text-lg"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
-                                                <MapPin size={16} /> Years at current location?
-                                            </label>
-                                            <input
-                                                type="number"
-                                                name="years_at_location"
-                                                value={formData.years_at_location}
-                                                onChange={handleChange}
-                                                placeholder="e.g. 5"
-                                                className="w-full px-5 py-4 bg-transparent/10 border-white/20 text-white placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all text-lg"
-                                            />
-                                        </div>
+                    {step === 2 && (
+                        <div className="space-y-10">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-2">Daily Habits</h2>
+                                <p className="text-slate-500 text-sm">Quantifying lifestyle stressors and resilience patterns.</p>
+                            </div>
+                            <div className="space-y-8">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Smoking Status</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {['never', 'former', 'current'].map(s => (
+                                            <button key={s} onClick={() => handleOptionSelect('smoking_status', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.smoking_status === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
+                                        ))}
                                     </div>
-
-                                    <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Age Group</label>                                        <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                                            {['0-1', '1-3', '3-12', '13-17', '18-25', '26-35', '36-50', '51-65', '65+'].map((age) => (
-                                                <button
-                                                    key={age}
-                                                    onClick={() => handleOptionSelect('age_range', formData.age_range === age ? '' : age)}
-                                                    className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-2 ${formData.age_range === age
-                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
-                                                        }`}
-                                                >
-                                                    <Smile size={20} className={formData.age_range === age ? 'text-emerald-400' : 'text-emerald-100/80'} />
-                                                    {age}
-                                                </button>
-                                            ))}
-                                        </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Activity Level</label>
+                                        <select name="activity_level" value={formData.activity_level} onChange={(e) => {
+                                            const v = e.target.value;
+                                            handleOptionSelect('activity_level', v);
+                                            const durations = { sedentary_0: '0 min', light_30: '30 min', moderate_60: '60 min', vigorous_90: '90+ min' };
+                                            handleOptionSelect('activity_duration', durations[v] || '');
+                                        }} className="input-field-modern !bg-transparent !border-white/10">
+                                            <option value="" className="bg-black">Select</option>
+                                            <option value="sedentary_0" className="bg-black">Sedentary</option>
+                                            <option value="light_30" className="bg-black">Light</option>
+                                            <option value="moderate_60" className="bg-black">Moderate</option>
+                                            <option value="vigorous_90" className="bg-black">Vigorous</option>
+                                        </select>
                                     </div>
-
-                                    <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Your gender</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {['Male', 'Female', 'Other'].map((g) => (
-                                                <button
-                                                    key={g}
-                                                    onClick={() => handleOptionSelect('gender', g.toLowerCase())}
-                                                    className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-2 ${formData.gender?.toLowerCase() === g.toLowerCase()
-                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
-                                                        }`}
-                                                >
-                                                    <Users size={20} className={formData.gender?.toLowerCase() === g.toLowerCase() ? 'text-emerald-400' : 'text-emerald-100/80'} />
-                                                    {g}
-                                                </button>
-                                            ))}
-                                        </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Sleep Hours</label>
+                                        <select name="sleep_hours" value={formData.sleep_hours} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10">
+                                            <option value="" className="bg-black">Select</option>
+                                            <option value="<6" className="bg-black">&lt; 6h</option>
+                                            <option value="6-8" className="bg-black">6-8h</option>
+                                            <option value=">8" className="bg-black">&gt; 8h</option>
+                                        </select>
                                     </div>
-                                </>
-                            )}
-
-                            {/* Step 2: Lifestyle */}
-                            {step === 2 && (
-                                <>
-                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Your daily habits</h1>
-                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">Lifestyle choices can either protect you or increase your vulnerability.</p>
-
-                                    <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Smoking Status</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {[
-                                                { id: 'never', label: 'Never', icon: <Smile /> },
-                                                { id: 'former', label: 'Former', icon: <CheckCircle /> },
-                                                { id: 'current', label: 'Current', icon: <Cigarette /> }
-                                            ].map((item) => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => handleOptionSelect('smoking_status', item.id)}
-                                                    className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.smoking_status === item.id
-                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
-                                                        }`}
-                                                >
-                                                    <span className={formData.smoking_status === item.id ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
-                                                    {item.label}
-                                                </button>
-                                            ))}
-                                        </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Stress Intensity</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {['low', 'medium', 'high'].map(s => (
+                                            <button key={s} onClick={() => handleOptionSelect('stress_level', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.stress_level === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
+                                        ))}
                                     </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-4 pt-6">
+                                <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
+                                <button onClick={nextStep} disabled={!isStepValid()} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-30">Continue Sequence</button>
+                            </div>
+                        </div>
+                    )}
 
-                                    <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Physical Activity</label>
-                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                                            {[
-                                                { level: 'sedentary_0', label: 'Sedentary', duration: '0 min', icon: <Zap className="opacity-30" /> },
-                                                { level: 'light_30', label: 'Light', duration: '30 min/day', icon: <Zap className="opacity-50" /> },
-                                                { level: 'moderate_60', label: 'Moderate', duration: '60 min/day', icon: <Zap className="opacity-75" /> },
-                                                { level: 'vigorous_90', label: 'Vigorous', duration: '90+ min/day', icon: <Zap /> }
-                                            ].map((item) => (
-                                                <button
-                                                    key={item.level}
-                                                    onClick={() => {
-                                                        handleOptionSelect('activity_level', item.level);
-                                                        handleOptionSelect('activity_duration', item.duration);
-                                                    }}
-                                                    className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-2 ${formData.activity_level === item.level
-                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
-                                                        }`}
-                                                >
-                                                    <span className={formData.activity_level === item.level ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
-                                                    <span>{item.label}</span>
-                                                    <span className="text-xs text-emerald-100/80 font-normal">{item.duration}</span>
-                                                </button>
-                                            ))}
-                                        </div>
+                    {step === 3 && (
+                        <div className="space-y-10">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-2">Micro-Environment</h2>
+                                <p className="text-slate-500 text-sm">Identifying potential indoor pollutant sources.</p>
+                            </div>
+                            <div className="space-y-8">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Work Context</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {['indoor', 'outdoor', 'mixed'].map(s => (
+                                            <button key={s} onClick={() => handleOptionSelect('work_environment', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.work_environment === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
+                                        ))}
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
-                                                <Moon size={16} /> Average Sleep
-                                            </label>
-                                            <select
-                                                name="sleep_hours"
-                                                value={formData.sleep_hours}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-transparent/10 border-white/20 text-white placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all"
-                                            >
-                                                <option className="bg-[#093520] text-emerald-50" value="">Duration</option>
-                                                <option className="bg-[#093520] text-emerald-50" value="<6">Less than 6h</option>
-                                                <option className="bg-[#093520] text-emerald-50" value="6-8">6-8 hours</option>
-                                                <option className="bg-[#093520] text-emerald-50" value=">8">8+ hours</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
-                                                <Brain size={16} /> Stress Level
-                                            </label>
-                                            <select
-                                                name="stress_level"
-                                                value={formData.stress_level}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-3 bg-transparent/10 border-white/20 text-white placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all"
-                                            >
-                                                <option className="bg-[#093520] text-emerald-50" value="">Level</option>
-                                                <option className="bg-[#093520] text-emerald-50" value="low">Low</option>
-                                                <option className="bg-[#093520] text-emerald-50" value="medium">Medium</option>
-                                                <option className="bg-[#093520] text-emerald-50" value="high">High</option>
-                                            </select>
-                                        </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Cooking Mechanism</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {['electric', 'gas', 'wood'].map(s => (
+                                            <button key={s} onClick={() => handleOptionSelect('cooking_method', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.cooking_method === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
+                                        ))}
                                     </div>
-                                </>
-                            )}
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Dietary Profile</label>
+                                    <select name="diet_quality" value={formData.diet_quality} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10">
+                                        <option value="" className="bg-black">Select</option>
+                                        <option value="good" className="bg-black">Primarily Fresh / Organic</option>
+                                        <option value="average" className="bg-black">Mixed / Balanced</option>
+                                        <option value="poor" className="bg-black">Primarily Processed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="flex gap-4 pt-6">
+                                <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
+                                <button onClick={nextStep} disabled={!isStepValid()} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-30">Continue Sequence</button>
+                            </div>
+                        </div>
+                    )}
 
-                            {/* Step 3: Environment */}
-                            {step === 3 && (
-                                <>
-                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Home & Work</h1>
-                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">Where you spend your time significantly affects your exposure levels.</p>
-
-                                    <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Main Work Environment</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {[
-                                                { id: 'indoor', label: 'Indoor', icon: <Home /> },
-                                                { id: 'outdoor', label: 'Outdoor', icon: <Briefcase /> },
-                                                { id: 'mixed', label: 'Mixed', icon: <Zap /> }
-                                            ].map((item) => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => handleOptionSelect('work_environment', item.id)}
-                                                    className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.work_environment === item.id
-                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
-                                                        }`}
-                                                >
-                                                    <span className={formData.work_environment === item.id ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
-                                                    {item.label}
-                                                </button>
-                                            ))}
-                                        </div>
+                    {step === 4 && (
+                        <div className="space-y-10">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-2">Resource Telemetry</h2>
+                                <p className="text-slate-500 text-sm">Assessing water and radiation exposure vectors.</p>
+                            </div>
+                            <div className="space-y-8">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Water Intake Source</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {['tap', 'filtered', 'bottled', 'well'].map(s => (
+                                            <button key={s} onClick={() => handleOptionSelect('water_source', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.water_source === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
+                                        ))}
                                     </div>
-
-                                    <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Diet Quality</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {[
-                                                { id: 'good', label: 'Balanced', icon: <Utensils /> },
-                                                { id: 'average', label: 'Mixed', icon: <Utensils className="opacity-60" /> },
-                                                { id: 'poor', label: 'Processed', icon: <Utensils className="opacity-40" /> }
-                                            ].map((item) => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => handleOptionSelect('diet_quality', item.id)}
-                                                    className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.diet_quality === item.id
-                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
-                                                        }`}
-                                                >
-                                                    <span className={formData.diet_quality === item.id ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
-                                                    {item.label}
-                                                </button>
-                                            ))}
-                                        </div>
+                                </div>
+                                <div className="space-y-6 bg-white/5 p-8 rounded-2xl border border-white/5">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Estimated Daily UV Exposure (0-11+)</label>
+                                        <span className="text-xl font-black text-white">{formData.uv_index}</span>
                                     </div>
-
-                                    <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Cooking Source</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {[
-                                                { id: 'electric', label: 'Electric', icon: <Zap /> },
-                                                { id: 'gas', label: 'Gas', icon: <Flame /> },
-                                                { id: 'wood', label: 'Wood', icon: <Flame className="text-amber-800" /> }
-                                            ].map((item) => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => handleOptionSelect('cooking_method', item.id)}
-                                                    className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.cooking_method === item.id
-                                                            ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                                                            : 'border-white/20 bg-transparent/5 text-emerald-100/90 hover:bg-transparent/10 hover:border-emerald-400'
-                                                        }`}
-                                                >
-                                                    <span className={formData.cooking_method === item.id ? 'text-emerald-400' : 'text-emerald-100/80'}>{item.icon}</span>
-                                                    {item.label}
-                                                </button>
-                                            ))}
-                                        </div>
+                                    <input type="range" min="0" max="11" step="1" value={formData.uv_index} onChange={(e) => handleOptionSelect('uv_index', parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white" />
+                                    <div className="flex justify-between text-[8px] font-bold text-slate-600 uppercase tracking-tighter">
+                                        <span>Minimal</span><span>Extreme</span>
                                     </div>
-                                </>
-                            )}
+                                </div>
+                            </div>
+                            <div className="flex gap-4 pt-6">
+                                <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
+                                <button onClick={nextStep} disabled={!isStepValid()} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-30">Continue Sequence</button>
+                            </div>
+                        </div>
+                    )}
 
-                            {/* Step 4: Environment & Health */}
-                            {step === 4 && (
-                                <>
-                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Local Environment</h1>
-                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">Specific details about your home's surrounding environment.</p>
-
-                                    <div className="mb-10">
-                                        <label className="block text-xs font-bold text-emerald-100/80 uppercase tracking-wider mb-4">Primary Water Source</label>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                            {[
-                                                { id: 'tap', label: 'Tap Water', icon: <Droplets /> },
-                                                { id: 'filtered', label: 'Filtered Water', icon: <Droplets className="text-blue-400" /> },
-                                                { id: 'bottled', label: 'Bottled Water', icon: <Droplets className="text-teal-400" /> },
-                                                { id: 'well', label: 'Well Water', icon: <Droplets className="text-cyan-600" /> }
-                                            ].map((item) => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => handleOptionSelect('water_source', item.id)}
-                                                    className={`p-4 rounded-xl border-2 font-semibold transition-all flex flex-col items-center gap-3 ${formData.water_source === item.id
-                                                            ? 'border-blue-600 bg-blue-50 text-blue-700'
-                                                            : 'border-white/20 bg-transparent/5 text-blue-100/70 hover:bg-transparent/10 hover:border-blue-400'
-                                                        }`}
-                                                >
-                                                    <span className={formData.water_source === item.id ? 'text-blue-600' : 'text-emerald-100/80'}>{item.icon}</span>
-                                                    <span className="text-sm text-center">{item.label}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-10 bg-transparent p-6 rounded-2xl border border-white/10 shadow-sm">
-                                        <div className="flex justify-between items-center mb-6">
-                                            <label className="text-sm font-bold text-emerald-100 flex items-center gap-2">
-                                                <Sun size={18} className="text-yellow-500" /> Typical Daily UV Exposure
-                                            </label>
-                                            <span className="text-2xl font-bold bg-yellow-100 text-yellow-800 w-12 h-12 flex items-center justify-center rounded-xl">
-                                                {formData.uv_index}
-                                            </span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="11"
-                                            step="1"
-                                            value={formData.uv_index}
-                                            onChange={(e) => handleOptionSelect('uv_index', parseInt(e.target.value))}
-                                            className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500 mb-4"
-                                        />
-                                        <div className="flex justify-between text-xs font-bold text-emerald-100/80 uppercase">
-                                            <span>Low (0-2)</span>
-                                            <span>Mod (3-5)</span>
-                                            <span>High (6-7)</span>
-                                            <span>Very High (8-10)</span>
-                                            <span>Extreme (11+)</span>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Step 5: Medical */}
-                            {step === 5 && (
-                                <>
-                                    <h1 className="text-3xl font-bold text-white text-shadow-sm shimmer-text mb-2 text-center">Health History</h1>
-                                    <p className="text-emerald-100/90 text-center mb-10 text-lg">Pre-existing conditions can make environmental factors more hazardous.</p>
-
-                                    <div className="space-y-3 mb-10">
+                    {step === 5 && (
+                        <div className="space-y-10">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-2">Clinical Context</h2>
+                                <p className="text-slate-500 text-sm">Identifying underlying biological vulnerabilities.</p>
+                            </div>
+                            <div className="space-y-8 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block mb-4">Select all applicable conditions</label>
+                                    <div className="grid grid-cols-1 gap-2">
                                         {[
-                                            { id: 'asthma', label: 'Asthma', icon: <Activity /> },
-                                            { id: 'copd', label: 'COPD', icon: <Activity /> },
-                                            { id: 'heart_disease', label: 'Heart Disease', icon: <Heart /> },
-                                            { id: 'diabetes', label: 'Diabetes', icon: <Activity /> },
-                                            { id: 'hypertension', label: 'Hypertension', icon: <Activity /> },
-                                            { id: 'allergies', label: 'Allergies', icon: <Smile /> },
-                                            { id: 'immune_disorder', label: 'Immune Disorder', icon: <ShieldCheck size={20} /> },
-                                            { id: 'eczema', label: 'Eczema / Skin Conditions', icon: <Activity /> },
-                                            { id: 'cystic_fibrosis', label: 'Cystic Fibrosis', icon: <Activity /> },
-                                            { id: 'epilepsy', label: 'Epilepsy / Seizures', icon: <Brain size={20} /> },
-                                            { id: 'obesity', label: 'Obesity', icon: <Activity /> },
-                                            { id: 'congenital_heart', label: 'Congenital Heart Defect', icon: <Heart /> },
-                                            { id: 'premature_birth', label: 'Premature Birth Complications', icon: <Activity /> }
-                                        ].map((cond) => (
-                                            <button
-                                                key={cond.id}
-                                                onClick={() => handleCheckboxChange(cond.id)}
-                                                className={`w-full p-4 rounded-xl border-2 flex justify-between items-center transition-all ${formData.medical_history.includes(cond.id)
-                                                        ? 'border-green-600 bg-emerald-500/20 border border-emerald-500/30 text-green-800'
-                                                        : 'border-white/20 bg-transparent/5 text-emerald-50 hover:bg-transparent/10 hover:border-emerald-400'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-4 font-bold">
-                                                    <span className={formData.medical_history.includes(cond.id) ? 'text-emerald-400' : 'text-emerald-100/80'}>
-                                                        {cond.icon}
-                                                    </span>
-                                                    {cond.label}
-                                                </div>
-                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${formData.medical_history.includes(cond.id)
-                                                        ? 'border-green-600 bg-emerald-500 shadow-[0_0_10px_#34d399] text-white'
-                                                        : 'border-gray-200'
-                                                    }`}>
-                                                    {formData.medical_history.includes(cond.id) && <CheckCircle size={16} />}
-                                                </div>
+                                            { id: 'asthma', label: 'Respiratory (Asthma/COPD)' },
+                                            { id: 'heart_disease', label: 'Cardiovascular Issues' },
+                                            { id: 'allergies', label: 'Severe Allergies / Eczema' },
+                                            { id: 'immune_disorder', label: 'Immune System Vulnerability' },
+                                            { id: 'anxiety', label: 'Mental Health (Anxiety/Depression)' },
+                                            { id: 'adhd', label: 'Neurodevelopmental (ADHD/Autism)' }
+                                        ].map(c => (
+                                            <button key={c.id} onClick={() => {
+                                                if (c.id === 'anxiety' || c.id === 'adhd') handleMentalHealthChange(c.id);
+                                                else handleCheckboxChange(c.id);
+                                            }} className={`p-4 rounded-xl border text-left text-xs font-bold transition-all flex justify-between items-center ${formData.medical_history.includes(c.id) || formData.mental_health_conditions.includes(c.id) ? 'bg-white text-black border-white' : 'bg-transparent border-white/5 text-slate-400 hover:border-white/20'}`}>
+                                                {c.label}
+                                                {(formData.medical_history.includes(c.id) || formData.mental_health_conditions.includes(c.id)) && <CheckCircle size={14} />}
                                             </button>
                                         ))}
                                     </div>
-
-                                    <h2 className="text-xl font-bold text-white mb-4 mt-8">Mental Health / Neurodevelopmental</h2>
-                                    <div className="space-y-3 mb-10">
-                                        {[
-                                            { id: 'anxiety', label: 'Anxiety' },
-                                            { id: 'adhd', label: 'ADHD' },
-                                            { id: 'autism_spectrum', label: 'Autism Spectrum' },
-                                            { id: 'depression', label: 'Depression' },
-                                            { id: 'bipolar', label: 'Bipolar Disorder' },
-                                            { id: 'schizophrenia', label: 'Schizophrenia' },
-                                            { id: 'ocd', label: 'OCD' },
-                                            { id: 'ptsd', label: 'PTSD' },
-                                            { id: 'none', label: 'None' }
-                                        ].map((cond) => (
-                                            <button
-                                                key={cond.id}
-                                                onClick={() => handleMentalHealthChange(cond.id)}
-                                                className={`w-full p-4 rounded-xl border-2 flex justify-between items-center transition-all ${formData.mental_health_conditions.includes(cond.id)
-                                                        ? 'border-indigo-400 bg-indigo-500/30 text-indigo-200'
-                                                        : 'border-white/20 bg-transparent/5 text-indigo-50 hover:bg-transparent/10 hover:border-indigo-400'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-4 font-bold">
-                                                    <Brain size={20} className={formData.mental_health_conditions.includes(cond.id) ? 'text-indigo-600' : 'text-emerald-100/80'} />
-                                                    {cond.label}
-                                                </div>
-                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${formData.mental_health_conditions.includes(cond.id)
-                                                        ? 'border-indigo-400 bg-indigo-500 shadow-[0_0_10px_rgba(129,140,248,0.5)] text-white'
-                                                        : 'border-white/20'
-                                                    }`}>
-                                                    {formData.mental_health_conditions.includes(cond.id) && <CheckCircle size={16} />}
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="bg-transparent/10 border border-white/20 rounded-2xl p-6 flex gap-4 items-center text-emerald-100/90 text-sm">
-                                        <Stethoscope size={24} className="shrink-0 text-emerald-100/80" />
-                                        <p>We adjust your risk multipliers based on these vulnerabilities to provide a safer assessment.</p>
-                                    </div>
-                                </>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-
-                {/* Footer */}
-                <div className="p-8 border-t border-white/10 flex justify-center">
-                    <button
-                        onClick={step === 5 ? handleSubmit : nextStep}
-                        disabled={loading || !isStepValid()}
-                        className="w-full max-w-sm py-4 bg-emerald-500 shadow-[0_0_10px_#34d399] text-white rounded-full font-bold text-lg shadow-lg hover:bg-green-700 hover:shadow-xl hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
-                    >
-                        {loading ? (
-                            <Zap className="animate-spin" size={24} />
-                        ) : (step === 0 ? 'Begin Assessment' : (step === 5 ? 'See Results' : 'Continue'))}
-                        {!loading && step < 5 && <ArrowRight size={20} />}
-                    </button>
-                </div>
-            </motion.div>
+                                </div>
+                            </div>
+                            <div className="flex gap-4 pt-6">
+                                <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
+                                <button onClick={handleSubmit} disabled={loading} className="btn-modern flex-1 !rounded-2xl font-bold">
+                                    {loading ? <Loader className="animate-spin" size={20} /> : 'Generate Synthesis'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
+            </div>
         </div>
     );
 };

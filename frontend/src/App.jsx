@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/layout/Navbar';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
@@ -11,6 +12,9 @@ import ReportPage from './pages/ReportPage';
 import { AnimatePresence } from 'framer-motion';
 import CursorEffect from './components/ui/CursorEffect';
 import FallingLeaves from './components/ui/FallingLeaves';
+import LocationBackground from './components/backgrounds/LocationBackground';
+import ThemeDemoBanner from './components/ui/ThemeDemoBanner';
+import { useTheme } from './context/ThemeContext';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -18,8 +22,8 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="flex justify-center items-center h-screen bg-[#020617]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
       </div>
     );
   }
@@ -40,19 +44,19 @@ const PublicOnlyRoute = ({ children }) => {
 
 const Layout = ({ children }) => {
     const location = useLocation();
+    const { theme } = useTheme();
     // Hide Navbar on login and signup pages
     const showNavbar = !['/login', '/signup'].includes(location.pathname);
 
     return (
-        <div className="min-h-screen relative text-white font-sans">
-            <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
-                {/* 2025 Aurora Animated Blobs */}
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#00ff88] rounded-full mix-blend-screen filter blur-[80px] opacity-15 animate-aurora"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#00ccff] rounded-full mix-blend-screen filter blur-[80px] opacity-15 animate-aurora" style={{ animationDelay: '-4s', animationDirection: 'reverse' }}></div>
-                <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-[#7b2fff] rounded-full mix-blend-screen filter blur-[80px] opacity-15 animate-aurora" style={{ animationDelay: '-8s' }}></div>
-            </div>
-            <FallingLeaves />
+        <div className="min-h-screen relative text-[var(--color-text)] font-sans">
+            <LocationBackground />
+            
+            {/* Conditional Falling Leaves (only for default and india) */}
+            {(theme.id === 'default' || theme.id === 'india') && <FallingLeaves />}
+            
             {showNavbar && <Navbar />}
+            <ThemeDemoBanner />
             {children}
         </div>
     );
@@ -100,12 +104,14 @@ const AnimatedRoutes = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <CursorEffect />
-        <Layout>
-            <AnimatedRoutes />
-        </Layout>
-      </Router>
+      <ThemeProvider>
+        <Router>
+            <CursorEffect />
+            <Layout>
+                <AnimatedRoutes />
+            </Layout>
+        </Router>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

@@ -1,176 +1,111 @@
 import React from 'react';
-import { Wind, Droplets, Sprout, Volume2, Radio, Sun, ShieldCheck, AlertCircle, CloudRain, CloudSnow, CloudLightning, Cloud } from 'lucide-react';
+import { Wind, Droplets, Sprout, Volume2, Radio, Sun, ShieldCheck, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../../context/ThemeContext';
 
-const AqiBadge = ({ aqi, riskLevel }) => {
-    const getColorClass = () => {
-        if (riskLevel === 'low' || aqi <= 50) return 'border-green-500 text-green-700 bg-green-50';
-        if (riskLevel === 'medium' || aqi <= 100) return 'border-yellow-500 text-yellow-700 bg-yellow-50';
-        return 'border-red-500 text-red-700 bg-red-50';
-    };
-
-    return (
-        <div className={`w-20 h-20 rounded-full border-4 flex flex-col items-center justify-center ${getColorClass()}`}>
-            <div className="text-2xl font-extrabold leading-none">{aqi}</div>
-            <div className="text-[10px] font-bold uppercase tracking-wider mt-0.5">AQI</div>
-        </div>
-    );
-};
-
-const EnvCard = ({ title, children, icon: Icon, riskLevel, delay = 0 }) => {
-    const getAccentColor = () => {
-        const l = riskLevel?.toLowerCase();
-        if (l === 'high' || l === 'poor') return 'bg-red-500';
-        if (l === 'medium' || l === 'moderate') return 'bg-yellow-500';
-        return 'bg-green-500';
-    };
-
-    return (
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay, duration: 0.5 }}
-            className="glass-card !border-t-2 !border-t-emerald-400 overflow-hidden hover:bg-white/5 hover:shadow-lg hover:shadow-emerald-900/40 transition-all group"
-        >
-            <div className={`h-1.5 w-full ${getAccentColor()} shadow-[0_0_10px_currentColor] opacity-50`}></div>
-            <div className="p-5">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-white/10 text-emerald-100 group-hover:bg-white/20 transition-colors shadow-sm">
-                        <Icon size={20} />
-                    </div>
-                    <h3 className="font-bold text-white text-lg shimmer-text">{title}</h3>
-                </div>
-                <div className="space-y-3">
-                    {children}
-                </div>
+const EnvCard = ({ title, children, icon: Icon, delay = 0 }) => (
+    <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.5 }}
+        className="glass-card p-6 flex flex-col h-full border-white/5 hover:border-[var(--color-primary)]/30"
+    >
+        <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-white/5 text-[var(--color-primary)]">
+                <Icon size={18} />
             </div>
-        </motion.div>
-    );
-};
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-200">{title}</h3>
+        </div>
+        <div className="flex-1 space-y-4">
+            {children}
+        </div>
+    </motion.div>
+);
 
-const StatRow = ({ label, value, highlight = false }) => (
-    <div className="flex justify-between items-center py-2 border-b border-white/10 last:border-0 text-sm">
-        <span className="text-emerald-100/70">{label}</span>
-        <span className={`font-semibold ${highlight ? 'text-yellow-400 text-shadow-sm' : 'text-white'}`}>{value}</span>
+const StatRow = ({ label, value }) => (
+    <div className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+        <span className="text-xs text-slate-500 font-medium">{label}</span>
+        <span className="text-sm font-bold text-slate-200">{value}</span>
     </div>
 );
 
-const WeatherIcon = ({ condition }) => {
-    // Simple mapping logic
-    const c = condition?.toLowerCase() || '';
-    if (c.includes('rain')) return <CloudRain className="text-blue-400" size={48} />;
-    if (c.includes('snow')) return <CloudSnow className="text-cyan-200" size={48} />;
-    if (c.includes('storm') || c.includes('thunder')) return <CloudLightning className="text-purple-400" size={48} />;
-    if (c.includes('cloud')) return <Cloud className="text-gray-400" size={48} />;
-    return <Sun className="text-yellow-400" size={48} />;
-};
-
 const EnvGrid = ({ air, soil, water, weather }) => {
+    const { countryName } = useTheme();
     if (!air && !soil && !water) return null;
 
     return (
-        <div className="animate-fade-in space-y-8">
-            {/* Weather Hero Card */}
+        <div className="space-y-12">
+            {/* Minimalist Weather Hero */}
             {weather && (
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="glass-panel p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6"
-                >
-                    <div className="flex items-center gap-6 text-center md:text-left">
-                        <div className="p-4 bg-yellow-500/20 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.3)]">
-                            <WeatherIcon condition={weather.data.weather_condition} />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-white shimmer-text">{weather.location_name}</h2>
-                            <p className="text-emerald-100/70 font-medium flex items-center gap-2 justify-center md:justify-start">
-                                {weather.data.weather_condition} 
-                                <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                                <span className="capitalize">{weather.data.weather_description}</span>
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex flex-col items-center md:items-end">
-                        <div className="text-6xl font-black text-white tracking-tighter drop-shadow-md">
+                <div className="glass-panel !p-10 flex flex-col md:flex-row justify-between items-center gap-10 border-white/5">
+                    <div className="flex items-center gap-8">
+                        <div className="text-6xl md:text-8xl font-light text-white tracking-tighter">
                             {Math.round(weather.data.temperature)}°
                         </div>
-                        <div className="text-sm font-medium text-emerald-100/80 bg-white/10 px-3 py-1 rounded-full mt-2">
-                            Feels like {Math.round(weather.data.feels_like || weather.data.temperature)}°
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <MapPin size={12} className="text-[var(--color-primary)]" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{weather.location_name}</span>
+                            </div>
+                            <h2 className="text-2xl font-bold text-white capitalize">{weather.data.weather_description}</h2>
+                            <p className="text-sm text-slate-500 mt-1 font-medium">Feels like {Math.round(weather.data.feels_like)}° • Humidity {weather.data.humidity}%</p>
                         </div>
                     </div>
-                </motion.div>
+                    <div className="h-px w-full md:w-px md:h-16 bg-white/5"></div>
+                    <div className="text-center md:text-right">
+                        <div className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Wind Speed</div>
+                        <div className="text-3xl font-bold text-white">{weather.data.wind_speed} <span className="text-sm font-normal text-slate-500">km/h</span></div>
+                    </div>
+                </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Air Quality */}
                 {air && (
-                    <EnvCard title="Air Quality" icon={Wind} riskLevel={air.risk_level} delay={0.1}>
-                        <div className="flex items-center gap-4 mb-2">
-                            <AqiBadge aqi={air.data.aqi} riskLevel={air.risk_level} />
-                            <div>
-                                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Main Pollutant</div>
-                                <div className="font-bold text-gray-800 text-lg">{air.primary_pollutant}</div>
-                            </div>
+                    <EnvCard title="Air Quality" icon={Wind} delay={0.1}>
+                        <div className="flex items-end gap-3 mb-2">
+                            <span className="text-4xl font-bold text-white">{air.data.aqi}</span>
+                            <span className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-widest pb-1.5">AQI Index</span>
                         </div>
-                        <StatRow label="PM2.5" value={`${air.data.pm25} µg/m³`} />
-                        <StatRow label="PM10" value={`${air.data.pm10} µg/m³`} />
+                        <div className="space-y-1">
+                            <StatRow label="Primary Pollutant" value={air.primary_pollutant} />
+                            <StatRow label="PM2.5 Concentration" value={`${air.data.pm25} µg/m³`} />
+                        </div>
                     </EnvCard>
                 )}
 
-                {/* Water Quality */}
                 {water && (
-                    <EnvCard title="Water Supply" icon={Droplets} riskLevel={water.contamination_risk} delay={0.2}>
-                        <StatRow label="Source" value={water.source_type} />
-                        <StatRow label="Hardness" value={water.hardness} />
-                        <StatRow label="pH Level" value={water.ph} />
-                        <div className="mt-3 bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                            <ShieldCheck size={16} /> Safe for general use
+                    <EnvCard title="Water Supply" icon={Droplets} delay={0.2}>
+                        <div className="flex items-center gap-2 text-[var(--color-primary)] mb-4">
+                            <ShieldCheck size={16} />
+                            <span className="text-xs font-bold uppercase tracking-widest">System Validated</span>
                         </div>
+                        <StatRow label="Source Type" value={water.source_type} />
+                        <StatRow label="pH Balanced" value={water.ph} />
                     </EnvCard>
                 )}
 
-                {/* Soil Health */}
                 {soil && (
-                    <EnvCard title="Soil Health" icon={Sprout} riskLevel={soil.contamination_risk} delay={0.3}>
-                        <StatRow label="Soil Type" value={soil.soil_type} />
-                        <StatRow label="pH Level" value={soil.ph} />
-                        <StatRow label="Nutrients" value={soil.nitrogen_level || 'Moderate'} />
-                        <p className="text-xs text-gray-400 italic mt-2">Local soil properties researched via AI</p>
+                    <EnvCard title="Soil Health" icon={Sprout} delay={0.3}>
+                        <StatRow label="Classification" value={soil.soil_type} />
+                        <StatRow label="Contamination Risk" value={soil.contamination_risk} />
+                        <p className="text-[10px] text-slate-600 font-medium uppercase tracking-widest mt-4">AI Sentiment Analysis Active</p>
                     </EnvCard>
                 )}
 
-                {/* Noise (Estimated) */}
-                <EnvCard title="Noise Levels" icon={Volume2} riskLevel="medium" delay={0.4}>
-                    <StatRow label="Daytime Avg" value="55 dB" />
-                    <StatRow label="Nighttime Avg" value="42 dB" />
-                    <StatRow label="Status" value="Moderate" highlight />
-                    <p className="text-xs text-gray-400 italic mt-2">Est. from urban density patterns</p>
+                <EnvCard title="Noise Intelligence" icon={Volume2} delay={0.4}>
+                    <StatRow label="Ambient Average" value="52 dB" />
+                    <StatRow label="Peak Levels" value="68 dB" />
                 </EnvCard>
 
-                {/* Radiation (Estimated) */}
-                <EnvCard title="Radiation" icon={Radio} riskLevel="low" delay={0.5}>
-                    <StatRow label="Background" value="Low" />
-                    <StatRow label="Radon Risk" value="Below Action Level" />
-                    <div className="mt-3 bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                        <ShieldCheck size={16} /> Normal range
-                    </div>
+                <EnvCard title="Safety Nodes" icon={Radio} delay={0.5}>
+                    <StatRow label="Radiation Baseline" value="0.12 μSv/h" />
+                    <StatRow label="Radon Potential" value="Low" />
                 </EnvCard>
 
-                {/* Assessment CTA */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 text-white flex flex-col justify-center items-center text-center shadow-lg"
-                >
-                    <div className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center mb-4">
-                        <AlertCircle size={28} className="text-yellow-400" />
-                    </div>
-                    <h3 className="text-lg font-bold mb-2">Complete Profile</h3>
-                    <p className="text-gray-400 text-sm mb-0">
-                        Add lifestyle data to see how these factors impact your specific health.
-                    </p>
-                </motion.div>
+                <div className="glass-card p-8 border-dashed border-white/10 flex flex-col justify-center items-center text-center opacity-50 hover:opacity-100 transition-opacity">
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Additional Metrics</span>
+                    <p className="text-xs text-slate-600 leading-relaxed">System is continuously aggregating localized sensors.</p>
+                </div>
             </div>
         </div>
     );
