@@ -35,7 +35,7 @@ class HealthReportService:
         Generate comprehensive health report combining all data sources
         """
 
-        # ── 1. Air Quality ─────────────────────────────────────────
+       
         try:
             air_quality = await air_quality_service.get_air_quality(latitude, longitude)
         except Exception as e:
@@ -220,35 +220,39 @@ class HealthReportService:
         # ── 9. Build & return final response ───────────────────────
         return {
             # ── Core scores ──────────────────────────────────────
-            "environmental_risk":     env_risk,
-            "lifestyle_risk":         lifestyle_risk,
-            "risk_score":             combined_risk,
-            "risk_level":             risk_level,
+            "environmental_risk":       env_risk,
+            "lifestyle_risk":           lifestyle_risk,
+            "risk_score":               combined_risk,
+            "risk_level":               risk_level,
             "vulnerability_multiplier": vulnerability_multiplier,
 
             # ── Location ─────────────────────────────────────────
-            "latitude":     latitude,
-            "longitude":    longitude,
+            "latitude":      latitude,
+            "longitude":     longitude,
             "location_name": air_quality.location_name,
 
             # ── Summary & factors ─────────────────────────────────
             "report_summary":         report_summary,
-            "contributing_factors":   contributing_factors,
-            "health_recommendations": recommendations,
+            "contributing_factors":   [f.model_dump() for f in contributing_factors],
+            "health_recommendations": [r.model_dump() for r in recommendations],
 
             # ── Ambient ──────────────────────────────────────────
-            "noise_data":      noise_data,
-            "radiation_data":  radiation_data,
+            "noise_data":     noise_data,
+            "radiation_data": radiation_data,
 
             # ── ML feature vector ─────────────────────────────────
-            "feature_vector":  feature_vector,
+            "feature_vector": feature_vector,
+
+            # ── Metadata ─────────────────────────────────────────
+            "generated_at": datetime.now().isoformat(),
+            "version":       "2.0",
 
             # ── AI-generated sections (12 keys) ───────────────────
             **ai_sections,
         }
 
     # ══════════════════════════════════════════════════════════════
-    #  HELPER METHODS  (unchanged from original)
+    #  HELPER METHODS
     # ══════════════════════════════════════════════════════════════
 
     def _calculate_vulnerability_multiplier(self, data: LifestyleInput, aqi: float = 50) -> float:
@@ -334,7 +338,8 @@ class HealthReportService:
         factors = []
 
         if lifestyle_data and air_quality.data.aqi > 100:
-            if lifestyle_data.smoking_status.value == "current":
+            smoking_val = lifestyle_data.smoking_status.value if hasattr(lifestyle_data.smoking_status, 'value') else str(lifestyle_data.smoking_status)
+            if smoking_val == "current":
                 factors.append(ContributingFactor(
                     category="interaction",
                     factor="CRITICAL INTERACTION: Smoking + High Air Pollution dramatically increases cardiovascular risk.",
@@ -480,7 +485,8 @@ class HealthReportService:
             "water_risk": {"low": 1, "medium": 2, "high": 3}.get(water_data.contamination_risk, 1),
         }
         if lifestyle_data:
-            features["smoking"] = 1 if lifestyle_data.smoking_status.value != "never" else 0
+            smoking_val = lifestyle_data.smoking_status.value if hasattr(lifestyle_data.smoking_status, 'value') else str(lifestyle_data.smoking_status)
+            features["smoking"] = 1 if smoking_val != "never" else 0
         return features
 
     def _generate_detailed_sections(
@@ -490,9 +496,7 @@ class HealthReportService:
         weather: Any,
         uv_index: Optional[float]
     ) -> Dict[str, Any]:
-        """
-        Static fallback sections used only when the AI service is unavailable.
-        """
+        
         aqi = air_quality.data.aqi if air_quality else 50
         age_value = ""
         if lifestyle_data:
@@ -596,5 +600,5 @@ class HealthReportService:
         }
 
 
-# Singleton instance
+
 health_report_service = HealthReportService()
