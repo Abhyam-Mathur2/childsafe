@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     AIR_QUALITY_API_KEY: str = ""
     OPENWEATHER_API_KEY: str = ""
     PERPLEXITY_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
     AIRPAY_MERCHANT_ID: str = ""
     AIRPAY_USERNAME: str = ""
     AIRPAY_PASSWORD: str = ""

@@ -8,7 +8,7 @@ import {
     ArrowRight, ArrowLeft, CheckCircle, Activity, User,
     MapPin, Users, Cigarette, Zap, Moon, Brain, Home, Utensils,
     Flame, Stethoscope, Heart, Smile, ShieldCheck, Info,
-    Sun, Droplets
+    Sun, Droplets, Loader
 } from 'lucide-react';
 
 const AssessmentPage = () => {

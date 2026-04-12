@@ -878,6 +878,74 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 .resource-link { font-size: 0.8rem; color: #666; word-break: break-all; font-family: monospace; }
                 .caregiver-note { display: flex; align-items: center; gap: 15px; background: #f0f7f4; border-left: 6px solid #1b4d3e; padding: 25px; font-size: 1rem; color: #333; line-height: 1.6; border-radius: 4px; }
 
+                @media (max-width: 1024px) {
+                    .report-paper {
+                        padding: 36px 24px;
+                    }
+
+                    .report-header h1 {
+                        font-size: 2rem;
+                    }
+
+                    .meta-grid,
+                    .user-meta-grid,
+                    .summary-container,
+                    .summary-text-grid {
+                        flex-direction: column;
+                        gap: 14px;
+                    }
+
+                    .exposure-grid,
+                    .management-grid,
+                    .water-uv-grid,
+                    .mental-conditions-grid,
+                    .timeline-grid,
+                    .resource-cards-grid,
+                    .action-plan-grid,
+                    .guidance-grid,
+                    .resources-grid,
+                    .daily-pattern-grid,
+                    .seasonal-grid,
+                    .interactions-grid {
+                        grid-template-columns: 1fr;
+                        gap: 16px;
+                    }
+
+                    .water-uv-card.full-width {
+                        grid-column: auto;
+                    }
+                }
+
+                @media (max-width: 640px) {
+                    .report-paper {
+                        padding: 24px 16px;
+                    }
+
+                    .report-header h1 {
+                        font-size: 1.6rem;
+                        line-height: 1.3;
+                    }
+
+                    .section-title {
+                        font-size: 1.3rem;
+                        margin-top: 40px;
+                    }
+
+                    .summary-score {
+                        font-size: 3rem;
+                    }
+
+                    .water-source-display {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 10px;
+                    }
+
+                    .uv-segment {
+                        font-size: 0.58rem;
+                    }
+                }
+
                 @media print {
                     @page {
                         size: A4;
