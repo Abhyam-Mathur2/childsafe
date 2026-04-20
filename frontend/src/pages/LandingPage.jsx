@@ -4,6 +4,21 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
+const overviewPoints = [
+  {
+    title: 'Environmental snapshot',
+    desc: 'Air, water, soil, and weather readings appear in one place for fast review.'
+  },
+  {
+    title: 'Caregiver guidance',
+    desc: 'Raw signals are translated into practical context instead of scattered numbers.'
+  },
+  {
+    title: 'Ready-to-share reports',
+    desc: 'Clean summaries help you track changes and communicate concerns quickly.'
+  }
+];
+
 const LandingPage = () => {
   const { theme } = useTheme();
 
@@ -64,6 +79,70 @@ const LandingPage = () => {
             </Link>
           </motion.div>
         </div>
+
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mt-28 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]"
+        >
+          <div className="glass-panel border-white/10">
+            <p className="text-xs font-bold uppercase tracking-[0.4em] text-[var(--color-primary)] mb-4">
+              Description
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-5">
+              A clear view of the environment around your child.
+            </h2>
+            <p className="text-slate-300 leading-relaxed max-w-2xl mb-8">
+              ChildSafe Sync brings together environmental signals from air, water,
+              soil, weather, and lifestyle data, then turns them into simple guidance.
+              Instead of forcing caregivers to interpret disconnected metrics, it
+              presents one calm dashboard with the context needed to act early.
+            </p>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              {overviewPoints.map((item) => (
+                <div key={item.title} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                  <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-card p-8 border-white/10 bg-white/[0.03] flex flex-col justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.4em] text-[var(--color-primary)] mb-4">
+                What it gives you
+              </p>
+              <h3 className="text-2xl font-bold mb-4">Everything you need, without the noise.</h3>
+              <p className="text-slate-400 leading-relaxed mb-6">
+                Use the platform to monitor local conditions, understand possible
+                risks, and generate reports that are easier to review with your family
+                or healthcare provider.
+              </p>
+            </div>
+
+            <div className="space-y-3 text-sm text-slate-300">
+              <div className="flex items-start gap-3">
+                <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
+                <span>Live environmental monitoring in one dashboard.</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
+                <span>Actionable risk summaries written in plain language.</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
+                <span>Reports designed for quick review and sharing.</span>
+              </div>
+            </div>
+          </div>
+        </motion.section>
 
         {/* Minimalist Feature List */}
         <motion.div 

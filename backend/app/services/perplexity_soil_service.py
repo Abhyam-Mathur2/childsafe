@@ -1,6 +1,6 @@
 """
 Perplexity Soil Research Service
-Uses Perplexity AI to research soil properties and health impacts for a location
+Uses OpenAI to research soil properties and health impacts for a location
 """
 
 import httpx
@@ -13,12 +13,12 @@ settings = get_settings()
 
 
 class PerplexitySoilService:
-    """Service for researching soil data using Perplexity AI"""
+    """Service for researching soil data using OpenAI"""
     
-    BASE_URL = "https://api.perplexity.ai/chat/completions"
+    BASE_URL = "https://api.openai.com/v1/chat/completions"
     
     def __init__(self):
-        self.api_key = settings.PERPLEXITY_API_KEY
+        self.api_key = settings.OPENAI_API_KEY
     
     async def research_soil_data(
         self, 
@@ -42,7 +42,7 @@ class PerplexitySoilService:
             dict: Structured soil data with health implications
         """
         if not self.api_key:
-            raise ValueError("PERPLEXITY_API_KEY is required for soil research")
+            raise ValueError("OPENAI_API_KEY is required for soil research")
         
         # Build location descriptor
         location_parts = []
@@ -63,8 +63,8 @@ class PerplexitySoilService:
             f"What are potential health impacts from soil conditions in {location_str}?"
         ]
         
-        # Query Perplexity
-        raw_response = await self._query_perplexity(queries, location_str)
+        # Query OpenAI
+        raw_response = await self._query_openai(queries, location_str)
         
         # Extract structured data
         soil_data = self._extract_soil_parameters(raw_response, location_str)
@@ -88,12 +88,12 @@ class PerplexitySoilService:
             "health_implications": health_implications,
             "confidence": soil_data.get("confidence", "inferred"),
             "raw_research": raw_response,
-            "data_source": "perplexity_ai"
+            "data_source": "openai"
         }
     
-    async def _query_perplexity(self, queries: List[str], location: str) -> str:
+    async def _query_openai(self, queries: List[str], location: str) -> str:
         """
-        Query Perplexity API with combined soil research questions
+        Query OpenAI API with combined soil research questions
         
         Args:
             queries: List of research questions
@@ -121,7 +121,7 @@ class PerplexitySoilService:
         }
         
         payload = {
-            "model": "sonar",
+            "model": "gpt-4o-mini",
             "messages": [
                 {
                     "role": "system",
@@ -147,16 +147,16 @@ class PerplexitySoilService:
                 response.raise_for_status()
                 data = response.json()
                 
-                print(f"Perplexity response: {data}")
+                print(f"OpenAI soil response received")
             
             # Extract response text
             if "choices" in data and len(data["choices"]) > 0:
                 return data["choices"][0]["message"]["content"]
             else:
-                raise ValueError("Unexpected Perplexity API response format")
+                raise ValueError("Unexpected OpenAI API response format")
                 
         except Exception as e:
-            print(f"Perplexity API error: {e}. Returning mock data.")
+            print(f"OpenAI API error for soil research: {e}. Returning mock data.")
             # Return mock response to prevent changing the rest of the flow too much for now, 
             # ideally we'd return a structured fallback object directly.
             return "Soil type is loam with pH 6.5. Nitrogen, phosphorus, and potassium levels are moderate. No heavy metal contamination detected. Contamination risk is low. Health implications are minimal."
