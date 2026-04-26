@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-db_path = r"d:\new project\backend\envhealth.db"
+db_path = os.path.join(os.path.dirname(__file__), "envhealth.db")
 
 if os.path.exists(db_path):
     conn = sqlite3.connect(db_path)

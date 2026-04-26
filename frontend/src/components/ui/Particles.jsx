@@ -1,16 +1,23 @@
 import React, { useMemo } from 'react';
 
 const Particles = () => {
-    // Generate static random values once so they don't jump around on re-renders
+    // Generate deterministic values once so they don't jump around and stay pure
     const particles = useMemo(() => {
-        return Array.from({ length: 30 }).map((_, i) => ({
-            id: i,
-            size: Math.random() * 4 + 2, // 2px to 6px
-            left: Math.random() * 100, // 0 to 100vw
-            delay: Math.random() * -20, // Negative delay so they start already on screen
-            duration: Math.random() * 8 + 6, // 6s to 14s duration
-            opacity: Math.random() * 0.5 + 0.1 // Max opacity 0.1 to 0.6
-        }));
+        return Array.from({ length: 30 }).map((_, i) => {
+            const pseudoRandom = (seed) => {
+                const x = Math.sin(i + seed) * 10000;
+                return x - Math.floor(x);
+            };
+
+            return {
+                id: i,
+                size: pseudoRandom(1) * 4 + 2, // 2px to 6px
+                left: pseudoRandom(2) * 100, // 0 to 100vw
+                delay: pseudoRandom(3) * -20, // Negative delay so they start already on screen
+                duration: pseudoRandom(4) * 8 + 6, // 6s to 14s duration
+                opacity: pseudoRandom(5) * 0.5 + 0.1 // Max opacity 0.1 to 0.6
+            };
+        });
     }, []);
 
     return (

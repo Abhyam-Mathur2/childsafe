@@ -1,8 +1,13 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useMemo } from 'react';
+import { motion as Motion } from 'framer-motion';
 
 const USABackground = () => {
-  const nodes = Array.from({ length: 12 });
+  const nodes = useMemo(() => Array.from({ length: 12 }).map(() => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    duration: Math.random() * 3 + 2,
+    delay: Math.random() * 5,
+  })), []);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#001233]">
@@ -21,17 +26,17 @@ const USABackground = () => {
 
       {/* Top Aurora Effect */}
       <div className="absolute top-0 left-0 right-0 h-[40vh] pointer-events-none overflow-hidden">
-        <motion.div 
+        <Motion.div 
           animate={{ x: [-100, 100, -100], y: [-20, 20, -20], scale: [1, 1.2, 1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -top-20 left-0 w-[60%] h-[150%] bg-[#0066FF] blur-[120px] opacity-20 rounded-full"
         />
-        <motion.div 
+        <Motion.div 
           animate={{ x: [100, -100, 100], y: [20, -20, 20], scale: [1.2, 1, 1.2] }}
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -top-20 right-0 w-[60%] h-[150%] bg-[#00D4FF] blur-[120px] opacity-20 rounded-full"
         />
-        <motion.div 
+        <Motion.div 
           animate={{ opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-0 left-[20%] w-[60%] h-full bg-white blur-[150px] opacity-10 rounded-full"
@@ -39,12 +44,12 @@ const USABackground = () => {
       </div>
 
       {/* Glowing Nodes */}
-      {nodes.map((_, i) => (
-        <motion.div
+      {nodes.map((node, i) => (
+        <Motion.div
           key={i}
           initial={{ 
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: node.x,
+            y: node.y,
             scale: 1,
             opacity: 0.2
           }}
@@ -53,9 +58,9 @@ const USABackground = () => {
             opacity: [0.2, 0.6, 0.2]
           }}
           transition={{ 
-            duration: Math.random() * 3 + 2,
+            duration: node.duration,
             repeat: Infinity,
-            delay: Math.random() * 5,
+            delay: node.delay,
             ease: "easeInOut"
           }}
           className="absolute w-2 h-2 rounded-full bg-[#00D4FF] pointer-events-none"

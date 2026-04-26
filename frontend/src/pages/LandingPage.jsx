@@ -1,168 +1,224 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronRight } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, Globe, HeartPulse } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-
-const overviewPoints = [
-  {
-    title: 'Environmental snapshot',
-    desc: 'Air, water, soil, and weather readings appear in one place for fast review.'
-  },
-  {
-    title: 'Caregiver guidance',
-    desc: 'Raw signals are translated into practical context instead of scattered numbers.'
-  },
-  {
-    title: 'Ready-to-share reports',
-    desc: 'Clean summaries help you track changes and communicate concerns quickly.'
-  }
-];
 
 const LandingPage = () => {
   const { theme } = useTheme();
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }
+    }
+  };
+
   return (
-    <div className="relative min-h-screen text-white">
-      <main className="container mx-auto px-6 pt-48 pb-20 relative z-10">
-        <div className="max-w-4xl">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 mb-8"
-          >
-            <span className="text-4xl">{theme.greeting.flag}</span>
-            <div className="h-px w-12 bg-[var(--color-primary)] opacity-50" />
-            <span className="text-xs font-bold uppercase tracking-[0.4em] text-slate-400">
-              {theme.greeting.text} from {theme.name}
+    <div className="relative min-h-screen text-white overflow-x-hidden">
+      <main className="container mx-auto px-6 pt-32 pb-20 relative z-10">
+        
+        {/* Hero Section */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="max-w-5xl"
+        >
+          <motion.div variants={itemVariants} className="flex items-center gap-4 mb-10">
+            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--color-primary)]">
+              Intelligence for Wellbeing
+            </span>
+            <div className="h-px w-8 bg-white/20" />
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500">
+              {theme.name} Edition
             </span>
           </motion.div>
 
           <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-6xl md:text-8xl font-bold tracking-tight leading-[0.9] mb-10"
+            variants={itemVariants}
+            className="text-7xl md:text-9xl font-bold tracking-tight leading-[0.85] mb-12"
           >
-            Nurture Their World <br />
-            <span className="opacity-40 font-light">With Intelligence.</span>
+            Turning Signals <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/40 to-white/10">
+              Into Safety.
+            </span>
           </motion.h1>
           
           <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-slate-400 max-w-2xl font-medium leading-relaxed mb-12"
+            variants={itemVariants}
+            className="text-xl md:text-2xl text-slate-400 max-w-2xl font-light leading-relaxed mb-16"
           >
-            An advanced environmental monitoring platform designed for the next generation of caregivers. Precise data, actionable insights, total peace of mind.
+            The environment speaks. We translate. ChildSafe Sync analyzes local environmental risks to help you create a healthier future for those who matter most.
           </motion.p>
 
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-6 items-center"
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row gap-8 items-center"
           >
             <Link 
               to="/signup" 
-              className="px-10 py-4 bg-white text-black font-bold rounded-full hover:bg-[var(--color-primary)] hover:text-white transition-all flex items-center gap-2 group"
+              className="relative overflow-hidden px-12 py-5 bg-white text-black font-bold rounded-full transition-all flex items-center gap-3 group"
             >
-              Get Started
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              <span className="relative z-10">Protect Your Family</span>
+              <ArrowRight size={20} className="relative z-10 group-hover:translate-x-1 transition-transform" />
+              <motion.div 
+                className="absolute inset-0 bg-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity"
+              />
             </Link>
             <Link 
               to="/login" 
-              className="text-sm font-bold flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+              className="text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-white transition-colors flex items-center gap-2"
             >
-              Sign In to Dashboard
-              <ChevronRight size={16} />
+              Access Dashboard
             </Link>
           </motion.div>
-        </div>
+        </motion.div>
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="mt-28 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]"
+        {/* Narrative Section: The Problem & Solution */}
+        <motion.section 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.5 }}
+          className="mt-64 grid grid-cols-1 lg:grid-cols-2 gap-24 items-center"
         >
-          <div className="glass-panel border-white/10">
-            <p className="text-xs font-bold uppercase tracking-[0.4em] text-[var(--color-primary)] mb-4">
-              Description
-            </p>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-5">
-              A clear view of the environment around your child.
+          <div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 leading-tight">
+              From Invisible Risks <br />
+              <span className="opacity-30">To Actionable Clarity.</span>
             </h2>
-            <p className="text-slate-300 leading-relaxed max-w-2xl mb-8">
-              ChildSafe Sync brings together environmental signals from air, water,
-              soil, weather, and lifestyle data, then turns them into simple guidance.
-              Instead of forcing caregivers to interpret disconnected metrics, it
-              presents one calm dashboard with the context needed to act early.
-            </p>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              {overviewPoints.map((item) => (
-                <div key={item.title} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                  <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">
-                    {item.desc}
-                  </p>
+            <div className="space-y-12 mt-16">
+              {[
+                { 
+                  icon: <Globe className="text-red-500" />, 
+                  title: "The Reality", 
+                  desc: "Pollution, allergens, and toxic soil often go unnoticed until health issues arise. Awareness is the first step to prevention." 
+                },
+                { 
+                  icon: <HeartPulse className="text-emerald-500" />, 
+                  title: "The Vision", 
+                  desc: "By monitoring air quality, water safety, and soil health, we empower you to make lifestyle changes that lead to vibrant longevity." 
+                }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-6 group">
+                  <div className="mt-1 p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-colors">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2 uppercase tracking-wider">{item.title}</h3>
+                    <p className="text-slate-400 leading-relaxed font-light">{item.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="glass-card p-8 border-white/10 bg-white/[0.03] flex flex-col justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.4em] text-[var(--color-primary)] mb-4">
-                What it gives you
-              </p>
-              <h3 className="text-2xl font-bold mb-4">Everything you need, without the noise.</h3>
-              <p className="text-slate-400 leading-relaxed mb-6">
-                Use the platform to monitor local conditions, understand possible
-                risks, and generate reports that are easier to review with your family
-                or healthcare provider.
-              </p>
-            </div>
-
-            <div className="space-y-3 text-sm text-slate-300">
-              <div className="flex items-start gap-3">
-                <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
-                <span>Live environmental monitoring in one dashboard.</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
-                <span>Actionable risk summaries written in plain language.</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
-                <span>Reports designed for quick review and sharing.</span>
-              </div>
+          
+          <div className="relative group">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-[var(--color-primary)] to-transparent opacity-10 blur-3xl rounded-full" />
+            <div className="relative glass-panel p-12 aspect-square flex flex-col justify-center border-white/5 bg-white/[0.02] backdrop-blur-2xl">
+               <div className="space-y-8">
+                  <div className="h-1 w-24 bg-[var(--color-primary)] rounded-full" />
+                  <blockquote className="text-3xl font-light italic text-slate-200 leading-snug">
+                    "Data alone is noise. Context is what protects. We provide the context that saves lives."
+                  </blockquote>
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-white/10 border border-white/20" />
+                    <div>
+                      <p className="text-sm font-bold uppercase tracking-widest">ChildSafe Mission</p>
+                      <p className="text-xs text-slate-500 uppercase tracking-widest">Est. 2026</p>
+                    </div>
+                  </div>
+               </div>
             </div>
           </div>
         </motion.section>
 
-        {/* Minimalist Feature List */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-white/5 pt-12"
+        {/* Features Grid */}
+        <motion.section 
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-64"
         >
-          {[
-            { title: "Real-time Quality", desc: "Live tracking of air, water, and soil metrics." },
-            { title: "Smart Resilience", desc: "Predictive analytics for localized health risks." },
-            { title: "Clinical Reporting", desc: "Expert-validated environmental health summaries." }
-          ].map((item, i) => (
-            <div key={i} className="group">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-primary)] mb-3">{item.title}</h3>
-              <p className="text-sm text-slate-500 group-hover:text-slate-300 transition-colors leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </motion.div>
+          <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+            <h2 className="text-5xl md:text-7xl font-bold tracking-tighter">
+              Engineered for <br />
+              <span className="opacity-20 font-light italic">total resilience.</span>
+            </h2>
+            <p className="text-slate-500 max-w-xs text-sm uppercase tracking-widest leading-loose">
+              A comprehensive toolset designed for the modern caregiver.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-1px bg-white/5 border border-white/5 rounded-3xl overflow-hidden">
+            {[
+              { 
+                icon: <ShieldCheck />, 
+                title: "Safety Analysis", 
+                desc: "Real-time auditing of surrounding environmental factors with clinical precision." 
+              },
+              { 
+                icon: <Zap />, 
+                title: "Instant Alerts", 
+                desc: "Critical notifications when environmental metrics exceed safe thresholds for children." 
+              },
+              { 
+                icon: <HeartPulse />, 
+                title: "Health Reports", 
+                desc: "AI-driven correlations between your environment and personal health markers." 
+              }
+            ].map((feature, i) => (
+              <div key={i} className="bg-black/40 p-12 hover:bg-white/[0.02] transition-colors group">
+                <div className="mb-8 text-slate-400 group-hover:text-[var(--color-primary)] transition-colors">
+                  {React.cloneElement(feature.icon, { size: 32, strokeWidth: 1.5 })}
+                </div>
+                <h3 className="text-xl font-bold mb-4 uppercase tracking-wider">{feature.title}</h3>
+                <p className="text-slate-500 font-light leading-relaxed group-hover:text-slate-300 transition-colors">
+                  {feature.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Final CTA */}
+        <motion.section 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="mt-64 mb-32 text-center"
+        >
+          <div className="inline-block mb-12 h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <h2 className="text-6xl md:text-8xl font-bold tracking-tighter mb-16">
+            The change starts <br />
+            <span className="opacity-40 italic font-light">with a single report.</span>
+          </h2>
+          <Link 
+            to="/signup" 
+            className="inline-flex px-16 py-6 border border-white/20 rounded-full text-lg font-bold uppercase tracking-[0.4em] hover:bg-white hover:text-black transition-all"
+          >
+            Create Your Report
+          </Link>
+        </motion.section>
+
       </main>
+
+      {/* Footer Decoration */}
+      <div className="fixed bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent pointer-events-none z-20" />
     </div>
   );
 };

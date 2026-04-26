@@ -45,19 +45,18 @@ const PublicOnlyRoute = ({ children }) => {
 const Layout = ({ children }) => {
     const location = useLocation();
     const { theme } = useTheme();
-    // Hide Navbar on login and signup pages
     const showNavbar = !['/login', '/signup'].includes(location.pathname);
 
     return (
-        <div className="min-h-screen relative text-[var(--color-text)] font-sans">
+        <div className="min-h-screen relative text-[var(--color-text)] font-sans selection:bg-white selection:text-black">
             <LocationBackground />
             
-            {/* Conditional Falling Leaves (only for default and india) */}
-            {(theme.id === 'default' || theme.id === 'india') && <FallingLeaves />}
-            
-            {showNavbar && <Navbar />}
-            <ThemeDemoBanner />
-            {children}
+            <div className="relative z-10 min-h-screen bg-transparent">
+                {(theme.id === 'default' || theme.id === 'india') && <FallingLeaves />}
+                {showNavbar && <Navbar />}
+                <ThemeDemoBanner />
+                {children}
+            </div>
         </div>
     );
 };
