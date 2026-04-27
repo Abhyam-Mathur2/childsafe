@@ -22,13 +22,14 @@
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
+html {
+  background: black;
+  font-size: 75%; /* Scales entire UI to match 75% zoom look at 100% default */
+}
+
 body {
   @apply antialiased min-h-screen text-[var(--color-text)] bg-transparent;
   font-family: var(--font-body);
-}
-
-html {
-  background: black;
 }
 
 @utility glass-card {
