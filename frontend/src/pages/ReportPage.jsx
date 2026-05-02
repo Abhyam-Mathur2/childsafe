@@ -56,7 +56,8 @@ const ReportPage = () => {
     const fetchReport = async () => {
         const lifestyleId = localStorage.getItem('lifestyleId');
         if (!lifestyleId) {
-            navigate('/assessment');
+            setError("complete the assesment first");
+            setLoading(false);
             return;
         }
 
@@ -79,7 +80,7 @@ const ReportPage = () => {
                 setReport(response.data);
             } catch (err) {
                 console.error("Report generation failed", err);
-                setError("Failed to generate report.");
+                setError("complete the assesment first");
             } finally {
                 setLoading(false);
             }
@@ -244,10 +245,15 @@ const ReportPage = () => {
             <div className="bg-red-900/30 backdrop-blur-md border border-red-500/50 p-6 rounded-2xl max-w-lg w-full h-fit flex gap-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
                 <AlertCircle className="text-red-400 shrink-0" />
                 <div>
-                    <h3 className="font-bold text-red-200">Unable to Load Report</h3>
+                    <h3 className="font-bold text-red-200">
+                        {error === "complete the assesment first" ? "Incomplete Assessment" : "Unable to Load Report"}
+                    </h3>
                     <p className="text-red-100/70 mt-1">{error}</p>
-                    <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red-500/20 text-red-100 rounded-lg hover:bg-red-500/40 transition-colors font-semibold text-sm border border-red-500/30">
-                        Try Again
+                    <button 
+                        onClick={() => error === "complete the assesment first" ? navigate('/assessment') : window.location.reload()} 
+                        className="mt-4 px-4 py-2 bg-red-500/20 text-red-100 rounded-lg hover:bg-red-500/40 transition-colors font-semibold text-sm border border-red-500/30"
+                    >
+                        {error === "complete the assesment first" ? "Go to Assessment" : "Try Again"}
                     </button>
                 </div>
             </div>
