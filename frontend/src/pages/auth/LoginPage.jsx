@@ -138,7 +138,7 @@ const LoginPage = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.6 }}
                     >
-                        <p className="font-medium">New to ChildSafeEnviro? <Link to="/signup" className="modern-link">Create account</Link></p>
+                        <p className="font-medium">New to Childsafeenvirons? <Link to="/signup" className="modern-link">Create account</Link></p>
                     </motion.div>
                 </div>
             </motion.div>

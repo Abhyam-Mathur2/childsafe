@@ -218,7 +218,7 @@ const ReportPage = () => {
                 heightLeft -= pdfHeight;
             }
 
-            pdf.save(`ChildSafeEnviro_Report_${report.report_id}.pdf`);
+            pdf.save(`Childsafeenvirons_Report_${report.report_id}.pdf`);
         } catch (err) {
             console.error("PDF generation failed", err);
             alert("Failed to generate PDF. Please try again.");
@@ -263,7 +263,7 @@ const ReportPage = () => {
                 <div className="flex items-center gap-2">
                     <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-500/20">C</div>
                     <div className="hidden sm:block">
-                        <h1 className="text-lg font-bold leading-none">ChildSafe</h1>
+                        <h1 className="text-lg font-bold leading-none">Childsafeenvirons</h1>
                         <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Environmental</p>
                     </div>
                 </div>

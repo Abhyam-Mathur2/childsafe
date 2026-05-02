@@ -62,7 +62,7 @@ const LandingPage = () => {
             variants={itemVariants}
             className="text-xl md:text-2xl text-slate-400 max-w-2xl font-light leading-relaxed mb-16"
           >
-            The environment speaks. We translate. ChildSafe Sync analyzes local environmental risks to help you create a healthier future for those who matter most.
+            The environment speaks. We translate. Childsafeenvirons analyzes local environmental risks to help you create a healthier future for those who matter most.
           </motion.p>
 
           <motion.div 
@@ -138,7 +138,7 @@ const LandingPage = () => {
                   <div className="flex items-center gap-4">
                     <div className="h-10 w-10 rounded-full bg-white/10 border border-white/20" />
                     <div>
-                      <p className="text-sm font-bold uppercase tracking-widest">ChildSafe Mission</p>
+                      <p className="text-sm font-bold uppercase tracking-widest">Childsafeenvirons Mission</p>
                       <p className="text-xs text-slate-500 uppercase tracking-widest">Est. 2026</p>
                     </div>
                   </div>

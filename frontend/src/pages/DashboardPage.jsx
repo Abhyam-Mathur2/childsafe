@@ -177,7 +177,7 @@ const DashboardPage = () => {
     );
 
     return (
-        <div className="min-h-screen pt-40 pb-32 px-8 lg:px-20 selection:bg-[var(--color-primary)] selection:text-white">
+        <div className="min-h-screen pt-24 md:pt-40 pb-20 md:pb-32 px-6 lg:px-20 selection:bg-[var(--color-primary)] selection:text-white">
             <div className="max-w-[1900px] mx-auto">
                 
                 <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-20">
@@ -277,14 +277,14 @@ const DashboardPage = () => {
                                     </motion.span>
                                     
                                     <h1 
-                                        className="text-7xl md:text-[100px] leading-[0.75] tracking-tighter flex flex-col uppercase"
+                                        className="text-5xl md:text-7xl lg:text-[90px] leading-[0.85] tracking-tighter flex flex-col uppercase"
                                         style={{ fontFamily: "var(--font-heading)" }}
                                     >
                                         <div className="flex overflow-hidden">
-                                            {renderAnimatedText("Vitality", charVariants, "font-black text-white")}
+                                            {renderAnimatedText("Health risk", charVariants, "font-black text-white")}
                                         </div>
-                                        <div className="flex ml-12 md:ml-24 overflow-hidden">
-                                            {renderAnimatedText("Synthesis.", synthesisVariants, "font-light italic text-transparent bg-clip-text bg-gradient-to-r from-white/40 via-white to-transparent")}
+                                        <div className="flex ml-8 md:ml-16 overflow-hidden">
+                                            {renderAnimatedText("analysis.", synthesisVariants, "font-light italic text-transparent bg-clip-text bg-gradient-to-r from-white/40 via-white to-transparent")}
                                         </div>
                                     </h1>
                                 </div>

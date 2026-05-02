@@ -140,7 +140,7 @@ const AssessmentPage = () => {
     };
 
     return (
-        <div className="min-h-screen pt-32 pb-20 px-6 flex justify-center items-start overflow-x-hidden">
+        <div className="min-h-screen pt-20 md:pt-32 pb-12 md:pb-20 px-6 flex justify-center items-start overflow-x-hidden">
             <div className="w-full max-w-2xl">
                 <div className="flex gap-2 mb-12 justify-center">
                     {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -376,7 +376,7 @@ const AssessmentPage = () => {
                             <div className="flex gap-4 pt-6">
                                 <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
                                 <button onClick={handleSubmit} disabled={loading} className="btn-modern flex-1 !rounded-2xl font-bold">
-                                    {loading ? <Loader className="animate-spin" size={20} /> : 'Generate Synthesis'}
+                                    {loading ? <Loader className="animate-spin" size={20} /> : 'Generate Health risk analysis'}
                                 </button>
                             </div>
                         </div>

@@ -26,6 +26,14 @@ const Navbar = () => {
         { name: 'Report', path: '/report' },
     ];
 
+    const handleReportClick = (e) => {
+        const lifestyleId = localStorage.getItem('lifestyleId');
+        if (!lifestyleId) {
+            e.preventDefault();
+            alert('complete the assessment first');
+        }
+    };
+
     return (
         <header 
             className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-1000 ${
@@ -38,7 +46,7 @@ const Navbar = () => {
                         <Leaf size={20} className="text-[var(--color-primary)] fill-current" />
                     </div>
                     <span className="text-lg font-bold uppercase tracking-[0.2em] text-white">
-                        ChildSafe<span className="opacity-40 font-light">Enviro</span>
+                        Childsafe<span className="opacity-40 font-light">environs</span>
                     </span>
                 </Link>
 
@@ -50,6 +58,7 @@ const Navbar = () => {
                                     <Link 
                                         key={link.path}
                                         to={link.path} 
+                                        onClick={link.path === '/report' ? handleReportClick : undefined}
                                         className={`nav-link ${location.pathname === link.path ? 'text-white' : ''}`}
                                     >
                                         {link.name}

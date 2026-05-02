@@ -24,7 +24,9 @@
 
 html {
   background: black;
-  font-size: 75%; /* Scales entire UI to match 75% zoom look at 100% default */
+  /* Use a fluid font size that scales with viewport but stays within reasonable bounds */
+  font-size: clamp(12px, 0.8vw + 8px, 16px);
+  overflow-x: hidden;
 }
 
 body {
