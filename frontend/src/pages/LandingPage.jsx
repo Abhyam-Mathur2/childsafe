@@ -52,9 +52,9 @@ const LandingPage = () => {
             variants={itemVariants}
             className="text-7xl md:text-9xl font-bold tracking-tight leading-[0.85] mb-12"
           >
-            Turning Signals <br />
+            Your environment, decoded. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white/40 to-white/10">
-              Into Safety.
+              Your health, protected.
             </span>
           </motion.h1>
           
