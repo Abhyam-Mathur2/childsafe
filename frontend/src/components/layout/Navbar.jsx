@@ -3,11 +3,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { themes } from '../../config/locationThemes';
-import { Leaf, LogOut, Menu, X, Globe, User } from 'lucide-react';
+import { Leaf, LogOut, Menu, X, Globe, User, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'dakshsingh791@gmail.com';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
+    const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
     const { theme, countryName, setThemeOverride } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
@@ -24,7 +27,7 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Dashboard', path: '/dashboard' },
         { name: 'Assessment', path: '/assessment' },
-        { name: 'Report', path: '/report' },
+        { name: 'My Reports', path: '/reports' },
     ];
 
     return (
@@ -56,8 +59,18 @@ const Navbar = () => {
                                         {link.name}
                                     </Link>
                                 ))}
+                                {isAdmin && (
+                                    <Link
+                                        to="/admin"
+                                        className={`flex items-center gap-1.5 text-sm font-medium transition-all ${
+                                            location.pathname === '/admin' ? 'text-white' : 'text-slate-400 hover:text-white'
+                                        }`}
+                                    >
+                                        <ShieldAlert size={14} /> Admin
+                                    </Link>
+                                )}
                             </div>
-                            
+
                             <div className="h-4 w-px bg-white/10"></div>
                             
                             <div className="relative">

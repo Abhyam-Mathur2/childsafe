@@ -1,12 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Download, Loader, Share2, Lock, CreditCard, AlertCircle, X, CheckCircle, Printer } from 'lucide-react';
+import { Download, Loader, Share2, Lock, CreditCard, AlertCircle, X, CheckCircle, Printer, Mail } from 'lucide-react';
 import ReportTemplate from '../components/dashboard/ReportTemplate';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Emails that skip the real Airpay checkout entirely (reports display as unlocked).
+// Kept in sync with backend/app/routers/payments.py's BYPASS_EMAILS.
+const BYPASS_EMAILS = ['abhyammath78@gmail.com', 'dakshsingh791@gmail.com'];
 
 const ReportPage = () => {
     const [report, setReport] = useState(null);
@@ -14,6 +18,7 @@ const ReportPage = () => {
     const [verifyingPayment, setVerifyingPayment] = useState(false);
     const [error, setError] = useState(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [emailSending, setEmailSending] = useState(false);
     const [paymentDetails, setPaymentDetails] = useState({
         buyerEmail: '',
         buyerPhone: '',
@@ -28,7 +33,9 @@ const ReportPage = () => {
 
     const navigate = useNavigate();
     const location = useLocation();
+    const { reportId } = useParams();
     const { user } = useAuth();
+    const isBypassUser = BYPASS_EMAILS.includes(user?.email?.toLowerCase());
     const printRef = useRef();
 
     useEffect(() => {
@@ -54,6 +61,25 @@ const ReportPage = () => {
     }, [location]);
 
     const fetchReport = async () => {
+        // Reopening a previously generated report from history - no geolocation
+        // or regeneration needed, just load the stored result.
+        if (reportId) {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await api.get(`/health-report/${reportId}`);
+                setReport(response.data);
+            } catch (err) {
+                console.error("Failed to load report", err);
+                setError(err.response?.status === 404
+                    ? "This report could not be found."
+                    : "Failed to load report.");
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+
         const lifestyleId = localStorage.getItem('lifestyleId');
         if (!lifestyleId) {
             navigate('/assessment');
@@ -91,7 +117,7 @@ const ReportPage = () => {
 
     useEffect(() => {
         fetchReport();
-    }, [navigate]);
+    }, [navigate, reportId]);
 
     const handleAirpayPayment = async (e) => {
         e.preventDefault();
@@ -165,7 +191,7 @@ const ReportPage = () => {
     };
 
     const handlePrint = () => {
-        if (!report.is_paid && user?.email !== 'abhyammath78@gmail.com') {
+        if (!report.is_paid && !isBypassUser) {
             alert("Please unlock the full report to print.");
             return;
         }
@@ -173,7 +199,7 @@ const ReportPage = () => {
     };
 
     const handleDownloadPdf = async () => {
-        if (!report.is_paid && user?.email !== 'abhyammath78@gmail.com') {
+        if (!report.is_paid && !isBypassUser) {
             alert("Please unlock the full report to download PDF.");
             return;
         }
@@ -187,35 +213,82 @@ const ReportPage = () => {
         btn.disabled = true;
 
         try {
+            const SCALE = 2;
+            const elementRect = element.getBoundingClientRect();
+
+            // Cards/boxes/rows that must never be sliced in half across a page
+            // boundary. Record their vertical ranges (in captured-canvas px,
+            // relative to the top of `element`) before screenshotting so the
+            // pagination below can nudge a page break above them instead of
+            // cutting through their middle.
+            const avoidSelector = [
+                '.exposure-card', '.management-card', '.interaction-box', '.water-uv-card',
+                '.mental-condition-card', '.timeline-col', '.resource-card',
+                '.summary-left', '.summary-right', '.disclaimer-box',
+                '.callout', '.ai-narrative-box', '.age-warning-box', 'tr'
+            ].join(', ');
+            const avoidRanges = Array.from(element.querySelectorAll(avoidSelector)).map((node) => {
+                const r = node.getBoundingClientRect();
+                return {
+                    top: (r.top - elementRect.top) * SCALE,
+                    bottom: (r.bottom - elementRect.top) * SCALE,
+                };
+            });
+
             const canvas = await html2canvas(element, {
-                scale: 2,
+                scale: SCALE,
                 useCORS: true,
                 logging: false,
                 backgroundColor: "#ffffff",
                 windowWidth: 794, // A4 width at 96 DPI
             });
-            const imgData = canvas.toDataURL('image/png', 1.0);
 
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            const imgWidth = pdfWidth;
-            const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+            const pxPerMm = canvas.width / pdfWidth;
+            const pageHeightPx = pdfHeight * pxPerMm;
+            const totalHeightPx = canvas.height;
 
-            let heightLeft = imgHeight;
-            let position = 0;
+            let sy = 0;
+            let firstPage = true;
 
-            // First page
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-            heightLeft -= pdfHeight;
+            while (sy < totalHeightPx - 1) {
+                let sliceEnd = Math.min(sy + pageHeightPx, totalHeightPx);
 
-            // Add new pages if the content is longer than one page
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-                heightLeft -= pdfHeight;
+                // If the natural cut line lands inside a protected element,
+                // pull the break up to just above that element instead.
+                if (sliceEnd < totalHeightPx) {
+                    for (const range of avoidRanges) {
+                        if (sliceEnd > range.top && sliceEnd < range.bottom && range.top > sy) {
+                            sliceEnd = range.top;
+                        }
+                    }
+                }
+                // Guard against a degenerate zero-height page (e.g. a single
+                // element taller than one page) - fall back to the raw cut.
+                if (sliceEnd <= sy) {
+                    sliceEnd = Math.min(sy + pageHeightPx, totalHeightPx);
+                }
+
+                const sliceHeightPx = sliceEnd - sy;
+                const pageCanvas = document.createElement('canvas');
+                pageCanvas.width = canvas.width;
+                pageCanvas.height = sliceHeightPx;
+                const ctx = pageCanvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                ctx.drawImage(canvas, 0, sy, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+
+                const imgData = pageCanvas.toDataURL('image/png', 1.0);
+                const imgHeightMm = (sliceHeightPx * pdfWidth) / canvas.width;
+
+                if (!firstPage) pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeightMm, undefined, 'FAST');
+                firstPage = false;
+
+                sy = sliceEnd;
             }
 
             pdf.save(`ChildSafeEnviro_Report_${report.report_id}.pdf`);
@@ -227,6 +300,23 @@ const ReportPage = () => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
+        }
+    };
+
+    const handleEmailReport = async () => {
+        if (!report.is_paid && !isBypassUser) {
+            alert("Please unlock the full report to email it.");
+            return;
+        }
+        setEmailSending(true);
+        try {
+            const { data } = await api.post(`/health-report/${report.report_id}/email`);
+            alert(`PDF report sent to ${data.sent_to}. Check your inbox.`);
+        } catch (err) {
+            console.error("Email report failed", err);
+            alert(err.response?.data?.detail || "Failed to send email. Please try again.");
+        } finally {
+            setEmailSending(false);
         }
     };
 
@@ -270,8 +360,8 @@ const ReportPage = () => {
                 <div className="flex gap-3">
                     <button
                         onClick={handlePrint}
-                        disabled={!report.is_paid && user?.email !== 'abhyammath78@gmail.com'}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || user?.email === 'abhyammath78@gmail.com')
+                        disabled={!report.is_paid && !isBypassUser}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || isBypassUser)
                             ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-blue-500/30'
                             : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
                             }`}
@@ -280,13 +370,24 @@ const ReportPage = () => {
                     </button>
                     <button
                         onClick={handleDownloadPdf}
-                        disabled={!report.is_paid && user?.email !== 'abhyammath78@gmail.com'}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || user?.email === 'abhyammath78@gmail.com')
+                        disabled={!report.is_paid && !isBypassUser}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || isBypassUser)
                             ? 'bg-emerald-600 text-white hover:bg-emerald-500 hover:shadow-emerald-500/30'
                             : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
                             }`}
                     >
                         <Download size={18} /> <span className="hidden xs:inline">PDF</span>
+                    </button>
+                    <button
+                        onClick={handleEmailReport}
+                        disabled={(!report.is_paid && !isBypassUser) || emailSending}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${(report.is_paid || isBypassUser)
+                            ? 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
+                            : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
+                            }`}
+                    >
+                        {emailSending ? <Loader size={18} className="animate-spin" /> : <Mail size={18} />}
+                        <span className="hidden xs:inline">{emailSending ? 'Sending...' : 'Email'}</span>
                     </button>
                     <button className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors font-medium shadow-sm">
                         <Share2 size={18} /> <span className="hidden xs:inline">Share</span>
@@ -298,13 +399,13 @@ const ReportPage = () => {
             <div className="relative max-w-[210mm] mx-auto bg-white shadow-xl min-h-[297mm]">
                 {/* Blurring effect if not paid and not admin */}
                 <div
-                    className={`transition-all duration-500 ${(!report.is_paid && user?.email !== 'abhyammath78@gmail.com') ? 'blur-sm select-none pointer-events-none' : ''}`}
+                    className={`transition-all duration-500 ${(!report.is_paid && !isBypassUser) ? 'blur-sm select-none pointer-events-none' : ''}`}
                 >
                     <ReportTemplate ref={printRef} report={report} user={user} />
                 </div>
 
                 {/* Payment Overlay */}
-                {(!report.is_paid && user?.email !== 'abhyammath78@gmail.com') && (
+                {(!report.is_paid && !isBypassUser) && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}

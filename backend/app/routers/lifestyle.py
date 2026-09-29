@@ -7,8 +7,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.schemas.lifestyle import LifestyleInput, LifestyleResponse
 from app.services.lifestyle_service import lifestyle_service
+from app.services.auth_service import get_current_user_optional
 from app.database import get_db
 from app.models.lifestyle_data import LifestyleData
+from app.models.user import User
 
 router = APIRouter()
 
@@ -16,7 +18,8 @@ router = APIRouter()
 @router.post("/lifestyle", response_model=LifestyleResponse)
 async def submit_lifestyle_data(
     lifestyle: LifestyleInput,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional)
 ):
     """
     Submit lifestyle data from gamified quiz
@@ -43,6 +46,7 @@ async def submit_lifestyle_data(
             
     # Store lifestyle data in database
     lifestyle_data = LifestyleData(
+        user_id=current_user.id if current_user else None,
         name=lifestyle.name,
         years_at_location=lifestyle.years_at_location,
         age_range=lifestyle.age_range.value,

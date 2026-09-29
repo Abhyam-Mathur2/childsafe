@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 from app.schemas.soil import SoilDataRequest, SoilDataResponse
 from app.services.soil_service import soil_service
-from app.services.perplexity_soil_service import perplexity_soil_service
+from app.services.soil_research_service import soil_research_service
 from app.database import get_db
 from app.models.environmental_data import EnvironmentalData
 
@@ -75,8 +75,8 @@ async def research_soil_data(
     country: str = Query(None, description="Country name")
 ):
     """
-    Research soil data using Perplexity AI
-    
+    Research soil data using OpenAI
+
     Uses AI-powered web search to find real soil composition, nutrients,
     contamination risks, and health implications for the specified location.
     
@@ -96,7 +96,7 @@ async def research_soil_data(
         raise HTTPException(status_code=400, detail="Longitude must be between -180 and 180")
     
     try:
-        result = await perplexity_soil_service.research_soil_data(
+        result = await soil_research_service.research_soil_data(
             latitude=latitude,
             longitude=longitude,
             city=city,
@@ -105,8 +105,8 @@ async def research_soil_data(
         )
         return result
     except ValueError as e:
-        # If Perplexity API fails, return enhanced mock data
-        print(f"Perplexity API failed, using enhanced mock data: {e}")
+        # If OpenAI API fails, return enhanced mock data
+        print(f"OpenAI API failed, using enhanced mock data: {e}")
         return _generate_enhanced_mock_soil_data(latitude, longitude, city, state, country)
     except Exception as e:
         print(f"Soil research error: {e}")
@@ -115,7 +115,7 @@ async def research_soil_data(
 
 
 def _generate_enhanced_mock_soil_data(latitude: float, longitude: float, city: str = None, state: str = None, country: str = None):
-    """Generate realistic mock soil data when Perplexity API is unavailable"""
+    """Generate realistic mock soil data when OpenAI API is unavailable"""
     import random
     
     # Seed with location for consistency

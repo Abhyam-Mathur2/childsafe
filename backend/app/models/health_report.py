@@ -35,7 +35,16 @@ class HealthReport(Base):
     
     # Feature Vector for ML (future use)
     feature_vector = Column(JSON, nullable=True)  # Numeric features for ML models
-    
+
+    # Location context (needed to redisplay the report without regenerating it)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    location_name = Column(String, nullable=True)
+
+    # Full API response payload, stored so a previously generated report/PDF
+    # can be reopened later without re-running the generation pipeline
+    full_report_data = Column(JSON, nullable=True)
+
     # Metadata
     created_at = Column(DateTime, default=datetime.utcnow)
     version = Column(String, default="1.0")  # Report generation version

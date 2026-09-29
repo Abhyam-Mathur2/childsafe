@@ -8,8 +8,75 @@ import {
     ArrowRight, ArrowLeft, CheckCircle, Activity, User,
     MapPin, Users, Cigarette, Zap, Moon, Brain, Home, Utensils,
     Flame, Stethoscope, Heart, Smile, ShieldCheck, Info,
-    Sun, Droplets
+    Sun, Droplets, Loader, Plus, X
 } from 'lucide-react';
+
+// Condition catalogue shown in the Clinical Context step, grouped by the
+// environmental exposure pathway most strongly linked to it. `type: 'mental'`
+// routes into mental_health_conditions instead of medical_history.
+const CONDITION_CATEGORIES = [
+    {
+        category: 'Air Pollution',
+        note: 'The strongest evidence, so start here',
+        items: [
+            { label: 'Asthma and breathing trouble', type: 'medical' },
+            { label: "Smoker's lung, even in non-smokers (COPD)", type: 'medical' },
+            { label: 'Lung infections like pneumonia, especially in children and the elderly', type: 'medical' },
+            { label: 'Heart attack and heart disease', type: 'medical' },
+            { label: 'Stroke', type: 'medical' },
+            { label: 'Lung cancer', type: 'medical' },
+            { label: 'Eye irritation, cough, and sore throat (early warning signals)', type: 'medical' },
+        ]
+    },
+    {
+        category: 'Dirty Water & Poor Sanitation',
+        items: [
+            { label: 'Loose motions and stomach infections (diarrhoea)', type: 'medical' },
+            { label: 'Typhoid', type: 'medical' },
+            { label: 'Jaundice and hepatitis A/E (liver infections)', type: 'medical' },
+            { label: 'Cholera', type: 'medical' },
+            { label: 'Worm infections and stunted growth in children', type: 'medical' },
+            { label: 'Skin and eye infections from unclean water', type: 'medical' },
+            { label: 'Kidney disease and cancer from long-term contamination (arsenic, fluoride, heavy metals)', type: 'medical' },
+        ]
+    },
+    {
+        category: 'Heat & Climate',
+        items: [
+            { label: 'Heat stroke and dehydration', type: 'medical' },
+            { label: 'Kidney stones and kidney damage (outdoor workers)', type: 'medical' },
+            { label: 'Worsening of heart and lung disease during heat waves', type: 'medical' },
+            { label: 'Mosquito-borne fevers: dengue, malaria, chikungunya', type: 'medical' },
+            { label: 'Waterborne outbreaks after floods', type: 'medical' },
+        ]
+    },
+    {
+        category: 'Noise & Urban Living',
+        items: [
+            { label: 'High blood pressure (BP)', type: 'medical' },
+            { label: 'Sleep problems', type: 'medical' },
+            { label: 'Stress, anxiety, and depression', type: 'mental' },
+            { label: 'Hearing loss', type: 'medical' },
+        ]
+    },
+    {
+        category: 'Chemicals, Soil & Food',
+        items: [
+            { label: "Lead poisoning (children's brain development)", type: 'medical' },
+            { label: 'Pesticide exposure (skin, nerve, and fertility problems)', type: 'medical' },
+            { label: 'Birth defects, low birth weight, and premature births', type: 'medical' },
+            { label: 'Certain cancers (industrial areas / contaminated food)', type: 'medical' },
+        ]
+    },
+    {
+        category: 'Other Conditions',
+        items: [
+            { label: 'Severe Allergies / Eczema', type: 'medical' },
+            { label: 'Immune System Vulnerability', type: 'medical' },
+            { label: 'Neurodevelopmental (ADHD/Autism)', type: 'mental' },
+        ]
+    },
+];
 
 const AssessmentPage = () => {
     const navigate = useNavigate();
@@ -18,6 +85,7 @@ const AssessmentPage = () => {
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
     const [direction, setDirection] = useState(1);
+    const [otherInput, setOtherInput] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -34,6 +102,7 @@ const AssessmentPage = () => {
         diet_quality: '',
         medical_history: [],
         mental_health_conditions: [],
+        other_conditions: [],
         cooking_method: '',
         water_source: '',
         uv_index: 5
@@ -73,6 +142,20 @@ const AssessmentPage = () => {
         });
     };
 
+    const handleAddOtherCondition = () => {
+        const value = otherInput.trim();
+        if (!value) return;
+        setFormData(prev => {
+            if (prev.other_conditions.some(c => c.toLowerCase() === value.toLowerCase())) return prev;
+            return { ...prev, other_conditions: [...prev.other_conditions, value] };
+        });
+        setOtherInput('');
+    };
+
+    const handleRemoveOtherCondition = (value) => {
+        setFormData(prev => ({ ...prev, other_conditions: prev.other_conditions.filter(c => c !== value) }));
+    };
+
     const handleSubmit = async (e) => {
         if (e) e.preventDefault();
         setLoading(true);
@@ -85,6 +168,9 @@ const AssessmentPage = () => {
                 }
             });
         }
+        formData.other_conditions.forEach(cond => {
+            if (!mergedMedicalHistory.includes(cond)) mergedMedicalHistory.push(cond);
+        });
 
         const payload = {
             ...formData,
@@ -99,6 +185,7 @@ const AssessmentPage = () => {
             mental_health_conditions: formData.mental_health_conditions.filter(c => c !== 'none')
         };
         delete payload.cooking_method;
+        delete payload.other_conditions;
 
         try {
             const response = await api.post('/lifestyle', payload);
@@ -169,7 +256,7 @@ const AssessmentPage = () => {
                                 <Info size={20} className="shrink-0 text-[var(--color-primary)]" />
                                 <p className="leading-relaxed">This process takes approximately 4 minutes. Your data is encrypted and used exclusively for your personal risk assessment profile.</p>
                             </div>
-                            <button onClick={nextStep} className="btn-modern !rounded-full w-full !py-5 text-lg font-bold">Initiate Sequence</button>
+                            <button onClick={nextStep} className="btn-modern !rounded-full w-full !py-5 text-lg font-bold">Initiate Assessment</button>
                         </div>
                     )}
 
@@ -350,27 +437,66 @@ const AssessmentPage = () => {
                                 <h2 className="text-2xl font-bold mb-2">Clinical Context</h2>
                                 <p className="text-slate-500 text-sm">Identifying underlying biological vulnerabilities.</p>
                             </div>
-                            <div className="space-y-8 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 block mb-4">Select all applicable conditions</label>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {[
-                                            { id: 'asthma', label: 'Respiratory (Asthma/COPD)' },
-                                            { id: 'heart_disease', label: 'Cardiovascular Issues' },
-                                            { id: 'allergies', label: 'Severe Allergies / Eczema' },
-                                            { id: 'immune_disorder', label: 'Immune System Vulnerability' },
-                                            { id: 'anxiety', label: 'Mental Health (Anxiety/Depression)' },
-                                            { id: 'adhd', label: 'Neurodevelopmental (ADHD/Autism)' }
-                                        ].map(c => (
-                                            <button key={c.id} onClick={() => {
-                                                if (c.id === 'anxiety' || c.id === 'adhd') handleMentalHealthChange(c.id);
-                                                else handleCheckboxChange(c.id);
-                                            }} className={`p-4 rounded-xl border text-left text-xs font-bold transition-all flex justify-between items-center ${formData.medical_history.includes(c.id) || formData.mental_health_conditions.includes(c.id) ? 'bg-white text-black border-white' : 'bg-transparent border-white/5 text-slate-400 hover:border-white/20'}`}>
-                                                {c.label}
-                                                {(formData.medical_history.includes(c.id) || formData.mental_health_conditions.includes(c.id)) && <CheckCircle size={14} />}
-                                            </button>
-                                        ))}
+                            <div className="space-y-8 max-h-[45vh] overflow-y-auto pr-4 custom-scrollbar">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Select all applicable conditions</p>
+                                {CONDITION_CATEGORIES.map(group => (
+                                    <div key={group.category} className="space-y-3">
+                                        <div>
+                                            <h3 className="text-sm font-bold text-white">{group.category}</h3>
+                                            {group.note && <p className="text-[10px] text-slate-500 mt-0.5">{group.note}</p>}
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {group.items.map(c => {
+                                                const selected = c.type === 'mental'
+                                                    ? formData.mental_health_conditions.includes(c.label)
+                                                    : formData.medical_history.includes(c.label);
+                                                return (
+                                                    <button key={c.label} onClick={() => {
+                                                        if (c.type === 'mental') handleMentalHealthChange(c.label);
+                                                        else handleCheckboxChange(c.label);
+                                                    }} className={`p-4 rounded-xl border text-left text-xs font-bold transition-all flex justify-between items-center gap-3 ${selected ? 'bg-white text-black border-white' : 'bg-transparent border-white/5 text-slate-400 hover:border-white/20'}`}>
+                                                        <span>{c.label}</span>
+                                                        {selected && <CheckCircle size={14} className="shrink-0" />}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
+                                ))}
+
+                                <div className="space-y-3">
+                                    <h3 className="text-sm font-bold text-white">Other</h3>
+                                    <p className="text-[10px] text-slate-500 -mt-2">Add any condition not listed above.</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={otherInput}
+                                            onChange={(e) => setOtherInput(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddOtherCondition(); } }}
+                                            placeholder="e.g. Diabetes"
+                                            className="input-field-modern !bg-transparent !border-white/10 flex-1"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddOtherCondition}
+                                            className="px-4 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all shrink-0"
+                                            aria-label="Add condition"
+                                        >
+                                            <Plus size={18} />
+                                        </button>
+                                    </div>
+                                    {formData.other_conditions.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                            {formData.other_conditions.map(cond => (
+                                                <span key={cond} className="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-white text-black text-xs font-bold">
+                                                    {cond}
+                                                    <button type="button" onClick={() => handleRemoveOtherCondition(cond)} className="hover:opacity-60">
+                                                        <X size={12} />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex gap-4 pt-6">

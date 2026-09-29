@@ -50,6 +50,7 @@ class WeatherService:
                 "latitude": latitude,
                 "longitude": longitude,
                 "location_name": data.get("name", "Unknown"),
+                "country_code": data.get("sys", {}).get("country"),
                 "temperature": data["main"]["temp"],
                 "feels_like": data["main"]["feels_like"],
                 "humidity": data["main"]["humidity"],

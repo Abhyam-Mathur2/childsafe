@@ -15,6 +15,11 @@ ENV/
 .env.*.local
 # .env.production is intentionally committed (contains only public API URLs, no secrets)
 
+# Google Cloud / Earth Engine service account keys
+backend/credentials/
+*-service-account.json
+*.iam.gserviceaccount.com.json
+
 # Database
 *.db
 *.sqlite

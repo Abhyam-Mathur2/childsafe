@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 
 const LocationBackground = () => {
   const { theme } = useTheme();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const failCount = useRef(0);
 
   useEffect(() => {
     if (theme.media && theme.media.length > 1) {
@@ -18,9 +19,20 @@ const LocationBackground = () => {
   // Reset index on theme change
   useEffect(() => {
     setCurrentImageIndex(0);
+    failCount.current = 0;
   }, [theme.id]);
 
   const isVideo = theme.media?.[0]?.endsWith('.mp4');
+
+  // Some hardcoded Unsplash photo IDs go dead over time (404) - skip straight
+  // to the next image instead of showing plain black for a full 8s rotation.
+  // Bounded by the array length so a fully-dead array can't loop forever.
+  const handleImageError = () => {
+    failCount.current += 1;
+    if (theme.media && theme.media.length > 1 && failCount.current <= theme.media.length) {
+      setCurrentImageIndex((prev) => (prev + 1) % theme.media.length);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[-2] overflow-hidden bg-black">
@@ -43,9 +55,11 @@ const LocationBackground = () => {
               src={theme.media[0]}
             />
           ) : (
-            <div
-              className="w-full h-full bg-cover bg-center"
-              style={{ backgroundImage: `url(${theme.media[currentImageIndex]})` }}
+            <img
+              src={theme.media[currentImageIndex]}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={handleImageError}
             />
           )}
         </motion.div>

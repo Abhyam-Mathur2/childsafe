@@ -16,7 +16,6 @@ class Settings(BaseSettings):
     # API Keys (for future real API integrations)
     AIR_QUALITY_API_KEY: str = ""
     OPENWEATHER_API_KEY: str = ""
-    PERPLEXITY_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
     AIRPAY_MERCHANT_ID: str = ""
     AIRPAY_USERNAME: str = ""
@@ -34,6 +33,28 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # Google OAuth / JWT sessions
+    GOOGLE_CLIENT_ID: str = ""
+    JWT_SECRET: str = "your-secret-key-change-in-production"
+    JWT_EXPIRE_DAYS: int = 30
+
+    # Only this email may access the admin CMS
+    ADMIN_EMAIL: str = "dakshsingh791@gmail.com"
+
+    # Email (Brevo) - for emailing generated health reports to users
+    BREVO_API_KEY: str = ""
+    EMAIL_FROM: str = "ChildSafeEnviro <noreply@childsafeenvirons.com>"
+
+    # Google Earth Engine (real water data: JRC Global Surface Water + WRI Aqueduct)
+    # Prefer GEE_SERVICE_ACCOUNT_KEY_JSON (full key JSON as one env var - portable to
+    # any host); GEE_SERVICE_ACCOUNT_KEY_FILE (path to the downloaded key file) is a
+    # local-dev convenience fallback. Leave both empty to disable and use the
+    # deterministic mock fallback instead.
+    GEE_SERVICE_ACCOUNT_EMAIL: str = ""
+    GEE_SERVICE_ACCOUNT_KEY_JSON: str = ""
+    GEE_SERVICE_ACCOUNT_KEY_FILE: str = ""
+    GEE_PROJECT_ID: str = ""
     
     # Application
     DEBUG: bool = True
