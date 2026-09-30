@@ -65,7 +65,7 @@ const LoginPage = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.6 }}
                     >
-                        <p className="font-medium">New to ChildSafeEnviro? Signing in with Google creates your account automatically.</p>
+                        <p className="font-medium">New to Childsafeenvirons? Signing in with Google creates your account automatically.</p>
                     </motion.div>
                 </div>
             </motion.div>

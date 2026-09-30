@@ -1,8 +1,19 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useMemo } from 'react';
+import { motion as Motion } from 'framer-motion';
 
 const SpainBackground = () => {
-  const petals = Array.from({ length: 20 });
+  const petals = useMemo(() => Array.from({ length: 20 }).map((_, i) => {
+    const pseudoRandom = (seed) => {
+      const x = Math.sin(i + seed) * 10000;
+      return x - Math.floor(x);
+    };
+    return {
+      initialX: pseudoRandom(1) * 100, // 0 to 100vw
+      animateX: pseudoRandom(2) * 100,
+      duration: pseudoRandom(3) * 10 + 10,
+      delay: pseudoRandom(4) * 20,
+    };
+  }), []);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0D0D0D]">
@@ -26,25 +37,25 @@ const SpainBackground = () => {
       />
 
       {/* Falling Rose Petals */}
-      {petals.map((_, i) => (
-        <motion.div
+      {petals.map((petal, i) => (
+        <Motion.div
           key={i}
           initial={{ 
             y: -20, 
-            x: Math.random() * window.innerWidth,
+            x: `${petal.initialX}vw`,
             rotate: 0,
             opacity: 0
           }}
           animate={{ 
             y: window.innerHeight + 20,
-            x: `calc(${Math.random() * 100}vw + ${Math.sin(i) * 50}px)`,
+            x: `calc(${petal.animateX}vw + ${Math.sin(i) * 50}px)`,
             rotate: 360,
             opacity: [0, 0.6, 0.6, 0]
           }}
           transition={{ 
-            duration: Math.random() * 10 + 10,
+            duration: petal.duration,
             repeat: Infinity,
-            delay: Math.random() * 20,
+            delay: petal.delay,
             ease: "linear"
           }}
           className="absolute w-4 h-5 pointer-events-none"
@@ -52,7 +63,7 @@ const SpainBackground = () => {
           <svg viewBox="0 0 20 25" className="w-full h-full text-[#C1121F] fill-current">
             <ellipse cx="10" cy="12.5" rx="8" ry="11" />
           </svg>
-        </motion.div>
+        </Motion.div>
       ))}
 
       <style>{`

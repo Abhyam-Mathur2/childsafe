@@ -10,10 +10,15 @@ const ThemeDemoBanner = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
-    // Show banner if in development or if explicitly enabled
-    const showDemo = localStorage.getItem('cse_show_theme_demo') === 'true' || process.env.NODE_ENV === 'development';
+    // Only show if explicitly requested via localStorage
+    const showDemo = localStorage.getItem('cse_show_theme_demo') === 'true';
     setIsVisible(showDemo);
   }, []);
+
+  const handleDismiss = () => {
+    setIsVisible(false);
+    localStorage.setItem('cse_show_theme_demo', 'false');
+  };
 
   if (!isVisible) return null;
 
@@ -32,10 +37,10 @@ const ThemeDemoBanner = () => {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+            <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white">
               {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
             </button>
-            <button onClick={() => setIsVisible(false)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+            <button onClick={handleDismiss} className="p-1 hover:bg-rose-500/20 rounded-lg transition-colors text-white">
               <X size={14} />
             </button>
           </div>
@@ -57,7 +62,7 @@ const ThemeDemoBanner = () => {
                     className={`text-2xl p-2 rounded-xl border-2 transition-all ${
                       theme.id === t.id 
                         ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10' 
-                        : 'border-transparent bg-[var(--color-surface)] hover:bg-white/5'
+                        : 'border-transparent bg-white/5 hover:bg-white/10'
                     }`}
                     title={t.name}
                   >
@@ -70,7 +75,7 @@ const ThemeDemoBanner = () => {
                   localStorage.removeItem('cse_location_theme');
                   window.location.reload();
                 }}
-                className="w-full mt-4 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
+                className="w-full mt-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-[var(--color-primary)] transition-colors"
               >
                 Reset to Auto-Detect
               </button>

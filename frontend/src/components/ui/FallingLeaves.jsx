@@ -1,18 +1,26 @@
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const FallingLeaves = () => {
     const leaves = useMemo(() => {
-        return Array.from({ length: 25 }).map((_, i) => ({
-            id: i,
-            size: Math.random() * 20 + 10, // 10px to 30px
-            left: Math.random() * 100, // 0 to 100vw
-            delay: Math.random() * -30, // Negative delay so they start already on screen
-            duration: Math.random() * 15 + 15, // 15s to 30s duration
-            opacity: Math.random() * 0.4 + 0.1,
-            rotation: Math.random() * 360,
-            sway: Math.random() * 100 - 50, // -50px to 50px
-        }));
+        // Use deterministic "random" values based on index to ensure purity
+        return Array.from({ length: 25 }).map((_, i) => {
+            const pseudoRandom = (seed) => {
+                const x = Math.sin(i + seed) * 10000;
+                return x - Math.floor(x);
+            };
+
+            return {
+                id: i,
+                size: pseudoRandom(1) * 20 + 10, // 10px to 30px
+                left: pseudoRandom(2) * 100, // 0 to 100vw
+                delay: pseudoRandom(3) * -30, // Negative delay so they start already on screen
+                duration: pseudoRandom(4) * 15 + 15, // 15s to 30s duration
+                opacity: pseudoRandom(5) * 0.4 + 0.1,
+                rotation: pseudoRandom(6) * 360,
+                sway: pseudoRandom(7) * 100 - 50, // -50px to 50px
+            };
+        });
     }, []);
 
     const leafSVG = (
@@ -24,7 +32,7 @@ const FallingLeaves = () => {
     return (
         <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
             {leaves.map((l) => (
-                <motion.div
+                <Motion.div
                     key={l.id}
                     className="absolute text-emerald-400/20"
                     style={{
@@ -46,7 +54,7 @@ const FallingLeaves = () => {
                     }}
                 >
                     {leafSVG}
-                </motion.div>
+                </Motion.div>
             ))}
         </div>
     );

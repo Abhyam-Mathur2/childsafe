@@ -1,3 +1,56 @@
+const indiaMedia = {
+  before: [
+    "https://images.unsplash.com/photo-1543157145-f78c636d023d?auto=format&fit=crop&q=60&w=1200", // Delhi Smog
+    "https://images.unsplash.com/photo-1588775034412-cd39c364448a?auto=format&fit=crop&q=60&w=1200", // Mask/Coughing
+    "https://images.unsplash.com/photo-1516062423079-7ca13cdc7f5a?auto=format&fit=crop&q=60&w=1200", // Urban Fatigue
+    "https://images.unsplash.com/photo-1526440843586-13d8d697858c?auto=format&fit=crop&q=60&w=1200", // Factory Smoke
+    "https://images.unsplash.com/photo-1506606401543-2e73f09522f3?auto=format&fit=crop&q=60&w=1200", // Traffic Exhaust
+    "https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&q=60&w=1200", // Garbage/Waste
+    "https://images.unsplash.com/photo-1591543622403-f0e21f006675?auto=format&fit=crop&q=60&w=1200", // Polluted Water
+    "https://images.unsplash.com/photo-1503387762-592dea58ef23?auto=format&fit=crop&q=60&w=1200", // Construction Dust
+    "https://images.unsplash.com/photo-1518131371309-8eb47336e897?auto=format&fit=crop&q=60&w=1200", // Poor Housing
+    "https://images.unsplash.com/photo-1605600611220-b796b44e1e0e?auto=format&fit=crop&q=60&w=1200", // Burning Trash
+    "https://images.unsplash.com/photo-1466611663477-d17e4faaa63f?auto=format&fit=crop&q=60&w=1200", // Industrial Heat
+    "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?auto=format&fit=crop&q=60&w=1200", // Crisis Environment
+  ],
+  after: [
+    "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=60&w=1200", // Yoga in Nature
+    "https://images.unsplash.com/photo-1476480862126-209bfa8ed7ad?auto=format&fit=crop&q=60&w=1200", // Outdoor Fitness
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=60&w=1200", // Clean Mountains
+    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=60&w=1200", // Lush Forest
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=60&w=1200", // Pristine Water
+    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=60&w=1200", // Sustainable Green
+    "https://images.unsplash.com/photo-1502086223501-7ea2443f84fd?auto=format&fit=crop&q=60&w=1200", // Healthy Child
+    "https://images.unsplash.com/photo-1585822310497-28565345759a?auto=format&fit=crop&q=60&w=1200", // Morning Park
+    "https://images.unsplash.com/photo-1470252649358-96759a803972?auto=format&fit=crop&q=60&w=1200", // Pure Sunrise
+    "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&q=60&w=1200", // Vibrant Garden
+    "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=60&w=1200", // Strength
+    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=60&w=1200", // Health Ritual
+  ]
+};
+
+const commonMedia = {
+  before: [
+    "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&q=60&w=1200", // Drought
+    "https://images.unsplash.com/photo-1616038242814-a6eac7845d88?auto=format&fit=crop&q=60&w=1200", // Flood
+    "https://images.unsplash.com/photo-1463740839922-2d3b7e426a56?auto=format&fit=crop&q=60&w=1200", // Industrial Smoke
+  ],
+  after: [
+    "https://images.unsplash.com/photo-1543783232-f79fef05aeba?auto=format&fit=crop&q=60&w=1200", // Clean Urban
+    "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&q=60&w=1200", // Serene Coast
+    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&q=60&w=1200", // Pure Nature
+  ]
+};
+
+// Aggregated Global Collection
+const allBefore = Array.from(new Set([...indiaMedia.before, ...commonMedia.before]));
+const allAfter = Array.from(new Set([...indiaMedia.after, ...commonMedia.after]));
+
+const globalMedia = {
+  before: allBefore,
+  after: allAfter
+};
+
 export const themes = {
   india: {
     id: "india",
@@ -14,18 +67,13 @@ export const themes = {
       glow: "rgba(245, 158, 11, 0.2)",
     },
     typography: {
-      headingFont: "'Inter', sans-serif",
+      headingFont: "'Plus Jakarta Sans', sans-serif",
       bodyFont: "'Inter', sans-serif",
     },
     personality: {
       borderRadius: "0.5rem",
     },
-    media: [
-      "https://images.unsplash.com/photo-1548013146-72479768bbaa?auto=format&fit=crop&q=80&w=2000", // Taj Mahal
-      "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80&w=2000", // Agra
-      "https://images.unsplash.com/photo-1514222134-b57cbb8ce073?auto=format&fit=crop&q=80&w=2000", // Jaipur
-      "https://images.unsplash.com/photo-1506461883276-594a12b11cf3?auto=format&fit=crop&q=80&w=2000", // Varanasi
-    ],
+    media: indiaMedia,
     greeting: { text: "Namaste", flag: "🇮🇳" }
   },
   spain: {
@@ -43,77 +91,17 @@ export const themes = {
       glow: "rgba(239, 68, 68, 0.2)",
     },
     typography: {
-      headingFont: "'Inter', sans-serif",
+      headingFont: "'Plus Jakarta Sans', sans-serif",
       bodyFont: "'Inter', sans-serif",
     },
     personality: {
       borderRadius: "0rem",
     },
-    media: [
-      "https://images.unsplash.com/photo-1543783232-f79fef05aeba?auto=format&fit=crop&q=80&w=2000", // Madrid
-      "https://images.unsplash.com/photo-1509840841025-9088ba78a826?auto=format&fit=crop&q=80&w=2000", // Andalusia
-      "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&q=80&w=2000", // Barcelona
-      "https://images.unsplash.com/photo-1558642084-fd07fae5282e?auto=format&fit=crop&q=80&w=2000", // Seville
-    ],
+    media: {
+      before: [commonMedia.before[0], indiaMedia.before[1], indiaMedia.before[2]],
+      after: [commonMedia.after[0], indiaMedia.after[2], indiaMedia.after[4]]
+    },
     greeting: { text: "¡Hola!", flag: "🇪🇸" }
-  },
-  portugal: {
-    id: "portugal",
-    countryCode: "pt",
-    name: "Portugal",
-    colors: {
-      primary: "#0ea5e9",
-      background: "#0a0a0a",
-      backgroundAlt: "rgba(15, 15, 15, 0.7)",
-      surface: "rgba(255, 255, 255, 0.02)",
-      border: "rgba(255, 255, 255, 0.08)",
-      text: "#f8fafc",
-      textMuted: "#94a3b8",
-      glow: "rgba(14, 165, 233, 0.2)",
-    },
-    typography: {
-      headingFont: "'Inter', sans-serif",
-      bodyFont: "'Inter', sans-serif",
-    },
-    personality: {
-      borderRadius: "0.75rem",
-    },
-    media: [
-      "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&q=80&w=2000", // Porto
-      "https://images.unsplash.com/photo-1585208798174-6cedd862099b?auto=format&fit=crop&q=80&w=2000", // Lisbon
-      "https://images.unsplash.com/photo-1590644365607-1c5a519a7a37?auto=format&fit=crop&q=80&w=2000", // Algarve
-      "https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?auto=format&fit=crop&q=80&w=2000", // Sintra
-    ],
-    greeting: { text: "Olá", flag: "🇵🇹" }
-  },
-  italy: {
-    id: "italy",
-    countryCode: "it",
-    name: "Italy",
-    colors: {
-      primary: "#10b981",
-      background: "#0a0a0a",
-      backgroundAlt: "rgba(15, 15, 15, 0.7)",
-      surface: "rgba(255, 255, 255, 0.02)",
-      border: "rgba(255, 255, 255, 0.08)",
-      text: "#f8fafc",
-      textMuted: "#94a3b8",
-      glow: "rgba(16, 185, 129, 0.2)",
-    },
-    typography: {
-      headingFont: "'Inter', sans-serif",
-      bodyFont: "'Inter', sans-serif",
-    },
-    personality: {
-      borderRadius: "1rem",
-    },
-    media: [
-      "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&q=80&w=2000", // Venice
-      "https://images.unsplash.com/photo-1520175480921-4edfa0683001?auto=format&fit=crop&q=80&w=2000", // Tuscany
-      "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&q=80&w=2000", // Cinque Terre
-      "https://images.unsplash.com/photo-1529260839382-36521ca9b5fe?auto=format&fit=crop&q=80&w=2000", // Rome
-    ],
-    greeting: { text: "Ciao", flag: "🇮🇹" }
   },
   usa: {
     id: "usa",
@@ -130,18 +118,16 @@ export const themes = {
       glow: "rgba(59, 130, 246, 0.2)",
     },
     typography: {
-      headingFont: "'Inter', sans-serif",
+      headingFont: "'Plus Jakarta Sans', sans-serif",
       bodyFont: "'Inter', sans-serif",
     },
     personality: {
       borderRadius: "0.25rem",
     },
-    media: [
-      "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?auto=format&fit=crop&q=80&w=2000", // NYC
-      "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&q=80&w=2000", // SF
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&q=80&w=2000", // Nature
-      "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&q=80&w=2000", // Golden Gate
-    ],
+    media: {
+      before: [commonMedia.before[2], indiaMedia.before[3], indiaMedia.before[6]],
+      after: [commonMedia.after[2], indiaMedia.after[4], indiaMedia.after[10]]
+    },
     greeting: { text: "Hello", flag: "🇺🇸" }
   },
   default: {
@@ -159,13 +145,13 @@ export const themes = {
       glow: "rgba(16, 185, 129, 0.2)",
     },
     typography: {
-      headingFont: "'Inter', sans-serif",
+      headingFont: "'Plus Jakarta Sans', sans-serif",
       bodyFont: "'Inter', sans-serif",
     },
     personality: {
       borderRadius: "0.75rem",
     },
-    media: ["/assets/auth-bg.mp4"],
+    media: globalMedia,
     greeting: { text: "Welcome", flag: "🌍" }
   }
 };

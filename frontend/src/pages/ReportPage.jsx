@@ -82,7 +82,8 @@ const ReportPage = () => {
 
         const lifestyleId = localStorage.getItem('lifestyleId');
         if (!lifestyleId) {
-            navigate('/assessment');
+            setError("complete the assesment first");
+            setLoading(false);
             return;
         }
 
@@ -105,7 +106,7 @@ const ReportPage = () => {
                 setReport(response.data);
             } catch (err) {
                 console.error("Report generation failed", err);
-                setError("Failed to generate report.");
+                setError("complete the assesment first");
             } finally {
                 setLoading(false);
             }
@@ -291,7 +292,7 @@ const ReportPage = () => {
                 sy = sliceEnd;
             }
 
-            pdf.save(`ChildSafeEnviro_Report_${report.report_id}.pdf`);
+            pdf.save(`Childsafeenvirons_Report_${report.report_id}.pdf`);
         } catch (err) {
             console.error("PDF generation failed", err);
             alert("Failed to generate PDF. Please try again.");
@@ -334,10 +335,15 @@ const ReportPage = () => {
             <div className="bg-red-900/30 backdrop-blur-md border border-red-500/50 p-6 rounded-2xl max-w-lg w-full h-fit flex gap-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
                 <AlertCircle className="text-red-400 shrink-0" />
                 <div>
-                    <h3 className="font-bold text-red-200">Unable to Load Report</h3>
+                    <h3 className="font-bold text-red-200">
+                        {error === "complete the assesment first" ? "Incomplete Assessment" : "Unable to Load Report"}
+                    </h3>
                     <p className="text-red-100/70 mt-1">{error}</p>
-                    <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red-500/20 text-red-100 rounded-lg hover:bg-red-500/40 transition-colors font-semibold text-sm border border-red-500/30">
-                        Try Again
+                    <button 
+                        onClick={() => error === "complete the assesment first" ? navigate('/assessment') : window.location.reload()} 
+                        className="mt-4 px-4 py-2 bg-red-500/20 text-red-100 rounded-lg hover:bg-red-500/40 transition-colors font-semibold text-sm border border-red-500/30"
+                    >
+                        {error === "complete the assesment first" ? "Go to Assessment" : "Try Again"}
                     </button>
                 </div>
             </div>
@@ -353,7 +359,7 @@ const ReportPage = () => {
                 <div className="flex items-center gap-2">
                     <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-500/20">C</div>
                     <div className="hidden sm:block">
-                        <h1 className="text-lg font-bold leading-none">ChildSafe</h1>
+                        <h1 className="text-lg font-bold leading-none">Childsafeenvirons</h1>
                         <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Environmental</p>
                     </div>
                 </div>

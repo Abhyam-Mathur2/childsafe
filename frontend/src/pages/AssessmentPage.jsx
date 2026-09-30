@@ -277,7 +277,7 @@ const AssessmentPage = () => {
     };
 
     return (
-        <div className="min-h-screen pt-32 pb-20 px-6 flex justify-center items-start overflow-x-hidden">
+        <div className="min-h-screen pt-20 md:pt-32 pb-12 md:pb-20 px-6 flex justify-center items-start overflow-x-hidden">
             <div className="w-full max-w-2xl">
                 <div className="mb-12">
                     {step > 0 && (
