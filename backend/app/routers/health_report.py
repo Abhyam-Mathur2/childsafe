@@ -3,23 +3,39 @@ Health Report Router
 API endpoints for generating health risk reports
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from typing import List, Optional
+
+from fastapi import APIRouter, HTTPException, Depends, Response, Request
 from sqlalchemy.orm import Session
 from datetime import datetime
-from app.schemas.health_report import HealthReportRequest, HealthReportResponse
+from app.schemas.health_report import HealthReportRequest, HealthReportResponse, HealthReportSummary
 from app.schemas.lifestyle import LifestyleInput
 from app.services.health_report_service import health_report_service
+from app.services.email_service import email_service
+from app.services.pdf_service import generate_report_pdf
+from app.services.auth_service import (
+    get_current_user,
+    get_current_user_optional,
+    is_admin_user,
+    create_report_pdf_token,
+    verify_report_pdf_token,
+)
+from app.routers.payments import BYPASS_EMAILS
 from app.database import get_db
+from app.config import get_settings
 from app.models.health_report import HealthReport
 from app.models.lifestyle_data import LifestyleData
+from app.models.user import User
 
 router = APIRouter()
+settings = get_settings()
 
 
 @router.post("/health-report", response_model=HealthReportResponse)
 async def generate_health_report(
     request: HealthReportRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional)
 ):
     """
     Generate comprehensive health risk report
@@ -113,9 +129,15 @@ async def generate_health_report(
             version="1.0"
         )
         
-        if lifestyle_record and hasattr(lifestyle_record, 'user_id'):
+        if current_user:
+            health_report.user_id = current_user.id
+        elif lifestyle_record and hasattr(lifestyle_record, 'user_id'):
             health_report.user_id = lifestyle_record.user_id
-            
+
+        health_report.latitude = request.latitude
+        health_report.longitude = request.longitude
+        health_report.location_name = report_data["location_name"]
+
         db.add(health_report)
         db.commit()
         db.refresh(health_report)
@@ -133,8 +155,27 @@ async def generate_health_report(
         val = getattr(obj, attr) if obj and hasattr(obj, attr) else None
         return val.value if val and hasattr(val, 'value') else val
 
+    # Pull the deep-dive AI sections (present, possibly as fallback stubs,
+    # in both the AI-success and static-fallback paths of generate_report)
+    # and derive the legacy flat fields Section 8-12 of the report template
+    # expects from them, since generate_report never returns those flat
+    # keys directly.
+    ai_report_data = {k: v for k, v in report_data.items() if k.startswith("ai_")}
+    ai_action_plan = report_data.get("ai_action_plan") or {}
+    ai_seasonal = report_data.get("ai_seasonal_daily_guide") or {}
+    ai_doctor = report_data.get("ai_doctor_guide") or {}
+    ai_mental = report_data.get("ai_mental_health") or {}
+
+    support_resources = None
+    mental_resources = ai_mental.get("support_resources")
+    if mental_resources:
+        support_resources = [
+            f"{r.get('resource', 'Resource')}: {r.get('url', '')}" if isinstance(r, dict) else str(r)
+            for r in mental_resources
+        ]
+
     # Build response
-    return HealthReportResponse(
+    response = HealthReportResponse(
         report_id=report_id,
         risk_score=report_data["risk_score"],
         risk_level=report_data["risk_level"],
@@ -149,6 +190,9 @@ async def generate_health_report(
         generated_at=datetime.utcnow().isoformat() + "Z",
         version="1.0",
         feature_vector=report_data["feature_vector"],
+        noise_data=report_data.get("noise_data"),
+        radiation_data=report_data.get("radiation_data"),
+        emergency_contacts=report_data.get("emergency_contacts"),
         name=lifestyle_record.name if lifestyle_record else None,
         years_at_location=lifestyle_record.years_at_location if lifestyle_record else None,
         sleep_hours=lifestyle_record.sleep_hours if lifestyle_record else None,
@@ -165,25 +209,158 @@ async def generate_health_report(
         chronic_exposure_years=lifestyle_record.chronic_exposure_years if lifestyle_record else None,
         family_history=lifestyle_record.family_history if lifestyle_record else None,
         home_environment=lifestyle_record.home_environment if lifestyle_record else None,
-        short_term_considerations=report_data.get("short_term_considerations"),
-        medium_term_considerations=report_data.get("medium_term_considerations"),
-        long_term_considerations=report_data.get("long_term_considerations"),
-        seasonal_awareness=report_data.get("seasonal_awareness"),
-        daily_pattern_suggestion=report_data.get("daily_pattern_suggestion"),
-        health_professional_guide=report_data.get("health_professional_guide"),
-        support_resources=report_data.get("support_resources"),
+        short_term_considerations=ai_action_plan.get("this_week", {}).get("critical_today"),
+        medium_term_considerations=ai_action_plan.get("this_month", {}).get("home_improvements"),
+        long_term_considerations=ai_action_plan.get("this_year", {}).get("long_term_exposure_reduction"),
+        seasonal_awareness=ai_seasonal.get("current_season"),
+        daily_pattern_suggestion=ai_seasonal.get("daily_schedule"),
+        health_professional_guide=ai_doctor.get("priority_questions"),
+        support_resources=support_resources,
+        ai_report=ai_report_data,
     )
 
+    # Persist the full response so this exact report/PDF can be reopened later
+    # without re-running the (geolocation-dependent) generation pipeline
+    if report_id:
+        try:
+            health_report = db.query(HealthReport).filter(HealthReport.id == report_id).first()
+            if health_report:
+                health_report.full_report_data = response.model_dump(mode="json")
+                db.commit()
+        except Exception as e:
+            print(f"ERROR SAVING FULL REPORT DATA: {e}")
+            db.rollback()
 
-@router.get("/health-report/{report_id}")
+    return response
+
+
+@router.get("/health-reports/mine", response_model=List[HealthReportSummary])
+async def get_my_health_reports(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """List the current user's previously generated reports, newest first"""
+    reports = (
+        db.query(HealthReport)
+        .filter(HealthReport.user_id == current_user.id)
+        .order_by(HealthReport.created_at.desc())
+        .all()
+    )
+
+    return [
+        HealthReportSummary(
+            report_id=r.id,
+            risk_score=r.risk_score,
+            risk_level=r.risk_level,
+            location_name=r.location_name,
+            created_at=(r.created_at.isoformat() + "Z") if r.created_at else "",
+            is_paid=r.is_paid,
+        )
+        for r in reports
+    ]
+
+
+@router.get("/health-report/{report_id}", response_model=HealthReportResponse)
 async def get_health_report(
     report_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """Retrieve previously generated health report"""
+    """Reopen a previously generated health report (and its PDF) without regenerating it"""
     report = db.query(HealthReport).filter(HealthReport.id == report_id).first()
-    
+
     if not report:
         raise HTTPException(status_code=404, detail="Health report not found")
-    
-    return report
+
+    if report.user_id != current_user.id and not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="You do not have access to this report")
+
+    if not report.full_report_data:
+        raise HTTPException(status_code=404, detail="This report was generated before history support was added and can no longer be reopened")
+
+    return HealthReportResponse(**report.full_report_data)
+
+
+@router.post("/health-report/{report_id}/email")
+async def email_health_report(
+    report_id: int,
+    http_request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Email the current user's own copy of a previously generated report to themselves, as a PDF"""
+    report = db.query(HealthReport).filter(HealthReport.id == report_id).first()
+
+    if not report:
+        raise HTTPException(status_code=404, detail="Health report not found")
+
+    if report.user_id != current_user.id and not is_admin_user(current_user):
+        raise HTTPException(status_code=403, detail="You do not have access to this report")
+
+    if not report.full_report_data:
+        raise HTTPException(status_code=404, detail="This report was generated before history support was added and can no longer be emailed")
+
+    is_bypass = current_user.email.lower() in BYPASS_EMAILS
+    if not report.is_paid and not is_bypass and not is_admin_user(current_user):
+        raise HTTPException(status_code=402, detail="Unlock this report before emailing it")
+
+    try:
+        pdf_bytes = generate_report_pdf(report.full_report_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {e}")
+
+    pdf_token = create_report_pdf_token(report_id)
+    api_base = str(http_request.base_url).rstrip("/")
+    pdf_url = f"{api_base}/api/health-report/{report_id}/pdf?token={pdf_token}"
+
+    try:
+        await email_service.send_health_report_email(
+            to_email=current_user.email,
+            to_name=current_user.username,
+            report=report.full_report_data,
+            pdf_url=pdf_url,
+            pdf_bytes=pdf_bytes,
+            pdf_filename=f"ChildSafeEnviro_Report_{report_id}.pdf",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to send email: {e}")
+
+    return {"success": True, "sent_to": current_user.email}
+
+
+@router.get("/health-report/{report_id}/pdf")
+async def get_health_report_pdf(
+    report_id: int,
+    token: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """
+    Serve a report as a PDF - either to its logged-in owner/admin, or via a
+    signed, login-independent `token` (used by the "View PDF Report" link in
+    emails, which must work without a session in that browser).
+    """
+    report = db.query(HealthReport).filter(HealthReport.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Health report not found")
+
+    authorized = False
+    if current_user and (report.user_id == current_user.id or is_admin_user(current_user)):
+        authorized = True
+    elif token and verify_report_pdf_token(token) == report_id:
+        authorized = True
+
+    if not authorized:
+        raise HTTPException(status_code=403, detail="You do not have access to this report")
+
+    if not report.full_report_data:
+        raise HTTPException(status_code=404, detail="This report was generated before history support was added and can no longer be rendered")
+
+    pdf_bytes = generate_report_pdf(report.full_report_data)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="ChildSafeEnviro_Report_{report_id}.pdf"'},
+    )

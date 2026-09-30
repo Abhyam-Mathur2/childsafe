@@ -19,6 +19,10 @@ settings = get_settings()
 # In-memory store for pending Airpay payment data (for server-side proxy POST)
 _airpay_pending_payments = {}
 
+# Emails that skip the real Airpay checkout entirely (reports auto-unlock).
+# Used for testing since Airpay's Response URL can't reach a local dev server.
+BYPASS_EMAILS = {"abhyammath78@gmail.com", "dakshsingh791@gmail.com"}
+
 
 def _clean_secret(value: Optional[str]) -> str:
     """Normalize environment values to avoid hidden whitespace/quotes issues."""
@@ -204,8 +208,8 @@ async def create_airpay_order(request: AirpayOrderRequest, http_request: Request
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     
-    # Bypass for specific email
-    if request.buyerEmail.lower() == "abhyammath78@gmail.com":
+    # Bypass for specific emails (testing - Airpay can't call back to localhost)
+    if request.buyerEmail.lower() in BYPASS_EMAILS:
         report.is_paid = 1
         db.commit()
         return {

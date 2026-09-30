@@ -12,6 +12,7 @@ const DashboardPage = () => {
     const { user, level } = useAuth();
     const { theme, countryName } = useTheme();
     const [location, setLocation] = useState(null);
+    const [cityName, setCityName] = useState(null);
     const [envData, setEnvData] = useState({ air: null, soil: null, water: null, weather: null });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -54,7 +55,8 @@ const DashboardPage = () => {
                 weatherData = weatherRes.data;
                 const parts = (weatherData.location_name || '').split(',');
                 city = parts[0]?.trim() || '';
-                country = parts[2]?.trim() || weatherData.sys?.country || '';
+                country = parts[2]?.trim() || weatherData.country_code || '';
+                setCityName(city || null);
             } catch (e) {
                 console.warn("Weather fetch failed", e);
             }
@@ -262,7 +264,7 @@ const DashboardPage = () => {
                                 >
                                     <MapPin size={20} className="text-[var(--color-primary)]" />
                                     <span className="text-sm font-black uppercase tracking-[0.6em] text-slate-500 font-sans">
-                                        Active Surveillance: {countryName} {theme.greeting.flag}
+                                        Active Surveillance: {cityName ? `${cityName}, ` : ''}{countryName} {theme.greeting.flag}
                                     </span>
                                 </motion.div>
                                 

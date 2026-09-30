@@ -16,8 +16,10 @@ from app.schemas.soil import SoilDataResponse
 from app.schemas.water import WaterDataResponse
 from app.schemas.lifestyle import LifestyleInput
 from app.services.air_quality_service import air_quality_service
-from app.services.perplexity_soil_service import perplexity_soil_service as soil_service
+from app.services.soil_research_service import soil_research_service as soil_service
 from app.services.water_service import water_service
+from app.services.weather_service import weather_service
+from app.services.emergency_contacts_service import get_emergency_contacts
 from app.services.lifestyle_service import lifestyle_service
 from app.services.ai_health_report_service import ai_health_report_service
 
@@ -102,14 +104,26 @@ class HealthReportService:
                     "data_source": "mock_fallback"
                 }
 
-        soil_data_dict, water_data = await asyncio.gather(
-            safe_soil_research(), safe_water_quality()
+        async def safe_weather():
+            try:
+                return await weather_service.get_weather(latitude, longitude)
+            except Exception as e:
+                print(f"Weather Service Failed: {e}")
+                return None
+
+        soil_data_dict, water_data, weather_data = await asyncio.gather(
+            safe_soil_research(), safe_water_quality(), safe_weather()
         )
 
         # ── 3. Convert dicts → Pydantic models ────────────────────
         water_response = WaterDataResponse(**water_data)
 
         from app.schemas.soil import SoilProperties
+        # Soil organic carbon (g/kg) -> organic matter % via the standard
+        # Van Bemmelen factor (1.724), when SoilGrids returned a real value.
+        soc = soil_data_dict.get("organic_carbon_g_kg")
+        organic_matter = round((soc / 10) * 1.724, 2) if isinstance(soc, (int, float)) else 0.0
+
         soil_response = SoilDataResponse(
             latitude=latitude,
             longitude=longitude,
@@ -117,13 +131,13 @@ class HealthReportService:
             properties=SoilProperties(
                 soil_type=soil_data_dict.get("soil_type", "unknown"),
                 ph=soil_data_dict.get("ph", 7.0) if isinstance(soil_data_dict.get("ph"), (int, float)) else 7.0,
-                organic_matter=0.0,
+                organic_matter=organic_matter,
                 contamination_risk=soil_data_dict.get("contamination_risk", "unknown")
             ),
             health_impacts=soil_data_dict.get("health_implications", []),
             risk_level=soil_data_dict.get("contamination_risk", "low"),
             recommendations=["Follow local soil safety guidelines"],
-            data_source="perplexity_ai"
+            data_source=soil_data_dict.get("data_source", "soilgrids_isric")
         )
 
         # ── 4. Placeholder ambient data ────────────────────────────
@@ -166,7 +180,7 @@ class HealthReportService:
             air_quality, soil_response, water_response, lifestyle_data
         )
 
-        # ── 8. AI-generated sections (all 12 concurrently) ─────────
+        # ── 8. AI-generated sections (all 14 concurrently) ─────────
         ai_sections = {}
         try:
             ai_sections = await ai_health_report_service.generate(
@@ -181,6 +195,9 @@ class HealthReportService:
                 vulnerability_multiplier = vulnerability_multiplier,
                 noise_data               = noise_data,
                 radiation_data           = radiation_data,
+                weather_data             = weather_data,
+                soil_raw                 = soil_data_dict,
+                water_raw                = water_data,
             )
         except Exception as e:
             print(f"[Health Report] AI generation failed — falling back to static sections: {e}")
@@ -191,6 +208,7 @@ class HealthReportService:
             )
             ai_sections = {
                 "ai_executive_summary":      {"fallback": True, "overall_narrative": report_summary},
+                "ai_health_impact_summary":  {"fallback": True},
                 "ai_air_quality_analysis":   {"fallback": True},
                 "ai_water_quality_analysis": {"fallback": True},
                 "ai_soil_analysis":          {"fallback": True},
@@ -212,8 +230,15 @@ class HealthReportService:
                     "fallback": True,
                     "priority_questions": static.get("health_professional_guide", []),
                 },
-                "ai_mental_health":    {"fallback": True},
+                "ai_mental_health": {
+                    "fallback": True,
+                    "support_resources": [
+                        {"resource": r.split(": ", 1)[0], "url": r.split(": ", 1)[1] if ": " in r else ""}
+                        for r in static.get("support_resources", [])
+                    ],
+                },
                 "ai_children_family":  {"fallback": True},
+                "ai_climate_analysis": {"fallback": True},
                 "ai_meta": {"model": "static_fallback", "sections": 0},
             }
 
@@ -243,11 +268,16 @@ class HealthReportService:
             # ── ML feature vector ─────────────────────────────────
             "feature_vector": feature_vector,
 
+            # ── Emergency contacts (verified lookup, never AI-generated) ──
+            "emergency_contacts": get_emergency_contacts(
+                weather_data.get("country_code") if weather_data else None
+            ),
+
             # ── Metadata ─────────────────────────────────────────
             "generated_at": datetime.now().isoformat(),
             "version":       "2.0",
 
-            # ── AI-generated sections (12 keys) ───────────────────
+            # ── AI-generated sections (14 keys) ───────────────────
             **ai_sections,
         }
 
@@ -266,11 +296,31 @@ class HealthReportService:
         if data.medical_history:
             for condition in data.medical_history:
                 cl = condition.lower()
-                if any(x in cl for x in ["asthma", "copd", "bronchitis", "lung"]):
+                # Order matters (first match wins) - most severe/specific pathway first
+                # for conditions whose label spans more than one keyword category.
+                if any(x in cl for x in ["cancer", "carcinoma", "tumor"]):
+                    multiplier += 0.35
+                elif any(x in cl for x in ["asthma", "copd", "bronchitis", "lung", "pneumonia"]):
                     multiplier += 0.4
-                elif "heart" in cl or "cardio" in cl:
+                elif any(x in cl for x in ["heart", "cardio", "stroke"]):
                     multiplier += 0.3
-                elif "allergy" in cl:
+                elif "lead poisoning" in cl or "lead " in cl:
+                    multiplier += 0.3
+                elif "kidney" in cl:
+                    multiplier += 0.25
+                elif "immune" in cl:
+                    multiplier += 0.2
+                elif any(x in cl for x in ["heat stroke", "dehydration"]):
+                    multiplier += 0.2
+                elif any(x in cl for x in ["typhoid", "cholera", "hepatitis", "jaundice", "diarrhoea", "diarrhea", "worm infection"]):
+                    multiplier += 0.2
+                elif any(x in cl for x in ["dengue", "malaria", "chikungunya", "mosquito-borne"]):
+                    multiplier += 0.15
+                elif "pesticide" in cl:
+                    multiplier += 0.15
+                elif "hearing loss" in cl:
+                    multiplier += 0.1
+                elif "allerg" in cl:
                     multiplier += 0.1
 
         if data.gender and data.gender.lower() == "female" and data.medical_history:
@@ -345,12 +395,40 @@ class HealthReportService:
                     factor="CRITICAL INTERACTION: Smoking + High Air Pollution dramatically increases cardiovascular risk.",
                     impact="negative", severity="high"
                 ))
-            if lifestyle_data.medical_history and any("asthma" in c.lower() for c in lifestyle_data.medical_history):
+            if lifestyle_data.medical_history and any(
+                any(x in c.lower() for x in ["asthma", "copd", "bronchitis", "lung", "pneumonia"])
+                for c in lifestyle_data.medical_history
+            ):
                 factors.append(ContributingFactor(
                     category="interaction",
-                    factor="CRITICAL INTERACTION: Asthma + High Air Pollution",
+                    factor="CRITICAL INTERACTION: Respiratory Condition + High Air Pollution",
                     impact="negative", severity="high"
                 ))
+
+        if (
+            lifestyle_data and lifestyle_data.medical_history
+            and water_data.contamination_risk and water_data.contamination_risk.lower() in ("medium", "high")
+            and any(
+                any(x in c.lower() for x in ["typhoid", "cholera", "hepatitis", "jaundice", "diarrhoea", "diarrhea", "worm infection", "kidney"])
+                for c in lifestyle_data.medical_history
+            )
+        ):
+            factors.append(ContributingFactor(
+                category="interaction",
+                factor="CRITICAL INTERACTION: Water-borne/Kidney Condition + Elevated Water Stress Risk in this basin",
+                impact="negative", severity="high"
+            ))
+
+        if (
+            lifestyle_data and lifestyle_data.medical_history
+            and (soil_data.properties.contamination_risk or "low").lower() in ("medium", "high")
+            and any("lead" in c.lower() for c in lifestyle_data.medical_history)
+        ):
+            factors.append(ContributingFactor(
+                category="interaction",
+                factor="CRITICAL INTERACTION: Lead Exposure History + Elevated Soil Contamination Risk",
+                impact="negative", severity="high"
+            ))
 
         if air_quality.data.aqi > 100:
             factors.append(ContributingFactor(
@@ -365,11 +443,11 @@ class HealthReportService:
                 impact="negative", severity="medium"
             ))
 
-        if water_data.contamination_risk and water_data.contamination_risk.lower() != "low":
+        if water_data.contamination_risk and water_data.contamination_risk.lower() not in ("low", "unknown"):
             rv = water_data.contamination_risk.lower()
             factors.append(ContributingFactor(
                 category="environmental",
-                factor=f"{water_data.contamination_risk.capitalize()} water contamination risk",
+                factor=f"{water_data.contamination_risk.capitalize()} water stress/scarcity risk in this basin (WRI Aqueduct)",
                 impact="negative",
                 severity=rv if rv in ["low", "medium", "high"] else "medium"
             ))
@@ -412,8 +490,8 @@ class HealthReportService:
         if water_data.contamination_risk in ["medium", "high"]:
             recommendations.append(HealthRecommendation(
                 category="environmental",
-                title="Water Safety",
-                description="Consider using a certified water filter or drinking bottled water.",
+                title="Water Supply Reliability",
+                description="This basin shows elevated water stress/scarcity risk - keep backup storage and consider a filter as a precaution, and get water tested locally since chemistry isn't covered by this data.",
                 priority="high" if water_data.contamination_risk == "high" else "medium"
             ))
         elif water_data.hardness == "hard":
@@ -481,9 +559,12 @@ class HealthReportService:
         features = {
             "aqi":        float(air_quality.data.aqi),
             "soil_ph":    soil_data.properties.ph,
-            "water_ph":   water_data.ph,
             "water_risk": {"low": 1, "medium": 2, "high": 3}.get(water_data.contamination_risk, 1),
         }
+        # Water pH isn't measured by any free global dataset - only include it
+        # when real (e.g. from a future field-test integration), never a guess.
+        if water_data.ph is not None:
+            features["water_ph"] = water_data.ph
         if lifestyle_data:
             smoking_val = lifestyle_data.smoking_status.value if hasattr(lifestyle_data.smoking_status, 'value') else str(lifestyle_data.smoking_status)
             features["smoking"] = 1 if smoking_val != "never" else 0

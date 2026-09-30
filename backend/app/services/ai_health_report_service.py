@@ -66,6 +66,9 @@ class AIHealthReportService:
         vulnerability_multiplier: float,
         noise_data: Dict,
         radiation_data: Dict,
+        weather_data: Optional[Dict] = None,
+        soil_raw: Optional[Dict] = None,
+        water_raw: Optional[Dict] = None,
     ) -> str:
 
         aq = air_quality.data
@@ -85,28 +88,50 @@ Interpretation   : {air_quality.health_interpretation}
 """
 
         sp = soil_data.properties
+        soil_raw = soil_raw or {}
+        texture = soil_raw.get("texture") or {}
+        soil_confidence = soil_raw.get("confidence")
+        soil_confidence_note = {
+            "measured": "prediction for this exact coordinate",
+            "nearby_estimate": "this exact point is a masked urban/water pixel in the dataset - "
+                                "figures are from the nearest point with real data, a few km away",
+            "unavailable": "no soil prediction available for this location at all - figures below are generic fallbacks",
+        }.get(soil_confidence, "")
+
         soil_block = f"""
-=== SOIL DATA (source: {soil_data.data_source}) ===
-Location         : {soil_data.location_name}
-Soil Type        : {sp.soil_type}
-pH               : {sp.ph}  [Neutral=6.5-7.5 | Acidic<6.5 increases heavy metal mobility]
-Organic Matter   : {sp.organic_matter}%
-Contamination    : {sp.contamination_risk}
-Health Impacts   : {' | '.join(soil_data.health_impacts) if soil_data.health_impacts else 'None identified'}
-Risk Level       : {soil_data.risk_level}
-Recommendations  : {' | '.join(soil_data.recommendations) if soil_data.recommendations else 'None'}
+=== SOIL DATA (source: {soil_data.data_source}, {soil_confidence or 'unknown'} - {soil_confidence_note}) ===
+Location             : {soil_data.location_name}
+Soil Type            : {sp.soil_type} (texture: sand {texture.get('sand_pct', 'N/A')}% / silt {texture.get('silt_pct', 'N/A')}% / clay {texture.get('clay_pct', 'N/A')}%)
+pH                   : {sp.ph}  [Neutral=6.5-7.5 | Acidic<6.5 increases heavy metal mobility | Alkaline>8.5 too]
+Organic Matter       : {sp.organic_matter}%  (organic carbon: {soil_raw.get('organic_carbon_g_kg', 'N/A')} g/kg)
+Cation Exchange Cap. : {soil_raw.get('cation_exchange_capacity', 'N/A')} cmol(c)/kg  [higher = better nutrient retention, more buffering capacity]
+Bulk Density         : {soil_raw.get('bulk_density_kg_dm3', 'N/A')} kg/dm³  [higher = more compacted, less pore space/drainage]
+Total Nitrogen       : {soil_raw.get('nitrogen_level', 'unknown')}
+Phosphorus/Potassium : not covered by any free global soil dataset - not fabricated, say "unknown"
+Contamination Proxy  : {sp.contamination_risk}  (inferred from pH extremes only - SoilGrids has no direct contamination measurement)
+Health Impacts       : {' | '.join(soil_data.health_impacts) if soil_data.health_impacts else 'None identified'}
+Risk Level           : {soil_data.risk_level}
+Recommendations      : {' | '.join(soil_data.recommendations) if soil_data.recommendations else 'None'}
 """
 
+        water_raw = water_raw or {}
+        surface_water = water_raw.get("surface_water") or {}
+        water_risk = water_raw.get("water_risk") or {}
+
         water_block = f"""
-=== WATER QUALITY (source: {water_data.data_source}) ===
-Location         : {water_data.location}
-Source Type      : {water_data.source_type}
-pH               : {water_data.ph}   [WHO safe range: 6.5-8.5]
-Hardness         : {water_data.hardness}
-Lead Risk        : {getattr(water_data, 'lead_risk', 'unknown')}
-Contamination    : {water_data.contamination_risk}
-Health Impacts   : {' | '.join(water_data.health_implications) if water_data.health_implications else 'None'}
-Recommendations  : {' | '.join(water_data.recommendations) if water_data.recommendations else 'None'}
+=== WATER DATA (source: {water_data.data_source}) ===
+Location                    : {water_data.location}
+Likely Source Type          : {water_data.source_type}  (inferred from real satellite surface-water history below)
+pH / Hardness / Lead / PFAS : NOT MEASURED by any free global dataset - always "unknown", never fabricate a value or claim a specific contaminant
+Surface Water Occurrence    : {surface_water.get('occurrence_pct', 'N/A')}%  of the time water has been physically present here since 1984 (JRC satellite record)
+Surface Water Seasonality   : {surface_water.get('seasonality_months', 'N/A')} months/year typically present
+Basin Water Stress          : {water_risk.get('water_stress_category', 'N/A')}  [WRI Aqueduct - supply/demand pressure, NOT a chemistry/contamination measurement]
+Drought Risk (basin)        : {water_risk.get('drought_risk_category', 'N/A')}
+Groundwater Table Trend     : {water_risk.get('groundwater_decline_category', 'N/A')}  [relevant if user relies on a well/borewell]
+Seasonal Reliability        : {water_risk.get('seasonal_variability_category', 'N/A')}
+Risk Level (our label)      : {water_data.contamination_risk}  (this is a WATER STRESS/SCARCITY proxy from Aqueduct, not a contamination measurement - say so if discussing it)
+Health Impacts               : {' | '.join(water_data.health_implications) if water_data.health_implications else 'None'}
+Recommendations              : {' | '.join(water_data.recommendations) if water_data.recommendations else 'None'}
 """
 
         if lifestyle_data:
@@ -116,6 +141,8 @@ Recommendations  : {' | '.join(water_data.recommendations) if water_data.recomme
             work_env = lifestyle_data.work_environment.value if hasattr(lifestyle_data.work_environment, 'value') else str(lifestyle_data.work_environment)
             medical  = ', '.join(lifestyle_data.medical_history) if getattr(lifestyle_data, 'medical_history', None) else 'None'
             mental   = ', '.join(lifestyle_data.mental_health_conditions) if getattr(lifestyle_data, 'mental_health_conditions', None) else 'None'
+            home_env = getattr(lifestyle_data, 'home_environment', None) or {}
+            cooking_method = home_env.get('cooking_method', 'not specified')
 
             lifestyle_block = f"""
 === LIFESTYLE & PERSONAL DATA ===
@@ -130,12 +157,28 @@ Diet Quality          : {getattr(lifestyle_data, 'diet_quality', 'not specified'
 Sleep Hours           : {getattr(lifestyle_data, 'sleep_hours', 'not specified')}
 Home Water Source     : {getattr(lifestyle_data, 'water_source', 'not specified')}
 UV Index at Location  : {getattr(lifestyle_data, 'uv_index', 'not specified')}
+Home Cooking Method   : {cooking_method}  [Gas releases NO2/PM2.5/CO indoors | Wood adds particulate load | Electric is cleanest]
 Medical History       : {medical}
 Mental Health Conditions: {mental}
 Chronic Exposure Years: {getattr(lifestyle_data, 'chronic_exposure_years', 'not specified')}
 """
         else:
             lifestyle_block = "\n=== LIFESTYLE DATA ===\nNot provided by user.\n"
+            cooking_method = "not specified"
+
+        if weather_data:
+            weather_block = f"""
+=== WEATHER / CLIMATE (source: {weather_data.get('data_source', 'unknown')}) ===
+Temperature      : {weather_data.get('temperature', 'N/A')}°C   (Feels like {weather_data.get('feels_like', 'N/A')}°C)
+Humidity         : {weather_data.get('humidity', 'N/A')}%   [Mold risk rises above 60% | Dry air above 30°C worsens dehydration]
+Pressure         : {weather_data.get('pressure', 'N/A')} hPa
+Wind             : {weather_data.get('wind_speed', 'N/A')} m/s
+Condition        : {weather_data.get('weather_condition', 'N/A')} — {weather_data.get('weather_description', 'N/A')}
+Cloud Cover      : {weather_data.get('clouds', 'N/A')}%
+Visibility       : {weather_data.get('visibility', 'N/A')} m
+"""
+        else:
+            weather_block = "\n=== WEATHER / CLIMATE ===\nData unavailable for this location.\n"
 
         month = datetime.now().month
         season = {12:"Winter",1:"Winter",2:"Winter",
@@ -163,7 +206,7 @@ Month        : {datetime.now().strftime('%B')}
 Season       : {season}
 """
 
-        return air_block + soil_block + water_block + lifestyle_block + scores_block
+        return air_block + soil_block + water_block + weather_block + lifestyle_block + scores_block
 
     async def _call_openai(self, prompt: str, max_tokens: int = 1200, section_name: str = "") -> Dict:
         """Call OpenAI with exponential-backoff retry on transient errors."""
@@ -282,22 +325,23 @@ Return JSON:
         return await self._call_openai(f"""
 {ctx}
 
-Generate the WATER QUALITY DEEP ANALYSIS.
+Generate the WATER RELIABILITY &amp; ACCESS DEEP ANALYSIS, grounded ONLY in the
+real measured values above (surface water occurrence/seasonality, basin
+water stress, drought risk, groundwater trend). pH/hardness/lead/PFAS/
+nitrates/bacteria are NOT measured by any dataset here - never invent a
+value or claim a specific contaminant is present. If asked about chemistry,
+say it requires a local lab test, not a specific finding.
+
 Return JSON:
 {{
-  "overall_assessment": "Their water source, pH of [exact value], hardness — what does this mean for their age and conditions?",
-  "source_risk_profile": "Contaminants typical for their specific source type in their region.",
-  "ph_analysis": "Their pH of [exact value] vs WHO range 6.5-8.5. Impact on mineral absorption, pipe corrosion, health.",
-  "hardness_impact": "Their hardness level — specific effects on skin, hair, kidneys, cardiovascular.",
-  "contaminant_deep_dive": {{
-    "lead":            "Risk for their source type and age group",
-    "pfas":            "Forever chemical risk for their source type",
-    "nitrates":        "Risk — flag especially if children or pregnancy in context",
-    "microbiological": "Bacterial/viral risk given their water source"
-  }},
-  "daily_intake_risk": "At 2-3L/day, what is their cumulative daily exposure from water?",
-  "filtration_recommendation": "Specific filter type (RO/UV/Carbon/Ceramic) matched to their contaminants. Not generic.",
-  "condition_interactions": ["How does their water quality interact with their specific reported conditions?"]
+  "overall_assessment": "Their likely source type and what the real basin water-stress/drought data means for their age and conditions.",
+  "supply_reliability": "Given the basin water stress category and seasonal reliability value, how reliable is their water supply likely to be through the year?",
+  "source_specific_context": "Given their inferred source type (surface water history vs groundwater/municipal), what general precautions apply - without claiming specific contaminants.",
+  "groundwater_trend_note": "If they likely rely on a well/borewell, what does the real groundwater table trend mean for them long-term? If municipal/surface, say this doesn't directly apply.",
+  "drought_preparedness": "Given the real drought risk category, what should they do to prepare for supply interruptions?",
+  "daily_intake_context": "At 2-3L/day, why local testing (not this global data) is what determines actual chemical safety.",
+  "filtration_recommendation": "A general-purpose recommendation (e.g. a certified filter for peace of mind) - explicitly note this is precautionary since chemistry isn't measured here, not targeted at a specific detected contaminant.",
+  "condition_interactions": ["How water supply reliability/stress (not chemistry) could interact with their specific reported conditions - e.g. needing consistent hydration for a condition when supply is unreliable"]
 }}
 """, max_tokens=1100, section_name="Water Quality")
 
@@ -305,25 +349,28 @@ Return JSON:
         return await self._call_openai(f"""
 {ctx}
 
-Generate the SOIL SAFETY DEEP ANALYSIS.
+Generate the SOIL SAFETY DEEP ANALYSIS, grounded ONLY in the real measured
+values above (pH, texture %, organic carbon, CEC, bulk density). The soil
+data has NO direct heavy-metal or contamination measurement - never state a
+specific metal (lead/arsenic/cadmium/mercury) IS present or give it a
+specific risk level, since that would be fabricated. You may only discuss
+heavy metal MOBILITY as a function of the real pH value. If the soil data
+confidence is "nearby_estimate", say once that these are readings from
+near their location, not the exact point.
+
 Return JSON:
 {{
-  "overall_assessment": "Their soil type and pH — what does this mean given their outdoor activity and lifestyle?",
-  "ph_heavy_metal_risk": "At their pH of [exact value], which heavy metals become bioavailable? Does their pH cross the danger threshold?",
-  "soil_type_specific_risks": "Their soil type — drainage, pathogen survival, and dust generation implications.",
-  "heavy_metal_profile": {{
-    "lead":    "Risk and exposure pathway for their age group",
-    "arsenic": "Natural vs industrial sources, cancer risk",
-    "cadmium": "Risk and interaction with their diet quality",
-    "mercury": "Risk especially near industrial/water areas"
-  }},
+  "overall_assessment": "Their soil texture (sand/silt/clay %) and pH — what does this mean given their outdoor activity and lifestyle?",
+  "ph_heavy_metal_risk": "At their exact pH value, is heavy-metal mobility elevated or normal? (mobility risk only - not a claim metals are present)",
+  "soil_type_specific_risks": "Their exact texture % — drainage, pathogen survival, and dust generation implications.",
+  "fertility_context": "What their organic carbon and CEC values indicate about soil fertility/buffering capacity, and any relevance to their lifestyle (e.g. gardening).",
   "exposure_pathways": [
     "How specifically could THIS user be exposed, given their outdoor activity duration,
     work environment, and lifestyle?"
   ],
-  "dust_inhalation_link": "Given their AQI and outdoor minutes, how much soil-derived PM are they likely inhaling?",
-  "gardening_outdoor_safety": "Specific precautions for their contamination risk level.",
-  "practical_remediation": "If medium/high contamination: practical steps to reduce exposure at home."
+  "dust_inhalation_link": "Given their AQI, outdoor minutes, and soil texture (sandier = more dust), how much soil-derived PM are they likely inhaling?",
+  "gardening_outdoor_safety": "Specific precautions given their pH-based mobility risk and texture.",
+  "practical_remediation": "If pH indicates elevated mobility risk: practical steps to reduce exposure at home (e.g. raised garden beds, hand-washing, local lab testing for actual contamination since this data doesn't measure it directly)."
 }}
 """, max_tokens=1000, section_name="Soil")
 
@@ -375,7 +422,12 @@ Return JSON:
       "condition": "condition name",
       "specific_pollutant_triggers": "Which of their actual pollutants (cite values) trigger or worsen this?",
       "current_risk_level": "Given today's readings, what is their risk of flare/episode?",
+      "quantified_risk_increase": "How much MORE likely is a flare-up/episode today given their exact
+        exposure vs the WHO-safe baseline - use concrete comparative language (e.g. 'roughly 2-3x higher
+        than on a clean-air day') grounded in their real readings, not a vague 'increased risk'.",
       "early_warning_signs": ["Symptoms indicating environmental triggers are active"],
+      "if_unmanaged": "Concrete escalation path if this specific condition + their exposure pattern
+        continues unaddressed over months/years - what does it typically progress to?",
       "targeted_actions": ["Specific actions for this condition tied to their data — not generic"],
       "medication_environment_interactions": "Are common medications for this condition affected by heat/AQ/water?"
     }}
@@ -386,7 +438,7 @@ Return JSON:
   ],
   "priority_screenings": "What health screenings should they prioritize in next 6-12 months based on their exposure?"
 }}
-""", max_tokens=1200, section_name="Medical Conditions")
+""", max_tokens=1500, section_name="Medical Conditions")
 
     async def _section_noise_radiation(self, ctx: str) -> Dict:
         return await self._call_openai(f"""
@@ -571,7 +623,57 @@ Return JSON:
 }}
 """, max_tokens=900, section_name="Children & Family")
 
-   
+    async def _section_climate(self, ctx: str) -> Dict:
+        return await self._call_openai(f"""
+{ctx}
+
+Generate the WEATHER &amp; CLIMATE HEALTH IMPACT analysis.
+Return JSON:
+{{
+  "overall_assessment": "What does today's temperature of [exact value]°C, feels-like of [exact value]°C,
+    and humidity of [exact value]% mean for this user given their age group and conditions?",
+  "heat_stress_risk": "At their feels-like temperature and activity level, what is their heat stress /
+    dehydration risk? Reference their outdoor activity duration specifically.",
+  "humidity_mold_risk": "At their humidity of [exact value]%, assess mold/dust-mite growth risk indoors
+    and any respiratory condition interaction (e.g. asthma).",
+  "pressure_migraine_link": "Does the current pressure reading suggest any barometric-pressure health
+    effects (migraines, joint pain) relevant to their reported conditions?",
+  "wind_dispersal_note": "How does the current wind speed affect pollutant dispersal - does it worsen
+    or improve their local air quality exposure right now?",
+  "comfort_index": "low/moderate/high — how physically comfortable is it to be outdoors right now for this user",
+  "condition_interactions": ["How today's weather specifically interacts with their reported medical/mental health conditions"],
+  "seasonal_climate_note": "Brief note connecting today's reading to the broader seasonal pattern for their location"
+}}
+""", max_tokens=900, section_name="Climate")
+
+    async def _section_health_impact_summary(self, ctx: str) -> Dict:
+        return await self._call_openai(f"""
+{ctx}
+
+Generate a concise HEALTH IMPACT SUMMARY that comes right after the raw environmental data and before
+the deep-dive sections. Its job is to translate the numbers into concrete, specific health consequences
+for THIS user - not restate the readings. Ground every claim in their actual data and reported
+conditions; never invent a contaminant or health outcome the data doesn't support.
+Return JSON:
+{{
+  "top_risks": [
+    {{
+      "risk": "A specific, named health risk (not a vague category) most relevant to THIS user right now",
+      "why": "The exact data point(s) and/or reported condition driving this risk",
+      "timeframe": "immediate (today/this week) / ongoing (this month) / long-term (this year+)"
+    }}
+  ],
+  "air_quality_impact": "1-2 sentences: the concrete health consequence of their exact AQI/pollutant
+    profile for their age group and conditions - not a restatement of the numbers.",
+  "water_related_impact": "1-2 sentences: the concrete health consequence of their real water stress/
+    source data - be honest that chemistry isn't measured, but state what the stress/supply data does mean.",
+  "soil_related_impact": "1-2 sentences: the concrete health consequence of their real soil pH/texture data.",
+  "heat_climate_impact": "1-2 sentences: the concrete health consequence of today's temperature/humidity.",
+  "bottom_line": "One punchy, specific sentence: the single most important health takeaway for this user today."
+}}
+List 3-5 items in top_risks, ranked most severe/likely first for this specific user.
+""", max_tokens=900, section_name="Health Impact Summary")
+
     async def generate(
         self,
         air_quality,
@@ -585,6 +687,9 @@ Return JSON:
         vulnerability_multiplier: float,
         noise_data: Dict,
         radiation_data: Dict,
+        weather_data: Optional[Dict] = None,
+        soil_raw: Optional[Dict] = None,
+        water_raw: Optional[Dict] = None,
     ) -> Dict:
         self._validate_api_key()
 
@@ -592,6 +697,7 @@ Return JSON:
             air_quality, soil_data, water_data, lifestyle_data,
             env_risk, lifestyle_risk, combined_risk, risk_level,
             vulnerability_multiplier, noise_data, radiation_data,
+            weather_data, soil_raw, water_raw,
         )
 
         print("[AI Report] Generating sections concurrently")
@@ -611,6 +717,7 @@ Return JSON:
 
         (
             executive_summary,
+            health_impact_summary,
             air_analysis,
             water_analysis,
             soil_analysis,
@@ -622,8 +729,10 @@ Return JSON:
             doctor_guide,
             mental_health,
             children_family,
+            climate_analysis,
         ) = await asyncio.gather(
             safe("Executive Summary",      self._section_executive_summary(ctx)),
+            safe("Health Impact Summary",  self._section_health_impact_summary(ctx)),
             safe("Air Quality",            self._section_air_quality(ctx)),
             safe("Water Quality",          self._section_water_quality(ctx)),
             safe("Soil",                   self._section_soil(ctx)),
@@ -635,19 +744,20 @@ Return JSON:
             safe("Doctor Guide",           self._section_doctor_guide(ctx)),
             safe("Mental Health",          self._section_mental_health(ctx)),
             safe("Children & Family",      self._section_children_family(ctx)),
+            safe("Climate",                self._section_climate(ctx)),
         )
 
         elapsed = (datetime.now() - start).total_seconds()
-        successful = sum(
-            1 for s in [executive_summary, air_analysis, water_analysis, soil_analysis,
-                        personal_vulnerability, medical_conditions, noise_radiation,
-                        action_plan, seasonal_daily, doctor_guide, mental_health, children_family]
-            if not s.get("fallback")
-        )
-        print(f"[AI Report] Done — {successful}/12 sections succeeded in {elapsed:.1f}s")
+        all_sections = [executive_summary, health_impact_summary, air_analysis, water_analysis, soil_analysis,
+                         personal_vulnerability, medical_conditions, noise_radiation,
+                         action_plan, seasonal_daily, doctor_guide, mental_health, children_family,
+                         climate_analysis]
+        successful = sum(1 for s in all_sections if not s.get("fallback"))
+        print(f"[AI Report] Done — {successful}/{len(all_sections)} sections succeeded in {elapsed:.1f}s")
 
         return {
             "ai_executive_summary":      executive_summary,
+            "ai_health_impact_summary":  health_impact_summary,
             "ai_air_quality_analysis":   air_analysis,
             "ai_water_quality_analysis": water_analysis,
             "ai_soil_analysis":          soil_analysis,
@@ -659,13 +769,14 @@ Return JSON:
             "ai_doctor_guide":           doctor_guide,
             "ai_mental_health":          mental_health,
             "ai_children_family":        children_family,
+            "ai_climate_analysis":       climate_analysis,
             "ai_meta": {
                 "model":              self.MODEL,
-                "sections_total":     12,
+                "sections_total":     len(all_sections),
                 "sections_succeeded": successful,
                 "generated":          datetime.now().isoformat(),
                 "elapsed_seconds":    round(elapsed, 1),
-                "cost_inr":           0.05,
+                "cost_inr":           0.06,
             },
         }
 

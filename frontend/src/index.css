@@ -77,6 +77,30 @@ body {
 }
 
 /* Minimalist Auth */
+@utility auth-container {
+  @apply min-h-screen w-full flex items-center justify-center p-6;
+}
+
+@utility auth-header-modern {
+  @apply text-center mb-8;
+}
+
+@utility auth-title-modern {
+  @apply text-3xl font-bold mb-2;
+}
+
+@utility auth-subtitle-modern {
+  @apply text-sm;
+}
+
+.modern-link {
+  color: var(--color-primary);
+}
+
+.modern-link:hover {
+  filter: brightness(1.15);
+}
+
 .input-field-modern {
   @apply w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 outline-none transition-all duration-300;
 }

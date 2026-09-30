@@ -57,6 +57,16 @@ class RadiationData(BaseModel):
     source: str
     details: Optional[str] = "Background estimation"
 
+class HealthReportSummary(BaseModel):
+    """Lightweight summary for a user's report history list"""
+    report_id: int
+    risk_score: float
+    risk_level: str
+    location_name: Optional[str] = None
+    created_at: str
+    is_paid: int = 0
+
+
 class HealthReportResponse(BaseModel):
     """Complete health risk report"""
     report_id: int
@@ -99,7 +109,10 @@ class HealthReportResponse(BaseModel):
     
     # ML Feature Vector (for future use)
     feature_vector: Optional[Dict[str, float]] = None
-    
+
+    # Verified (non-AI) emergency/health helpline numbers for the report's location
+    emergency_contacts: Optional[Dict[str, Any]] = None
+
     # New detailed fields
     water_source: Optional[str] = None
     uv_index: Optional[float] = None
@@ -118,7 +131,15 @@ class HealthReportResponse(BaseModel):
     daily_pattern_suggestion: Optional[Dict[str, Any]] = None
     health_professional_guide: Optional[List[str]] = None
     support_resources: Optional[List[str]] = None
-    
+
+    # Full 12-part AI-generated deep-dive (executive summary, air/water/soil
+    # analysis, personal vulnerability, medical conditions, noise/radiation,
+    # action plan, seasonal/daily guide, doctor guide, mental health,
+    # children/family). Each key is "fallback": true when AI generation
+    # wasn't available for that section - present in both the AI and the
+    # static-fallback code path so the frontend can rely on the shape.
+    ai_report: Optional[Dict[str, Any]] = None
+
     class Config:
         json_schema_extra = {
             "example": {

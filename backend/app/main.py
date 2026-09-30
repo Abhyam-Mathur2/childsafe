@@ -15,7 +15,7 @@ if str(backend_dir) not in sys.path:
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import air_quality, soil, lifestyle, health_report, weather, water, payments
+from app.routers import air_quality, soil, lifestyle, health_report, weather, water, payments, auth, admin
 from app.database import engine, Base
 from app.config import get_settings
 
@@ -66,6 +66,8 @@ app.add_middleware(
 
 
 # Include routers
+app.include_router(auth.router, prefix="/api", tags=["Authentication"])
+app.include_router(admin.router, prefix="/api", tags=["Admin"])
 app.include_router(air_quality.router, prefix="/api", tags=["Air Quality"])
 app.include_router(soil.router, prefix="/api", tags=["Soil & Environment"])
 app.include_router(lifestyle.router, prefix="/api", tags=["Lifestyle"])

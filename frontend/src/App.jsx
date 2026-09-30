@@ -9,6 +9,8 @@ import SignupPage from './pages/auth/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import AssessmentPage from './pages/AssessmentPage';
 import ReportPage from './pages/ReportPage';
+import ReportsHistoryPage from './pages/ReportsHistoryPage';
+import AdminPage from './pages/admin/AdminPage';
 import { AnimatePresence } from 'framer-motion';
 import CursorEffect from './components/ui/CursorEffect';
 import FallingLeaves from './components/ui/FallingLeaves';
@@ -40,6 +42,15 @@ const PublicOnlyRoute = ({ children }) => {
     const { user } = useAuth();
     if (user) return <Navigate to="/dashboard" replace />;
     return children;
+};
+
+// Airpay's merchant-panel "Response URL" currently points here instead of
+// the backend's /api/airpay-callback, so this just forwards into the app
+// instead of a raw 404. It cannot verify the payment itself (no checksum
+// secret or DB access on the frontend) - only the backend callback can do that.
+const PaymentResponseRedirect = () => {
+    const location = useLocation();
+    return <Navigate to={`/report${location.search}`} replace />;
 };
 
 const Layout = ({ children }) => {
@@ -94,6 +105,31 @@ const AnimatedRoutes = () => {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+                    path="/report/:reportId"
+                    element={
+                        <ProtectedRoute>
+                            <ReportPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/reports"
+                    element={
+                        <ProtectedRoute>
+                            <ReportsHistoryPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin"
+                    element={
+                        <ProtectedRoute>
+                            <AdminPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route path="/payment/response" element={<PaymentResponseRedirect />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </AnimatePresence>

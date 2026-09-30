@@ -1,32 +1,10 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Loader, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
 
 const LoginPage = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const { login } = useAuth();
-    const navigate = useNavigate();
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        try {
-            await login(email, password);
-            setTimeout(() => navigate('/dashboard'), 500);
-        } catch (err) {
-            setError('The email or password you entered is incorrect.');
-            setLoading(false);
-        }
-    };
 
     return (
         <div className="auth-container">
@@ -79,58 +57,7 @@ const LoginPage = () => {
                         )}
                     </AnimatePresence>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="input-group-modern group">
-                            <Mail className="input-icon-modern" size={20} />
-                            <input
-                                type="email"
-                                className="input-field-modern !bg-[var(--color-surface)] !border-[var(--color-border)]"
-                                placeholder="Email Address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="input-group-modern group">
-                            <Lock className="input-icon-modern" size={20} />
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                className="input-field-modern !bg-[var(--color-surface)] !border-[var(--color-border)]"
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <button 
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[var(--color-primary)] transition-colors"
-                            >
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <button type="button" className="text-sm font-bold text-[var(--color-primary)] hover:brightness-110 transition-colors">
-                                Forgot password?
-                            </button>
-                        </div>
-
-                        <motion.button
-                            type="submit"
-                            className="btn-modern group !rounded-2xl"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <Loader className="animate-spin mx-auto text-white" size={24} />
-                            ) : (
-                                <span className="flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs">
-                                    Sign In <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
-                                </span>
-                            )}
-                        </motion.button>
-                    </form>
+                    <GoogleSignInButton onError={setError} />
 
                     <motion.div
                         className="mt-10 text-center text-[var(--color-text-muted)]"
@@ -138,7 +65,7 @@ const LoginPage = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.6 }}
                     >
-                        <p className="font-medium">New to Childsafeenvirons? <Link to="/signup" className="modern-link">Create account</Link></p>
+                        <p className="font-medium">New to Childsafeenvirons? Signing in with Google creates your account automatically.</p>
                     </motion.div>
                 </div>
             </motion.div>

@@ -1,32 +1,11 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight, Loader, Leaf, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Leaf } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
 
 const SignupPage = () => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const { signup } = useAuth();
-    const navigate = useNavigate();
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        try {
-            await signup(name, email, password);
-            setTimeout(() => navigate('/dashboard'), 500);
-        } catch (err) {
-            setError('Failed to create account. Please try again with a different email.');
-            setLoading(false);
-        }
-    };
 
     return (
         <div className="auth-container">
@@ -79,67 +58,11 @@ const SignupPage = () => {
                         )}
                     </AnimatePresence>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="input-group-modern group">
-                            <User className="input-icon-modern" size={20} />
-                            <input
-                                type="text"
-                                className="input-field-modern !bg-[var(--color-surface)] !border-[var(--color-border)]"
-                                placeholder="Full Name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
-                        </div>
+                    <p className="text-center text-xs text-[var(--color-text-muted)] mb-6 leading-relaxed">
+                        By continuing, you agree to our Terms of Service and Privacy Policy.
+                    </p>
 
-                        <div className="input-group-modern group">
-                            <Mail className="input-icon-modern" size={20} />
-                            <input
-                                type="email"
-                                className="input-field-modern !bg-[var(--color-surface)] !border-[var(--color-border)]"
-                                placeholder="Email Address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="input-group-modern group">
-                            <Lock className="input-icon-modern" size={20} />
-                            <input
-                                type="password"
-                                className="input-field-modern !bg-[var(--color-surface)] !border-[var(--color-border)]"
-                                placeholder="Create Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                minLength={6}
-                            />
-                        </div>
-
-                        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5 mb-2">
-                            <div className="flex items-start gap-4">
-                                <CheckCircle2 className="text-[var(--color-primary)] mt-0.5 shrink-0" size={18} />
-                                <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed font-bold uppercase tracking-wider">
-                                    By signing up, you agree to our <span className="text-[var(--color-primary)] cursor-pointer">Terms of Service</span> and <span className="text-[var(--color-primary)] cursor-pointer">Privacy Policy</span>.
-                                </p>
-                            </div>
-                        </div>
-
-                        <motion.button
-                            type="submit"
-                            className="btn-modern group !rounded-2xl mt-4"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <Loader className="animate-spin mx-auto text-white" size={28} />
-                            ) : (
-                                <span className="flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-xs">
-                                    Create Account <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
-                                </span>
-                            )}
-                        </motion.button>
-                    </form>
+                    <GoogleSignInButton onError={setError} />
 
                     <motion.div
                         className="mt-12 text-center text-[var(--color-text-muted)]"

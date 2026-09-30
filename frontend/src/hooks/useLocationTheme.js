@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getThemeByCountryCode } from '../config/locationThemes';
 
 const LOCAL_STORAGE_KEY = 'cse_location_theme';
@@ -8,6 +8,13 @@ export const useLocationTheme = () => {
   const [countryCode, setCountryCode] = useState(null);
   const [countryName, setCountryName] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Once the user manually picks a theme, the still-in-flight (or any future)
+  // geolocation auto-detect must not silently overwrite that choice - it was
+  // doing exactly that a few seconds after every click, since the browser's
+  // getCurrentPosition -> Nominatim reverse-geocode round trip is slower than
+  // a user's first click on the preview widget.
+  const manualOverrideRef = useRef(false);
 
   const resolveTheme = useCallback(async (lat, lon, overrideCode = null) => {
     setIsLoading(true);
@@ -22,6 +29,8 @@ export const useLocationTheme = () => {
         name = data.address?.country;
       }
 
+      if (manualOverrideRef.current) return;
+
       const selectedTheme = getThemeByCountryCode(code);
       setTheme(selectedTheme);
       setCountryCode(code);
@@ -34,6 +43,7 @@ export const useLocationTheme = () => {
       }));
     } catch (error) {
       console.error('Error resolving location theme:', error);
+      if (manualOverrideRef.current) return;
       const fallbackTheme = getThemeByCountryCode(null);
       setTheme(fallbackTheme);
     } finally {
@@ -42,11 +52,13 @@ export const useLocationTheme = () => {
   }, []);
 
   const setThemeOverride = useCallback((code) => {
+    manualOverrideRef.current = true;
+
     const selectedTheme = getThemeByCountryCode(code);
     setTheme(selectedTheme);
     setCountryCode(code);
     setCountryName(selectedTheme.name);
-    
+
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
       code,
       name: selectedTheme.name,

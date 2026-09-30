@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -60,9 +61,19 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Invalid credentials");
     };
 
+    const loginWithGoogle = async (credential) => {
+        const { data } = await api.post('/auth/google', { credential });
+        const userData = { name: data.user.username, email: data.user.email, picture: data.user.picture_url };
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        return true;
+    };
+
     const logout = () => {
         setUser(null);
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
         localStorage.removeItem('xp');
         localStorage.removeItem('level');
         setXp(0);
@@ -80,7 +91,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, signup, loading, xp, level, gainXp }}>
+        <AuthContext.Provider value={{ user, login, loginWithGoogle, logout, signup, loading, xp, level, gainXp }}>
             {children}
         </AuthContext.Provider>
     );
