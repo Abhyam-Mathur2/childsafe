@@ -208,6 +208,7 @@ class HealthReportService:
             )
             ai_sections = {
                 "ai_executive_summary":      {"fallback": True, "overall_narrative": report_summary},
+                "ai_health_impact_summary":  {"fallback": True},
                 "ai_air_quality_analysis":   {"fallback": True},
                 "ai_water_quality_analysis": {"fallback": True},
                 "ai_soil_analysis":          {"fallback": True},
@@ -238,7 +239,6 @@ class HealthReportService:
                 },
                 "ai_children_family":  {"fallback": True},
                 "ai_climate_analysis": {"fallback": True},
-                "ai_indoor_air_quality": {"fallback": True},
                 "ai_meta": {"model": "static_fallback", "sections": 0},
             }
 

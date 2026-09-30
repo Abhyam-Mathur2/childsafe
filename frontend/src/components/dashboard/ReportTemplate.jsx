@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { AlertTriangle, CheckCircle, Info, Wind, Droplets, Volume2, Sprout, Radio, Sun, Home } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Info, Wind, Droplets, Volume2, Sprout, Radio, Sun } from 'lucide-react';
 
 // A section is only worth rendering as "deep-dive" content when it's real
 // AI output, not the {fallback: true} stub generate_report substitutes
@@ -269,7 +269,7 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
             </div>
 
             {/* Section 1b: Environmental Deep-Dive (AI) */}
-            {(isReal(ai.ai_air_quality_analysis) || isReal(ai.ai_water_quality_analysis) || isReal(ai.ai_soil_analysis) || isReal(ai.ai_noise_radiation) || isReal(ai.ai_climate_analysis) || isReal(ai.ai_indoor_air_quality)) && (
+            {(isReal(ai.ai_air_quality_analysis) || isReal(ai.ai_water_quality_analysis) || isReal(ai.ai_soil_analysis) || isReal(ai.ai_noise_radiation) || isReal(ai.ai_climate_analysis)) && (
                 <>
                     <h2 className="section-title">Section 1b: Environmental Deep-Dive</h2>
 
@@ -475,35 +475,45 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                         </div>
                     )}
 
-                    {isReal(ai.ai_indoor_air_quality) && (
-                        <div className="deepdive-card">
-                            <h3 className="deepdive-title"><Home size={18} /> Indoor Air Quality — Full Analysis</h3>
-                            <p className="deepdive-assessment">{ai.ai_indoor_air_quality.overall_assessment}</p>
-                            <div className="deepdive-grid">
-                                {ai.ai_indoor_air_quality.cooking_pollutant_profile && (
-                                    <div className="deepdive-item"><span className="deepdive-label">Cooking Pollutant Profile</span><p>{ai.ai_indoor_air_quality.cooking_pollutant_profile}</p></div>
-                                )}
-                                {ai.ai_indoor_air_quality.ventilation_recommendation && (
-                                    <div className="deepdive-item"><span className="deepdive-label">Ventilation Recommendation</span><p>{ai.ai_indoor_air_quality.ventilation_recommendation}</p></div>
-                                )}
-                                {ai.ai_indoor_air_quality.indoor_vs_outdoor_comparison && (
-                                    <div className="deepdive-item"><span className="deepdive-label">Indoor vs Outdoor</span><p>{ai.ai_indoor_air_quality.indoor_vs_outdoor_comparison}</p></div>
-                                )}
-                                {ai.ai_indoor_air_quality.mitigation_priority && (
-                                    <div className="deepdive-item"><span className="deepdive-label">Mitigation Priority</span><p style={{ textTransform: 'uppercase', fontWeight: 700 }}>{ai.ai_indoor_air_quality.mitigation_priority}</p></div>
-                                )}
+                </>
+            )}
+
+            {/* Section 1c: Health Impact Summary (AI) */}
+            {isReal(ai.ai_health_impact_summary) && (
+                <>
+                    <h2 className="section-title">Section 1c: Your Health Impact Summary</h2>
+                    <div className="deepdive-card">
+                        {ai.ai_health_impact_summary.top_risks?.length > 0 && (
+                            <div className="health-impact-risks">
+                                {asList(ai.ai_health_impact_summary.top_risks).map((r, i) => (
+                                    <div key={i} className="health-impact-risk-item">
+                                        <div className="health-impact-risk-header">
+                                            <span className="health-impact-risk-name">{r.risk}</span>
+                                            {r.timeframe && <span className="health-impact-risk-timeframe">{r.timeframe}</span>}
+                                        </div>
+                                        {r.why && <p className="health-impact-risk-why">{r.why}</p>}
+                                    </div>
+                                ))}
                             </div>
-                            {ai.ai_indoor_air_quality.condition_interactions?.length > 0 && (
-                                <div className="deepdive-sublist">
-                                    <span className="deepdive-label">Your Condition Interactions</span>
-                                    <ul>{asList(ai.ai_indoor_air_quality.condition_interactions).map((c, i) => <li key={i}>{c}</li>)}</ul>
-                                </div>
+                        )}
+                        <div className="deepdive-grid">
+                            {ai.ai_health_impact_summary.air_quality_impact && (
+                                <div className="deepdive-item"><span className="deepdive-label">Air Quality</span><p>{ai.ai_health_impact_summary.air_quality_impact}</p></div>
                             )}
-                            {ai.ai_indoor_air_quality.upgrade_suggestion && (
-                                <div className="deepdive-callout"><strong>Upgrade Path:</strong> {ai.ai_indoor_air_quality.upgrade_suggestion}</div>
+                            {ai.ai_health_impact_summary.water_related_impact && (
+                                <div className="deepdive-item"><span className="deepdive-label">Water</span><p>{ai.ai_health_impact_summary.water_related_impact}</p></div>
+                            )}
+                            {ai.ai_health_impact_summary.soil_related_impact && (
+                                <div className="deepdive-item"><span className="deepdive-label">Soil</span><p>{ai.ai_health_impact_summary.soil_related_impact}</p></div>
+                            )}
+                            {ai.ai_health_impact_summary.heat_climate_impact && (
+                                <div className="deepdive-item"><span className="deepdive-label">Heat &amp; Climate</span><p>{ai.ai_health_impact_summary.heat_climate_impact}</p></div>
                             )}
                         </div>
-                    )}
+                        {ai.ai_health_impact_summary.bottom_line && (
+                            <div className="deepdive-callout"><strong>Bottom Line:</strong> {ai.ai_health_impact_summary.bottom_line}</div>
+                        )}
+                    </div>
                 </>
             )}
 
@@ -643,11 +653,15 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                                 <div className="condition-analysis-name">{c.condition}</div>
                                 {c.specific_pollutant_triggers && <p><strong>Triggers:</strong> {c.specific_pollutant_triggers}</p>}
                                 {c.current_risk_level && <p><strong>Current Risk:</strong> {c.current_risk_level}</p>}
+                                {c.quantified_risk_increase && <p><strong>Risk Increase Today:</strong> {c.quantified_risk_increase}</p>}
                                 {c.early_warning_signs?.length > 0 && (
                                     <p><strong>Watch for:</strong> {c.early_warning_signs.join(', ')}</p>
                                 )}
                                 {c.targeted_actions?.length > 0 && (
                                     <ul>{c.targeted_actions.map((a, i) => <li key={i}>{a}</li>)}</ul>
+                                )}
+                                {c.if_unmanaged && (
+                                    <p className="condition-med-note"><strong>If left unmanaged:</strong> {c.if_unmanaged}</p>
                                 )}
                                 {c.medication_environment_interactions && (
                                     <p className="condition-med-note"><strong>Medication note:</strong> {c.medication_environment_interactions}</p>
@@ -668,60 +682,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </>
             )}
 
-            {/* Section 3: Environmental Management */}
-            <h2 className="section-title">Section 3: Environmental Management Suggestions</h2>
-            <div className="management-grid">
-                <div className="management-col">
-                    <div className="management-header">Immediate Considerations (Next 7 Days)</div>
-                    <div className="management-card green-theme">
-                        <h4>Air Quality Management:</h4>
-                        <ul>
-                            <li>Monitor local air quality reports</li>
-                            <li>Consider indoor exercise alternatives during high pollution</li>
-                            <li>Review home ventilation strategies</li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="management-col">
-                    <div className="management-header">Medium-Term Planning (Next 30 Days)</div>
-                    <div className="management-card grey-theme">
-                        <h4>Environmental Testing:</h4>
-                        <ul>
-                            <li>Research local water testing services</li>
-                            <li>Consider indoor air quality monitor</li>
-                            <li>Explore noise measurement apps</li>
-                        </ul>
-                    </div>
-                     <div className="management-card grey-theme" style={{marginTop: '15px'}}>
-                        <h4>Home Environment:</h4>
-                        <ul>
-                            <li>Review window seals</li>
-                            <li>Consider air purification options</li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="management-col">
-                    <div className="management-header">Long-Term Considerations (3-12 Months)</div>
-                    <div className="management-card grey-theme">
-                        <h4>Structural Options:</h4>
-                        <ul>
-                            <li>Research window upgrades for noise</li>
-                            <li>Explore air filtration system options</li>
-                            <li>Consider indoor plants for air quality</li>
-                        </ul>
-                    </div>
-                     <div className="management-card grey-theme" style={{marginTop: '15px'}}>
-                        <h4>Community Resources:</h4>
-                        <ul>
-                            <li>Connect with local environmental groups</li>
-                            <li>Stay informed about community initiatives</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            {/* Section 4: Water & UV Risk Panel */}
-            <h2 className="section-title">Section 4: Water &amp; UV Risk Panel</h2>
+            {/* Section 3: Water & UV Risk Panel */}
+            <h2 className="section-title">Section 3: Water &amp; UV Risk Panel</h2>
             <div className="water-uv-grid">
                 <div className="water-uv-card">
                     <h3><Droplets size={18} /> Water Source</h3>
@@ -773,8 +735,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </div>
             </div>
 
-            {/* Section 5: Mental & Emotional Health Factors */}
-            <h2 className="section-title">Section 5: Mental &amp; Emotional Health Factors</h2>
+            {/* Section 4: Mental & Emotional Health Factors */}
+            <h2 className="section-title">Section 4: Mental &amp; Emotional Health Factors</h2>
 
             {isReal(ai.ai_mental_health) && (
                 <div className="deepdive-card">
@@ -828,10 +790,10 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 )}
             </div>
 
-            {/* Section 5b: Children & Family Protection (AI) */}
+            {/* Section 4b: Children & Family Protection (AI) */}
             {isReal(ai.ai_children_family) && (
                 <>
-                    <h2 className="section-title">Section 5b: Children &amp; Family Protection</h2>
+                    <h2 className="section-title">Section 4b: Children &amp; Family Protection</h2>
                     <div className="deepdive-card">
                         <p className="deepdive-assessment">{ai.ai_children_family.child_vulnerability_science}</p>
 
@@ -878,8 +840,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </>
             )}
 
-            {/* Section 6: Age-Specific Vulnerability Analysis */}
-            <h2 className="section-title">Section 6: Age-Specific Vulnerability Analysis</h2>
+            {/* Section 5: Age-Specific Vulnerability Analysis */}
+            <h2 className="section-title">Section 5: Age-Specific Vulnerability Analysis</h2>
             {['0-1', '1-3', '3-12'].includes(report.age_range) && (
                 <div className="age-warning-box">
                     <AlertTriangle size={22} color="#e65100" />
@@ -917,8 +879,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </tbody>
             </table>
 
-            {/* Section 7: Historical Trend (Past Reports) */}
-            <h2 className="section-title">Section 7: Historical Trend</h2>
+            {/* Section 6: Historical Trend (Past Reports) */}
+            <h2 className="section-title">Section 6: Historical Trend</h2>
             {report.past_health_reports && report.past_health_reports.length > 0 ? (
                 <div className="history-section">
                     <div className="history-chart">
@@ -967,37 +929,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </div>
             )}
 
-            {/* Section 8: Short / Medium / Long Term Considerations */}
-            <h2 className="section-title">Section 8: Time-Based Considerations</h2>
-            <div className="timeline-grid">
-                <div className="timeline-col">
-                    <div className="timeline-header yellow-header">🟡 This Week (Short-Term)</div>
-                    <ul className="timeline-list">
-                        {(report.short_term_considerations || ['Monitor daily AQI', 'Limit outdoor exposure on high pollution days', 'Ensure adequate hydration', 'Apply sunscreen before going outside']).map((item, idx) => (
-                            <li key={idx}>{item}</li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="timeline-col">
-                    <div className="timeline-header orange-header">🟠 This Month (Medium-Term)</div>
-                    <ul className="timeline-list">
-                        {(report.medium_term_considerations || ['Schedule pediatric check-up', 'Test water quality at home', 'Review indoor air filtration', 'Establish monitoring routines']).map((item, idx) => (
-                            <li key={idx}>{item}</li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="timeline-col">
-                    <div className="timeline-header red-header">🔴 This Year (Long-Term)</div>
-                    <ul className="timeline-list">
-                        {(report.long_term_considerations || ['Invest in air purification', 'Consider location-based activity adjustments', 'Build seasonal health calendar', 'Plan annual assessments']).map((item, idx) => (
-                            <li key={idx}>{item}</li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
-
-            {/* Section 9: Seasonal Awareness */}
-            <h2 className="section-title">Section 9: Seasonal Awareness</h2>
+            {/* Section 7: Seasonal Awareness */}
+            <h2 className="section-title">Section 7: Seasonal Awareness</h2>
             {isReal(ai.ai_seasonal_daily_guide) ? (
                 (() => {
                     const cs = ai.ai_seasonal_daily_guide.current_season || {};
@@ -1076,8 +1009,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </div>
             )}
 
-            {/* Section 10: Daily Pattern Suggestion */}
-            <h2 className="section-title">Section 10: Daily Pattern Suggestion</h2>
+            {/* Section 8: Daily Pattern Suggestion */}
+            <h2 className="section-title">Section 8: Daily Pattern Suggestion</h2>
             {report.daily_pattern_suggestion?.early_morning_5_to_8 ? (
                 <div className="daily-pattern-grid four-slot">
                     {[
@@ -1121,8 +1054,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </div>
             )}
 
-            {/* Section 11: Health Professional Discussion Guide */}
-            <h2 className="section-title">Section 11: Health Professional Discussion Guide</h2>
+            {/* Section 9: Health Professional Discussion Guide */}
+            <h2 className="section-title">Section 9: Health Professional Discussion Guide</h2>
             <div className="professional-guide">
                 <div className="guide-header">
                     <strong>📋 Take this to your next doctor's appointment</strong>
@@ -1176,8 +1109,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 )}
             </div>
 
-            {/* Section 12: Support & Resources */}
-            <h2 className="section-title">Section 12: Support &amp; Resources</h2>
+            {/* Section 10: Support & Resources */}
+            <h2 className="section-title">Section 10: Support &amp; Resources</h2>
 
             {report.emergency_contacts && (
                 <div className={`emergency-box ${report.emergency_contacts.is_specific ? '' : 'emergency-box-unverified'}`}>
@@ -1234,8 +1167,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </div>
             </div>
 
-            {/* Section 13: Comprehensive Action Plan (previously Section 4) */}
-            <h2 className="section-title">Section 13: Comprehensive Action Plan</h2>
+            {/* Section 11: Action Plan */}
+            <h2 className="section-title">Section 11: Action Plan</h2>
             
             <div className="action-plan-grid">
                 <div className="action-plan-col">
@@ -1361,8 +1294,8 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 </>
             )}
 
-            {/* Section 14: Medical & Support Resources (previously Section 5) */}
-            <h2 className="section-title">Section 14: Medical &amp; Support Resources</h2>
+            {/* Section 12: Medical & Support Resources */}
+            <h2 className="section-title">Section 12: Medical &amp; Support Resources</h2>
             <div className="resources-grid">
                 <div className="management-card green-theme">
                     <h4>Health Professional Discussion Guide</h4>
@@ -1495,6 +1428,13 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 .deepdive-callout-warning { background: #fff5f5; border-left-color: #b71c1c; }
                 .deepdive-callout-warning ul { margin: 8px 0 0 0; padding-left: 20px; }
 
+                .health-impact-risks { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+                .health-impact-risk-item { background: #fff5f5; border-left: 4px solid #b71c1c; border-radius: 4px; padding: 12px 16px; page-break-inside: avoid; }
+                .health-impact-risk-header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+                .health-impact-risk-name { font-weight: 800; font-size: 0.95rem; color: #b71c1c; }
+                .health-impact-risk-timeframe { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888; white-space: nowrap; }
+                .health-impact-risk-why { margin: 6px 0 0 0; font-size: 0.88rem; line-height: 1.55; color: #333; }
+
                 .pollutant-table { width: 100%; border-collapse: collapse; margin: 10px 0 20px 0; font-size: 0.85rem; }
                 .pollutant-table th { text-align: left; background: #f8f9fa; padding: 10px 12px; border-bottom: 2px solid #eee; font-weight: 700; }
                 .pollutant-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
@@ -1619,13 +1559,6 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                 .age-vulnerability-table .highlighted-row { background: #f1f8f1; font-weight: 700; outline: 2px solid #1b4d3e; outline-offset: -2px; }
                 .vuln-badge { padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
 
-                /* Timeline */
-                .timeline-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 50px; }
-                .timeline-col { background: #fff; border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-                .timeline-header { padding: 18px; font-weight: 800; font-size: 1rem; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
-                .timeline-list { padding: 20px 20px 25px 35px; margin: 0; font-size: 0.9rem; line-height: 1.8; color: #444; }
-                .timeline-list li { margin-bottom: 10px; }
-
                 /* Support */
                 .resource-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
                 .resource-card { background: #f9f9f9; padding: 20px; border-left: 4px solid #1b4d3e; border-radius: 4px; transition: transform 0.2s; }
@@ -1652,7 +1585,7 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                         page-break-before: always;
                         padding-top: 30px;
                     }
-                    .exposure-card, .management-card, .interaction-box, .water-uv-card, .mental-condition-card, .timeline-col, .resource-card, .summary-left, .summary-right, tr {
+                    .exposure-card, .management-card, .interaction-box, .water-uv-card, .mental-condition-card, .resource-card, .summary-left, .summary-right, .health-impact-risk-item, tr {
                         page-break-inside: avoid;
                         break-inside: avoid;
                     }
@@ -1662,7 +1595,7 @@ const ReportTemplate = forwardRef(({ report, user }, ref) => {
                     .summary-container, .exposure-grid, .interactions-grid, .ai-narrative-grid,
                     .deepdive-grid, .exposure-math-grid, .daily-pattern-grid, .management-grid,
                     .action-plan-grid, .guidance-grid, .emergency-grid, .seasonal-grid,
-                    .resources-grid, .water-uv-grid, .mental-conditions-grid, .timeline-grid,
+                    .resources-grid, .water-uv-grid, .mental-conditions-grid,
                     .resource-cards-grid {
                         page-break-inside: avoid;
                         break-inside: avoid;

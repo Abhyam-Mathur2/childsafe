@@ -5,10 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ArrowRight, ArrowLeft, CheckCircle, Activity, User,
-    MapPin, Users, Cigarette, Zap, Moon, Brain, Home, Utensils,
-    Flame, Stethoscope, Heart, Smile, ShieldCheck, Info,
-    Sun, Droplets, Loader, Plus, X
+    ArrowLeft, CheckCircle, Activity, User, Home,
+    Stethoscope, Info, Droplets, Loader, Plus, X, AlertCircle
 } from 'lucide-react';
 
 // Condition catalogue shown in the Clinical Context step, grouped by the
@@ -86,12 +84,13 @@ const AssessmentPage = () => {
     const [loading, setLoading] = useState(false);
     const [direction, setDirection] = useState(1);
     const [otherInput, setOtherInput] = useState('');
+    const [familyInput, setFamilyInput] = useState('');
+    const [showValidation, setShowValidation] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
         years_at_location: '',
         age_range: '',
-        child_age_range: '',
         gender: '',
         smoking_status: '',
         activity_level: '',
@@ -103,6 +102,7 @@ const AssessmentPage = () => {
         medical_history: [],
         mental_health_conditions: [],
         other_conditions: [],
+        family_history: [],
         cooking_method: '',
         water_source: '',
         uv_index: 5
@@ -156,6 +156,20 @@ const AssessmentPage = () => {
         setFormData(prev => ({ ...prev, other_conditions: prev.other_conditions.filter(c => c !== value) }));
     };
 
+    const handleAddFamilyHistory = () => {
+        const value = familyInput.trim();
+        if (!value) return;
+        setFormData(prev => {
+            if (prev.family_history.some(c => c.toLowerCase() === value.toLowerCase())) return prev;
+            return { ...prev, family_history: [...prev.family_history, value] };
+        });
+        setFamilyInput('');
+    };
+
+    const handleRemoveFamilyHistory = (value) => {
+        setFormData(prev => ({ ...prev, family_history: prev.family_history.filter(c => c !== value) }));
+    };
+
     const handleSubmit = async (e) => {
         if (e) e.preventDefault();
         setLoading(true);
@@ -175,6 +189,10 @@ const AssessmentPage = () => {
         const payload = {
             ...formData,
             years_at_location: parseInt(formData.years_at_location) || 0,
+            // Years living at this location doubles as years of exposure to it -
+            // this directly feeds the vulnerability multiplier and AI context,
+            // which previously always received null here since nothing set it.
+            chronic_exposure_years: parseInt(formData.years_at_location) || 0,
             medical_history: mergedMedicalHistory,
             home_environment: {
                 cooking_method: formData.cooking_method,
@@ -200,11 +218,17 @@ const AssessmentPage = () => {
     };
 
     const nextStep = () => {
+        if (!isStepValid()) {
+            setShowValidation(true);
+            return;
+        }
+        setShowValidation(false);
         gainXp(100);
         setDirection(1);
         setStep(prev => prev + 1);
     };
     const prevStep = () => {
+        setShowValidation(false);
         setDirection(-1);
         setStep(prev => prev - 1);
     };
@@ -218,7 +242,33 @@ const AssessmentPage = () => {
         return true;
     };
 
-    const progress = (step / 5) * 100;
+    // Human-readable labels for whatever is still missing on the current
+    // step, shown inline once the user tries to continue instead of just
+    // silently disabling the button.
+    const getMissingFields = () => {
+        const missing = [];
+        if (step === 1) {
+            if (!formData.name) missing.push('Name');
+            if (!formData.years_at_location) missing.push('Years at this location');
+            if (!formData.age_range) missing.push('Age range');
+            if (!formData.gender) missing.push('Gender');
+        } else if (step === 2) {
+            if (!formData.smoking_status) missing.push('Smoking status');
+            if (!formData.activity_level) missing.push('Activity level');
+            if (!formData.sleep_hours) missing.push('Sleep hours');
+            if (!formData.stress_level) missing.push('Stress level');
+        } else if (step === 3) {
+            if (!formData.work_environment) missing.push('Where you work');
+            if (!formData.cooking_method) missing.push('Cooking method');
+            if (!formData.diet_quality) missing.push('Diet');
+        } else if (step === 4) {
+            if (!formData.water_source) missing.push('Drinking water source');
+        }
+        return missing;
+    };
+
+    const totalSteps = 5;
+    const progress = (step / totalSteps) * 100;
 
     const variants = {
         enter: (dir) => ({ x: dir > 0 ? 30 : -30, opacity: 0 }),
@@ -229,12 +279,24 @@ const AssessmentPage = () => {
     return (
         <div className="min-h-screen pt-32 pb-20 px-6 flex justify-center items-start overflow-x-hidden">
             <div className="w-full max-w-2xl">
-                <div className="flex gap-2 mb-12 justify-center">
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className={`h-1 w-12 rounded-full transition-all duration-700 ${step >= i ? 'bg-white' : 'bg-white/10'}`} />
-                    ))}
+                <div className="mb-12">
+                    {step > 0 && (
+                        <div className="flex justify-between items-center mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                            <span>Step {step} of {totalSteps}</span>
+                            <span>{Math.round(progress)}%</span>
+                        </div>
+                    )}
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                        <motion.div
+                            initial={false}
+                            animate={{ width: `${progress}%` }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="h-full bg-white rounded-full"
+                        />
+                    </div>
                 </div>
 
+                <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                     key={step}
                     custom={direction}
@@ -248,13 +310,13 @@ const AssessmentPage = () => {
                     {step === 0 && (
                         <div className="text-center">
                             <span className="text-5xl mb-8 block">{theme.greeting.flag}</span>
-                            <h1 className="text-4xl font-bold mb-6 tracking-tight">Environmental Resilience</h1>
+                            <h1 className="text-4xl font-bold mb-6 tracking-tight">Your Health Assessment</h1>
                             <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-lg mx-auto">
-                                We'll analyze your daily patterns and surroundings to generate a high-precision health security report.
+                                A few quick questions about your daily life and home. We'll combine your answers with real environmental data for your location to build a personalized report.
                             </p>
                             <div className="flex items-start gap-4 text-left p-6 bg-white/5 rounded-2xl text-xs text-slate-500 mb-12 border border-white/5">
                                 <Info size={20} className="shrink-0 text-[var(--color-primary)]" />
-                                <p className="leading-relaxed">This process takes approximately 4 minutes. Your data is encrypted and used exclusively for your personal risk assessment profile.</p>
+                                <p className="leading-relaxed">Takes about 3 minutes. Your answers are private and used only to personalize your own report.</p>
                             </div>
                             <button onClick={nextStep} className="btn-modern !rounded-full w-full !py-5 text-lg font-bold">Initiate Assessment</button>
                         </div>
@@ -262,17 +324,20 @@ const AssessmentPage = () => {
 
                     {step === 1 && (
                         <div className="space-y-10">
-                            <div>
-                                <h2 className="text-2xl font-bold mb-2">Base Profile</h2>
-                                <p className="text-slate-500 text-sm">Essential identifiers for localized analysis.</p>
+                            <div className="flex items-center gap-3">
+                                <User size={22} className="text-[var(--color-primary)]" />
+                                <div>
+                                    <h2 className="text-2xl font-bold">About You</h2>
+                                    <p className="text-slate-500 text-sm">A few basics so we can personalize your report.</p>
+                                </div>
                             </div>
                             <div className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Legal Name</label>
-                                    <input type="text" name="name" value={formData.name} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10" placeholder="Identifier" />
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Name</label>
+                                    <input type="text" name="name" value={formData.name} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10" placeholder="Your name" />
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Years at Residence</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Years Living at This Location</label>
                                     <input type="number" name="years_at_location" value={formData.years_at_location} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10" placeholder="e.g. 5" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -290,26 +355,36 @@ const AssessmentPage = () => {
                                             <option value="male" className="bg-black">Male</option>
                                             <option value="female" className="bg-black">Female</option>
                                             <option value="other" className="bg-black">Other</option>
+                                            <option value="prefer_not_to_say" className="bg-black">Prefer not to say</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
+                            {showValidation && !isStepValid() && (
+                                <div className="flex items-center gap-2 text-rose-400 text-xs font-medium bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3">
+                                    <AlertCircle size={14} className="shrink-0" />
+                                    <span>Please fill in: {getMissingFields().join(', ')}</span>
+                                </div>
+                            )}
                             <div className="flex gap-4 pt-6">
                                 <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
-                                <button onClick={nextStep} disabled={!isStepValid()} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-30">Continue Sequence</button>
+                                <button onClick={nextStep} className="btn-modern flex-1 !rounded-2xl font-bold">Continue</button>
                             </div>
                         </div>
                     )}
 
                     {step === 2 && (
                         <div className="space-y-10">
-                            <div>
-                                <h2 className="text-2xl font-bold mb-2">Daily Habits</h2>
-                                <p className="text-slate-500 text-sm">Quantifying lifestyle stressors and resilience patterns.</p>
+                            <div className="flex items-center gap-3">
+                                <Activity size={22} className="text-[var(--color-primary)]" />
+                                <div>
+                                    <h2 className="text-2xl font-bold">Daily Habits</h2>
+                                    <p className="text-slate-500 text-sm">Helps us understand your everyday exposure.</p>
+                                </div>
                             </div>
                             <div className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Smoking Status</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Smoking</label>
                                     <div className="grid grid-cols-3 gap-3">
                                         {['never', 'former', 'current'].map(s => (
                                             <button key={s} onClick={() => handleOptionSelect('smoking_status', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.smoking_status === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
@@ -343,7 +418,7 @@ const AssessmentPage = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Stress Intensity</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Stress Level</label>
                                     <div className="grid grid-cols-3 gap-3">
                                         {['low', 'medium', 'high'].map(s => (
                                             <button key={s} onClick={() => handleOptionSelect('stress_level', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.stress_level === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
@@ -351,22 +426,31 @@ const AssessmentPage = () => {
                                     </div>
                                 </div>
                             </div>
+                            {showValidation && !isStepValid() && (
+                                <div className="flex items-center gap-2 text-rose-400 text-xs font-medium bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3">
+                                    <AlertCircle size={14} className="shrink-0" />
+                                    <span>Please fill in: {getMissingFields().join(', ')}</span>
+                                </div>
+                            )}
                             <div className="flex gap-4 pt-6">
                                 <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
-                                <button onClick={nextStep} disabled={!isStepValid()} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-30">Continue Sequence</button>
+                                <button onClick={nextStep} className="btn-modern flex-1 !rounded-2xl font-bold">Continue</button>
                             </div>
                         </div>
                     )}
 
                     {step === 3 && (
                         <div className="space-y-10">
-                            <div>
-                                <h2 className="text-2xl font-bold mb-2">Micro-Environment</h2>
-                                <p className="text-slate-500 text-sm">Identifying potential indoor pollutant sources.</p>
+                            <div className="flex items-center gap-3">
+                                <Home size={22} className="text-[var(--color-primary)]" />
+                                <div>
+                                    <h2 className="text-2xl font-bold">Home Environment</h2>
+                                    <p className="text-slate-500 text-sm">Where most indoor pollution comes from.</p>
+                                </div>
                             </div>
                             <div className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Work Context</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Where You Work</label>
                                     <div className="grid grid-cols-3 gap-3">
                                         {['indoor', 'outdoor', 'mixed'].map(s => (
                                             <button key={s} onClick={() => handleOptionSelect('work_environment', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.work_environment === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
@@ -374,7 +458,7 @@ const AssessmentPage = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Cooking Mechanism</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Cooking Method</label>
                                     <div className="grid grid-cols-3 gap-3">
                                         {['electric', 'gas', 'wood'].map(s => (
                                             <button key={s} onClick={() => handleOptionSelect('cooking_method', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.cooking_method === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
@@ -382,7 +466,7 @@ const AssessmentPage = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Dietary Profile</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Diet</label>
                                     <select name="diet_quality" value={formData.diet_quality} onChange={handleChange} className="input-field-modern !bg-transparent !border-white/10">
                                         <option value="" className="bg-black">Select</option>
                                         <option value="good" className="bg-black">Primarily Fresh / Organic</option>
@@ -391,22 +475,31 @@ const AssessmentPage = () => {
                                     </select>
                                 </div>
                             </div>
+                            {showValidation && !isStepValid() && (
+                                <div className="flex items-center gap-2 text-rose-400 text-xs font-medium bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3">
+                                    <AlertCircle size={14} className="shrink-0" />
+                                    <span>Please fill in: {getMissingFields().join(', ')}</span>
+                                </div>
+                            )}
                             <div className="flex gap-4 pt-6">
                                 <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
-                                <button onClick={nextStep} disabled={!isStepValid()} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-30">Continue Sequence</button>
+                                <button onClick={nextStep} className="btn-modern flex-1 !rounded-2xl font-bold">Continue</button>
                             </div>
                         </div>
                     )}
 
                     {step === 4 && (
                         <div className="space-y-10">
-                            <div>
-                                <h2 className="text-2xl font-bold mb-2">Resource Telemetry</h2>
-                                <p className="text-slate-500 text-sm">Assessing water and radiation exposure vectors.</p>
+                            <div className="flex items-center gap-3">
+                                <Droplets size={22} className="text-[var(--color-primary)]" />
+                                <div>
+                                    <h2 className="text-2xl font-bold">Water & Sun Exposure</h2>
+                                    <p className="text-slate-500 text-sm">Your water source and daily sun exposure.</p>
+                                </div>
                             </div>
                             <div className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Water Intake Source</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Drinking Water Source</label>
                                     <div className="grid grid-cols-2 gap-3">
                                         {['tap', 'filtered', 'bottled', 'well'].map(s => (
                                             <button key={s} onClick={() => handleOptionSelect('water_source', s)} className={`py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${formData.water_source === s ? 'bg-white text-black border-white' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>{s}</button>
@@ -415,27 +508,36 @@ const AssessmentPage = () => {
                                 </div>
                                 <div className="space-y-6 bg-white/5 p-8 rounded-2xl border border-white/5">
                                     <div className="flex justify-between items-center mb-2">
-                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Estimated Daily UV Exposure (0-11+)</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Daily UV Exposure</label>
                                         <span className="text-xl font-black text-white">{formData.uv_index}</span>
                                     </div>
                                     <input type="range" min="0" max="11" step="1" value={formData.uv_index} onChange={(e) => handleOptionSelect('uv_index', parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white" />
                                     <div className="flex justify-between text-[8px] font-bold text-slate-600 uppercase tracking-tighter">
-                                        <span>Minimal</span><span>Extreme</span>
+                                        <span>None (0)</span><span>Extreme (11+)</span>
                                     </div>
                                 </div>
                             </div>
+                            {showValidation && !isStepValid() && (
+                                <div className="flex items-center gap-2 text-rose-400 text-xs font-medium bg-rose-500/10 border border-rose-500/20 rounded-xl px-4 py-3">
+                                    <AlertCircle size={14} className="shrink-0" />
+                                    <span>Please fill in: {getMissingFields().join(', ')}</span>
+                                </div>
+                            )}
                             <div className="flex gap-4 pt-6">
                                 <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
-                                <button onClick={nextStep} disabled={!isStepValid()} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-30">Continue Sequence</button>
+                                <button onClick={nextStep} className="btn-modern flex-1 !rounded-2xl font-bold">Continue</button>
                             </div>
                         </div>
                     )}
 
                     {step === 5 && (
                         <div className="space-y-10">
-                            <div>
-                                <h2 className="text-2xl font-bold mb-2">Clinical Context</h2>
-                                <p className="text-slate-500 text-sm">Identifying underlying biological vulnerabilities.</p>
+                            <div className="flex items-center gap-3">
+                                <Stethoscope size={22} className="text-[var(--color-primary)]" />
+                                <div>
+                                    <h2 className="text-2xl font-bold">Health Background</h2>
+                                    <p className="text-slate-500 text-sm">Conditions that change how environmental risks affect you. All optional.</p>
+                                </div>
                             </div>
                             <div className="space-y-8 max-h-[45vh] overflow-y-auto pr-4 custom-scrollbar">
                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Select all applicable conditions</p>
@@ -498,16 +600,52 @@ const AssessmentPage = () => {
                                         </div>
                                     )}
                                 </div>
+
+                                <div className="space-y-3">
+                                    <h3 className="text-sm font-bold text-white">Family History</h3>
+                                    <p className="text-[10px] text-slate-500 -mt-2">Any of these conditions run in your immediate family? This can flag risks that combine genetics with your environment.</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={familyInput}
+                                            onChange={(e) => setFamilyInput(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddFamilyHistory(); } }}
+                                            placeholder="e.g. Heart disease"
+                                            className="input-field-modern !bg-transparent !border-white/10 flex-1"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddFamilyHistory}
+                                            className="px-4 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all shrink-0"
+                                            aria-label="Add family history"
+                                        >
+                                            <Plus size={18} />
+                                        </button>
+                                    </div>
+                                    {formData.family_history.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                            {formData.family_history.map(cond => (
+                                                <span key={cond} className="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-white text-black text-xs font-bold">
+                                                    {cond}
+                                                    <button type="button" onClick={() => handleRemoveFamilyHistory(cond)} className="hover:opacity-60">
+                                                        <X size={12} />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex gap-4 pt-6">
                                 <button onClick={prevStep} className="p-5 rounded-2xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"><ArrowLeft size={20} /></button>
-                                <button onClick={handleSubmit} disabled={loading} className="btn-modern flex-1 !rounded-2xl font-bold">
-                                    {loading ? <Loader className="animate-spin" size={20} /> : 'Generate Synthesis'}
+                                <button onClick={handleSubmit} disabled={loading} className="btn-modern flex-1 !rounded-2xl font-bold disabled:opacity-60">
+                                    {loading ? <Loader className="animate-spin" size={20} /> : 'Generate My Report'}
                                 </button>
                             </div>
                         </div>
                     )}
                 </motion.div>
+                </AnimatePresence>
             </div>
         </div>
     );

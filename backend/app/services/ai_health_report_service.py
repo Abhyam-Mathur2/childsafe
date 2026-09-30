@@ -422,7 +422,12 @@ Return JSON:
       "condition": "condition name",
       "specific_pollutant_triggers": "Which of their actual pollutants (cite values) trigger or worsen this?",
       "current_risk_level": "Given today's readings, what is their risk of flare/episode?",
+      "quantified_risk_increase": "How much MORE likely is a flare-up/episode today given their exact
+        exposure vs the WHO-safe baseline - use concrete comparative language (e.g. 'roughly 2-3x higher
+        than on a clean-air day') grounded in their real readings, not a vague 'increased risk'.",
       "early_warning_signs": ["Symptoms indicating environmental triggers are active"],
+      "if_unmanaged": "Concrete escalation path if this specific condition + their exposure pattern
+        continues unaddressed over months/years - what does it typically progress to?",
       "targeted_actions": ["Specific actions for this condition tied to their data — not generic"],
       "medication_environment_interactions": "Are common medications for this condition affected by heat/AQ/water?"
     }}
@@ -433,7 +438,7 @@ Return JSON:
   ],
   "priority_screenings": "What health screenings should they prioritize in next 6-12 months based on their exposure?"
 }}
-""", max_tokens=1200, section_name="Medical Conditions")
+""", max_tokens=1500, section_name="Medical Conditions")
 
     async def _section_noise_radiation(self, ctx: str) -> Dict:
         return await self._call_openai(f"""
@@ -641,29 +646,33 @@ Return JSON:
 }}
 """, max_tokens=900, section_name="Climate")
 
-    async def _section_indoor_air(self, ctx: str) -> Dict:
+    async def _section_health_impact_summary(self, ctx: str) -> Dict:
         return await self._call_openai(f"""
 {ctx}
 
-Generate the INDOOR AIR QUALITY / HOME ENVIRONMENT analysis, centered on their reported cooking method.
+Generate a concise HEALTH IMPACT SUMMARY that comes right after the raw environmental data and before
+the deep-dive sections. Its job is to translate the numbers into concrete, specific health consequences
+for THIS user - not restate the readings. Ground every claim in their actual data and reported
+conditions; never invent a contaminant or health outcome the data doesn't support.
 Return JSON:
 {{
-  "overall_assessment": "What does their [cooking method] cooking setup mean for their indoor air quality,
-    combined with their work environment and outdoor AQI?",
-  "cooking_pollutant_profile": "Specific pollutants their cooking method generates (NO2/CO/PM2.5 for gas,
-    particulates for wood, minimal for electric/induction) and typical indoor concentration risk.",
-  "ventilation_recommendation": "Concrete ventilation steps (extractor fan, cracked window, cooking
-    duration limits) matched to their cooking method and outdoor AQI - don't recommend opening windows
-    if outdoor AQI is high.",
-  "condition_interactions": ["How their indoor cooking pollutant exposure interacts with their specific
-    reported medical conditions (e.g. asthma + gas stove NO2)"],
-  "indoor_vs_outdoor_comparison": "Roughly how does their likely indoor air quality during cooking compare
-    to their current outdoor AQI of [exact value]?",
-  "mitigation_priority": "high/medium/low - how urgently should they address their indoor air setup",
-  "upgrade_suggestion": "If gas or wood: a specific, concrete upgrade path (extractor hood, induction
-    conversion, air purifier placement). If electric: what else to check (filter changes, etc.)"
+  "top_risks": [
+    {{
+      "risk": "A specific, named health risk (not a vague category) most relevant to THIS user right now",
+      "why": "The exact data point(s) and/or reported condition driving this risk",
+      "timeframe": "immediate (today/this week) / ongoing (this month) / long-term (this year+)"
+    }}
+  ],
+  "air_quality_impact": "1-2 sentences: the concrete health consequence of their exact AQI/pollutant
+    profile for their age group and conditions - not a restatement of the numbers.",
+  "water_related_impact": "1-2 sentences: the concrete health consequence of their real water stress/
+    source data - be honest that chemistry isn't measured, but state what the stress/supply data does mean.",
+  "soil_related_impact": "1-2 sentences: the concrete health consequence of their real soil pH/texture data.",
+  "heat_climate_impact": "1-2 sentences: the concrete health consequence of today's temperature/humidity.",
+  "bottom_line": "One punchy, specific sentence: the single most important health takeaway for this user today."
 }}
-""", max_tokens=850, section_name="Indoor Air Quality")
+List 3-5 items in top_risks, ranked most severe/likely first for this specific user.
+""", max_tokens=900, section_name="Health Impact Summary")
 
     async def generate(
         self,
@@ -708,6 +717,7 @@ Return JSON:
 
         (
             executive_summary,
+            health_impact_summary,
             air_analysis,
             water_analysis,
             soil_analysis,
@@ -720,9 +730,9 @@ Return JSON:
             mental_health,
             children_family,
             climate_analysis,
-            indoor_air_quality,
         ) = await asyncio.gather(
             safe("Executive Summary",      self._section_executive_summary(ctx)),
+            safe("Health Impact Summary",  self._section_health_impact_summary(ctx)),
             safe("Air Quality",            self._section_air_quality(ctx)),
             safe("Water Quality",          self._section_water_quality(ctx)),
             safe("Soil",                   self._section_soil(ctx)),
@@ -735,19 +745,19 @@ Return JSON:
             safe("Mental Health",          self._section_mental_health(ctx)),
             safe("Children & Family",      self._section_children_family(ctx)),
             safe("Climate",                self._section_climate(ctx)),
-            safe("Indoor Air Quality",     self._section_indoor_air(ctx)),
         )
 
         elapsed = (datetime.now() - start).total_seconds()
-        all_sections = [executive_summary, air_analysis, water_analysis, soil_analysis,
+        all_sections = [executive_summary, health_impact_summary, air_analysis, water_analysis, soil_analysis,
                          personal_vulnerability, medical_conditions, noise_radiation,
                          action_plan, seasonal_daily, doctor_guide, mental_health, children_family,
-                         climate_analysis, indoor_air_quality]
+                         climate_analysis]
         successful = sum(1 for s in all_sections if not s.get("fallback"))
         print(f"[AI Report] Done — {successful}/{len(all_sections)} sections succeeded in {elapsed:.1f}s")
 
         return {
             "ai_executive_summary":      executive_summary,
+            "ai_health_impact_summary":  health_impact_summary,
             "ai_air_quality_analysis":   air_analysis,
             "ai_water_quality_analysis": water_analysis,
             "ai_soil_analysis":          soil_analysis,
@@ -760,7 +770,6 @@ Return JSON:
             "ai_mental_health":          mental_health,
             "ai_children_family":        children_family,
             "ai_climate_analysis":       climate_analysis,
-            "ai_indoor_air_quality":     indoor_air_quality,
             "ai_meta": {
                 "model":              self.MODEL,
                 "sections_total":     len(all_sections),
