@@ -13,8 +13,8 @@ email-validator>=2.2.0
 weasyprint>=70.0
 earthengine-api>=1.0.0
 
-# PostgreSQL driver (only if using PostgreSQL)
-# psycopg2-binary==2.9.9
+# PostgreSQL driver
+psycopg2-binary==2.9.9
 
 # ML packages (install separately when needed)
 # scikit-learn==1.4.0
