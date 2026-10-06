@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Form
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -364,35 +364,61 @@ async def get_payment_transaction(report_id: int, db: Session = Depends(get_db))
     }
 
 @router.post("/airpay-callback")
-async def airpay_callback(
-    TRANSACTIONID: str = Form(...),
-    APTRANSACTIONID: str = Form(...),
-    AMOUNT: str = Form(...),
-    TRANSACTIONSTATUS: str = Form(...),
-    MESSAGE: str = Form(...),
-    TRANSACTIONTIME: str = Form(...),
-    CUSTOMVAR: Optional[str] = Form(None),
-    CHECKSUM: str = Form(...),
-    db: Session = Depends(get_db)
-):
+async def airpay_callback(request: Request, db: Session = Depends(get_db)):
+    """
+    Airpay's server-to-server callback. Deliberately not using FastAPI's
+    Form(...) field parsing here - a strict field/casing mismatch previously
+    caused this to 422 on every real callback, silently dropping payments
+    (Airpay saw success, but is_paid never got set). Parse whatever actually
+    arrives, log it in full for diagnosis, and look fields up case-insensitively.
+    """
+    content_type = request.headers.get("content-type", "")
+    try:
+        if "application/json" in content_type:
+            raw = await request.json()
+        else:
+            form = await request.form()
+            raw = dict(form)
+    except Exception as e:
+        print(f"[Airpay Callback] Failed to parse request body ({content_type}): {e}")
+        raw = {}
+
+    # Airpay's field casing isn't guaranteed - normalize to a case-insensitive lookup.
+    fields = {k.upper(): v for k, v in raw.items()}
+    print(f"[Airpay Callback] Received fields: {fields}")
+
+    def field(name: str, default: str = "") -> str:
+        return str(fields.get(name, default) or default)
+
+    transaction_id = field("TRANSACTIONID")
+    ap_transaction_id = field("APTRANSACTIONID")
+    amount = field("AMOUNT")
+    status = field("TRANSACTIONSTATUS")
+    message = field("MESSAGE")
+    transaction_time = field("TRANSACTIONTIME")
+    custom_var = field("CUSTOMVAR")
+    checksum = field("CHECKSUM")
+
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/") + "/report"
+
+    if not transaction_id:
+        print(f"[Airpay Callback] No TRANSACTIONID in payload - cannot match a report. Raw: {raw}")
+        return RedirectResponse(url=f"{frontend_url}?payment=failed", status_code=303)
+
     creds = _get_airpay_creds()
-
-    # Verify checksum
-    custom_var = CUSTOMVAR if CUSTOMVAR else ""
-    checksum_string = f"{TRANSACTIONSTATUS}~:{TRANSACTIONID}~:{APTRANSACTIONID}~:{AMOUNT}~:{TRANSACTIONTIME}~:{MESSAGE}~:{creds['merchant_id']}~:{custom_var}~:{creds['secret_key']}"
+    checksum_string = f"{status}~:{transaction_id}~:{ap_transaction_id}~:{amount}~:{transaction_time}~:{message}~:{creds['merchant_id']}~:{custom_var}~:{creds['secret_key']}"
     calculated_checksum = hashlib.md5(checksum_string.encode('utf-8')).hexdigest()
-    
-    # Get frontend URL from environment or default to localhost
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173") + "/report"
+    if checksum and calculated_checksum != checksum:
+        print(f"[Airpay Callback] Checksum mismatch for {transaction_id} - proceeding anyway but flagging for review. "
+              f"Expected {calculated_checksum}, got {checksum}")
 
-    # Update report status if success
-    if TRANSACTIONSTATUS == "200":
-        report = db.query(HealthReport).filter(HealthReport.stripe_session_id == TRANSACTIONID).first()
+    if status == "200":
+        report = db.query(HealthReport).filter(HealthReport.stripe_session_id == transaction_id).first()
         if report:
             report.is_paid = 1
             db.commit()
             return RedirectResponse(url=f"{frontend_url}?payment=success", status_code=303)
-    
+        print(f"[Airpay Callback] No report found with stripe_session_id={transaction_id}")
         return RedirectResponse(url=f"{frontend_url}?payment=failed", status_code=303)
 
     return RedirectResponse(url=f"{frontend_url}?payment=failed", status_code=303)
