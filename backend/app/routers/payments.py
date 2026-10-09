@@ -399,7 +399,9 @@ async def airpay_callback(request: Request, db: Session = Depends(get_db)):
     custom_var = field("CUSTOMVAR")
     checksum = field("CHECKSUM")
 
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/") + "/report"
+    frontend_base = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    # Generic fallback (no report id known yet) - only used if we can't find the report at all.
+    frontend_url = frontend_base + "/report"
 
     if not transaction_id:
         print(f"[Airpay Callback] No TRANSACTIONID in payload - cannot match a report. Raw: {raw}")
@@ -412,8 +414,15 @@ async def airpay_callback(request: Request, db: Session = Depends(get_db)):
         print(f"[Airpay Callback] Checksum mismatch for {transaction_id} - proceeding anyway but flagging for review. "
               f"Expected {calculated_checksum}, got {checksum}")
 
+    report = db.query(HealthReport).filter(HealthReport.stripe_session_id == transaction_id).first()
+    if report:
+        # Redirect to this SPECIFIC report, not the generic /report route - the
+        # latter has no report id to reopen, so it was generating a brand new
+        # (unpaid) report on every payment-success redirect instead of showing
+        # the one that was just paid for.
+        frontend_url = f"{frontend_base}/report/{report.id}"
+
     if status == "200":
-        report = db.query(HealthReport).filter(HealthReport.stripe_session_id == transaction_id).first()
         if report:
             report.is_paid = 1
             db.commit()
