@@ -278,7 +278,13 @@ async def get_health_report(
     if not report.full_report_data:
         raise HTTPException(status_code=404, detail="This report was generated before history support was added and can no longer be reopened")
 
-    return HealthReportResponse(**report.full_report_data)
+    # full_report_data is a snapshot taken when the report was first generated,
+    # so it still has whatever is_paid value was true at creation time (almost
+    # always unpaid). The live is_paid column is what Airpay's callback actually
+    # updates - sync it in here, or a paid report keeps showing as locked forever.
+    report_data = dict(report.full_report_data)
+    report_data["is_paid"] = report.is_paid
+    return HealthReportResponse(**report_data)
 
 
 @router.post("/health-report/{report_id}/email")
