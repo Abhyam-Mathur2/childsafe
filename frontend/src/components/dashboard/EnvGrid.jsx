@@ -23,7 +23,7 @@ const EnvCard = ({ title, value, unit, icon: Icon, stats = [], delay = 0, neural
                         initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
                         animate={{ opacity: 1, backdropFilter: 'blur(12px)' }}
                         exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                        className="absolute inset-0 z-20 bg-black/60 p-10 flex flex-col justify-center"
+                        className="absolute inset-0 z-20 bg-[#070808] p-10 flex flex-col justify-center"
                     >
                         <motion.div
                             initial={{ y: 10, opacity: 0 }}

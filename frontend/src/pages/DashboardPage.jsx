@@ -346,11 +346,16 @@ const DashboardPage = () => {
                                 >
                                     {location ? (
                                         <>
-                                            <div className="grid grid-cols-1 xl:grid-cols-[1fr_480px] gap-12">
+                                            {/* min-[1600px] (not xl): at common laptop widths (~1470-1512px)
+                                                the aside+quests columns already eat most of the row, leaving
+                                                this card as little as ~300px at xl - far too narrow for its
+                                                48px status text and 3-column stats row, which collapsed into
+                                                an overlapping jumble (each stat column shrank to a few px). */}
+                                            <div className="grid grid-cols-1 min-[1600px]:grid-cols-[1fr_480px] gap-12">
                                                 <div className="glass-panel !p-20 relative overflow-hidden flex items-center border-white/5 bg-white/[0.01]">
                                                     <div className="relative z-10 w-full">
                                                         <div className="flex flex-col md:flex-row justify-between md:items-end gap-16 mb-20">
-                                                            <div className="flex-1">
+                                                            <div className="flex-1 min-w-0">
                                                                 <h2 className={`text-sm font-black uppercase tracking-[0.5em] ${status.color} mb-10`}>Localized Resilience Index</h2>
                                                                 <p className="text-5xl font-bold text-white tracking-tighter leading-[1.1]" style={{ fontFamily: "var(--font-heading)" }}>
                                                                     {status.desc}
