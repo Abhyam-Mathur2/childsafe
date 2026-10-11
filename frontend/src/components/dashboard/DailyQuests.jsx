@@ -26,7 +26,7 @@ const DailyQuests = () => {
     const completedCount = quests.filter(q => q.completed).length;
 
     return (
-        <div className="glass-panel !p-6 border-white/5 bg-white/[0.01] w-full xl:w-[380px] shadow-2xl relative overflow-hidden group">
+        <div className="glass-panel !p-6 border-white/5 bg-white/[0.01] w-full min-[1600px]:w-[380px] shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-1 opacity-10">
                 <Target size={120} className="text-white" />
             </div>

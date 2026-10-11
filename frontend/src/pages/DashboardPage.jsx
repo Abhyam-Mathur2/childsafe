@@ -253,9 +253,9 @@ const DashboardPage = () => {
                     {/* Main Intelligence View */}
                     <main className="space-y-20">
                         
-                        <div className="flex flex-col xl:flex-row justify-between items-start gap-16 relative">
-                            <div className="flex-1">
-                                <motion.div 
+                        <div className="flex flex-col min-[1600px]:flex-row justify-between items-start gap-16 relative">
+                            <div className="flex-1 min-w-0">
+                                <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     className="flex items-center gap-5 mb-8"
@@ -276,14 +276,14 @@ const DashboardPage = () => {
                                         Intelligence Node Alpha
                                     </motion.span>
                                     
-                                    <h1 
-                                        className="text-5xl md:text-7xl lg:text-[90px] leading-[0.85] tracking-tighter flex flex-col uppercase"
+                                    <h1
+                                        className="text-5xl md:text-7xl min-[1600px]:text-[90px] leading-[0.85] tracking-tighter flex flex-col uppercase min-w-0"
                                         style={{ fontFamily: "var(--font-heading)" }}
                                     >
-                                        <div className="flex overflow-hidden">
+                                        <div className="flex overflow-hidden min-w-0">
                                             {renderAnimatedText("Health risk", charVariants, "font-black text-white")}
                                         </div>
-                                        <div className="flex ml-8 md:ml-16 overflow-hidden">
+                                        <div className="flex ml-8 md:ml-16 overflow-hidden min-w-0">
                                             {renderAnimatedText("analysis.", synthesisVariants, "font-light italic text-transparent bg-clip-text bg-gradient-to-r from-white/40 via-white to-transparent")}
                                         </div>
                                     </h1>
@@ -324,7 +324,13 @@ const DashboardPage = () => {
                             </div>
 
                             {/* Redesigned Integrated Objectives Panel */}
-                            <div className="shrink-0 xl:w-[420px]">
+                            {/* min-[1600px] (not xl) matches the hero row above: the
+                                animated "HEALTH RISK" heading can't shrink below ~550px
+                                (it's laid out as non-wrapping flex items, one per letter),
+                                so going side-by-side with this fixed-width panel any
+                                earlier overflows the page by 80-300px at common laptop
+                                widths (1280-1591px). */}
+                            <div className="shrink-0 min-[1600px]:w-[420px]">
                                 <DailyQuests />
                             </div>
                         </div>
