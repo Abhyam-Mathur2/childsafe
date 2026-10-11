@@ -13,6 +13,7 @@ nearby points when the exact coordinate comes back empty, same as any real
 GIS workflow would.
 """
 
+import asyncio
 import httpx
 from typing import Dict, List, Optional, Tuple
 
@@ -85,26 +86,41 @@ class SoilResearchService:
     async def _query_with_fallback(
         self, latitude: float, longitude: float
     ) -> Tuple[Optional[Dict[str, float]], float, float]:
-        """Try the exact point, then a small ring of nearby points if it's masked (null)"""
-        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as client:
-            for d_lat, d_lon in SEARCH_OFFSETS:
-                lat, lon = latitude + d_lat, longitude + d_lon
-                if not (-90 <= lat <= 90 and -180 <= lon <= 180):
-                    continue
-                try:
-                    params = [("lon", lon), ("lat", lat)] + [("property", p) for p in PROPERTIES] + [
-                        ("depth", DEPTH), ("value", "mean")
-                    ]
-                    response = await client.get(SOILGRIDS_URL, params=params)
-                    response.raise_for_status()
-                    data = response.json()
-                except Exception as e:
-                    print(f"SoilGrids request failed for ({lat}, {lon}): {e}")
-                    continue
+        """
+        Query the exact point plus the whole ring of nearby fallback points
+        concurrently (rather than one at a time), then pick the first result
+        in SEARCH_OFFSETS priority order (closest to the real coordinate) that
+        actually had data. A masked urban core used to mean up to 13 sequential
+        requests at a 15s timeout each - tens of seconds to minutes of dead air
+        on the dashboard. Firing them in parallel bounds the wait to roughly
+        one request's latency instead of the sum of all of them.
+        """
+        async def try_point(d_lat: float, d_lon: float, client: httpx.AsyncClient):
+            lat, lon = latitude + d_lat, longitude + d_lon
+            if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+                return None
+            try:
+                params = [("lon", lon), ("lat", lat)] + [("property", p) for p in PROPERTIES] + [
+                    ("depth", DEPTH), ("value", "mean")
+                ]
+                response = await client.get(SOILGRIDS_URL, params=params)
+                response.raise_for_status()
+                data = response.json()
+            except Exception as e:
+                print(f"SoilGrids request failed for ({lat}, {lon}): {e}")
+                return None
 
-                parsed = self._parse_layers(data)
-                if parsed:
-                    return parsed, lat, lon
+            parsed = self._parse_layers(data)
+            return (parsed, lat, lon) if parsed else None
+
+        async with httpx.AsyncClient(timeout=httpx.Timeout(8.0)) as client:
+            results = await asyncio.gather(
+                *(try_point(d_lat, d_lon, client) for d_lat, d_lon in SEARCH_OFFSETS)
+            )
+
+        for result in results:
+            if result is not None:
+                return result
 
         return None, latitude, longitude
 

@@ -12,6 +12,7 @@ than being fabricated by an LLM, matching how soil_research_service.py
 handles heavy metals it can't measure either.
 """
 
+import asyncio
 import random
 from typing import Dict, Optional
 
@@ -43,11 +44,20 @@ class WaterQualityService:
         location_parts = [p for p in [city, state, country] if p]
         location_str = ", ".join(location_parts) if location_parts else f"{latitude}, {longitude}"
 
-        if not earth_engine_service.is_available():
+        # earth_engine_service's calls are synchronous (the `ee` SDK does blocking
+        # network I/O under the hood) - running them directly here would freeze
+        # this process's single asyncio event loop, stalling every other request
+        # the server is handling concurrently for as long as Earth Engine takes
+        # (observed: several seconds up to 60s+ on a cold `ee.Initialize()`).
+        # asyncio.to_thread offloads them to a worker thread instead.
+        available = await asyncio.to_thread(earth_engine_service.is_available)
+        if not available:
             return self._generate_mock_water_data(latitude, longitude, location_str)
 
-        surface_water = earth_engine_service.get_surface_water_history(latitude, longitude)
-        water_risk = earth_engine_service.get_water_risk(latitude, longitude)
+        surface_water, water_risk = await asyncio.gather(
+            asyncio.to_thread(earth_engine_service.get_surface_water_history, latitude, longitude),
+            asyncio.to_thread(earth_engine_service.get_water_risk, latitude, longitude),
+        )
 
         if surface_water is None and water_risk is None:
             # EE is configured but returned nothing for this point (rare - open ocean, poles)

@@ -410,13 +410,15 @@ const ReportPage = () => {
                     <ReportTemplate ref={printRef} report={report} user={user} />
                 </div>
 
-                {/* Payment Overlay */}
+                {/* Payment Overlay - fixed to the viewport, not the (potentially
+                    multi-page-tall) report underneath, so it's visible immediately
+                    instead of centered somewhere deep down the scrollable report. */}
                 {(!report.is_paid && !isBypassUser) && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="glass-panel text-center max-w-md w-full"
+                            className="glass-panel text-center max-w-md w-full my-auto"
                         >
                             <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_20px_rgba(52,211,153,0.3)]">
                                 <Lock size={40} className="text-emerald-400" />

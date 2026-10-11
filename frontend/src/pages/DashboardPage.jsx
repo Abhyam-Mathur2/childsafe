@@ -46,37 +46,35 @@ const DashboardPage = () => {
     };
 
     const fetchEnvironmentalData = async (lat, lon) => {
+        // Each data source renders as soon as it personally resolves, instead of
+        // the whole grid waiting on whichever endpoint happens to be slowest
+        // (soil-research in particular can take 20s+ - see soil_research_service.py).
+        setEnvData({ air: null, soil: null, water: null, weather: null });
+        let city = '', country = '';
+
         try {
-            let weatherData = null;
-            let city = '', country = '';
+            const weatherRes = await api.get(`/weather?latitude=${lat}&longitude=${lon}`);
+            const weatherData = weatherRes.data;
+            const parts = (weatherData.location_name || '').split(',');
+            city = parts[0]?.trim() || '';
+            country = parts[2]?.trim() || weatherData.country_code || '';
+            setCityName(city || null);
+            setEnvData(prev => ({ ...prev, weather: weatherData }));
+        } catch (e) {
+            console.warn("Weather fetch failed", e);
+        }
 
-            try {
-                const weatherRes = await api.get(`/weather?latitude=${lat}&longitude=${lon}`);
-                weatherData = weatherRes.data;
-                const parts = (weatherData.location_name || '').split(',');
-                city = parts[0]?.trim() || '';
-                country = parts[2]?.trim() || weatherData.country_code || '';
-                setCityName(city || null);
-            } catch (e) {
-                console.warn("Weather fetch failed", e);
-            }
+        const fetchSlice = (key, promise) =>
+            promise
+                .then(res => setEnvData(prev => ({ ...prev, [key]: res.data })))
+                .catch(e => console.warn(`${key} fetch failed`, e));
 
-            const [airRes, soilRes, waterRes] = await Promise.allSettled([
-                api.get(`/air-quality?latitude=${lat}&longitude=${lon}`),
-                api.get(`/soil-research?latitude=${lat}&longitude=${lon}&city=${city}&country=${country}`),
-                api.get(`/water-quality?latitude=${lat}&longitude=${lon}&city=${city}&country=${country}`)
+        try {
+            await Promise.allSettled([
+                fetchSlice('air', api.get(`/air-quality?latitude=${lat}&longitude=${lon}`)),
+                fetchSlice('soil', api.get(`/soil-research?latitude=${lat}&longitude=${lon}&city=${city}&country=${country}`)),
+                fetchSlice('water', api.get(`/water-quality?latitude=${lat}&longitude=${lon}&city=${city}&country=${country}`)),
             ]);
-
-            setEnvData({
-                weather: weatherData,
-                air: airRes.status === 'fulfilled' ? airRes.value.data : null,
-                soil: soilRes.status === 'fulfilled' ? soilRes.value.data : null,
-                water: waterRes.status === 'fulfilled' ? waterRes.value.data : null
-            });
-
-        } catch (err) {
-            console.error("Dashboard fetch error", err);
-            setError("Failed to load some environmental data.");
         } finally {
             setLoading(false);
         }
@@ -401,6 +399,7 @@ const DashboardPage = () => {
                                                 soil={envData.soil}
                                                 water={envData.water}
                                                 weather={envData.weather}
+                                                loading={loading}
                                             />
                                             
                                             {/* Final Action Tier */}

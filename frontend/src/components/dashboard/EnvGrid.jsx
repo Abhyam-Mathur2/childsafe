@@ -84,9 +84,9 @@ const EnvCard = ({ title, value, unit, icon: Icon, stats = [], delay = 0, neural
             
             <div className="pt-10 grid grid-cols-2 gap-8 border-t border-white/5 mt-10">
                 {stats.map((stat, i) => (
-                    <div key={i} className="space-y-2">
+                    <div key={i} className="space-y-2 min-w-0">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{stat.label}</p>
-                        <p className="text-sm font-bold text-slate-200">{stat.value}</p>
+                        <p className="text-sm font-bold text-slate-200 break-words">{stat.value}</p>
                     </div>
                 ))}
             </div>
@@ -94,8 +94,19 @@ const EnvCard = ({ title, value, unit, icon: Icon, stats = [], delay = 0, neural
     );
 };
 
-const EnvGrid = ({ air, soil, water, weather }) => {
-    if (!air && !soil && !water && !weather) return null;
+const SkeletonCard = ({ label, wide = false }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`glass-panel !p-10 border-white/5 h-full flex flex-col justify-center items-center text-center min-h-[280px] ${wide ? 'xl:col-span-2' : ''}`}
+    >
+        <div className="w-10 h-10 rounded-full border-2 border-white/10 border-t-[var(--color-primary)] animate-spin mb-8" />
+        <p className="text-xs font-bold uppercase tracking-[0.3em] text-slate-500">{label}</p>
+    </motion.div>
+);
+
+const EnvGrid = ({ air, soil, water, weather, loading }) => {
+    if (!air && !soil && !water && !weather && !loading) return null;
 
     return (
         <div className="space-y-12">
@@ -118,6 +129,7 @@ const EnvGrid = ({ air, soil, water, weather }) => {
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+                {!weather && loading && <SkeletonCard label="Fetching Local Weather..." wide />}
                 {weather && (
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.98 }}
@@ -161,9 +173,10 @@ const EnvGrid = ({ air, soil, water, weather }) => {
                     </motion.div>
                 )}
 
+                {!air && loading && <SkeletonCard label="Scanning Atmosphere..." />}
                 {air && (
-                    <EnvCard 
-                        title="Atmospheric Quality" 
+                    <EnvCard
+                        title="Atmospheric Quality"
                         icon={Wind} 
                         value={air.data.aqi} 
                         unit="AQI"
@@ -176,9 +189,10 @@ const EnvGrid = ({ air, soil, water, weather }) => {
                     />
                 )}
 
+                {!water && loading && <SkeletonCard label="Analyzing Water Sources..." />}
                 {water && (
-                    <EnvCard 
-                        title="Hydrological Safety" 
+                    <EnvCard
+                        title="Hydrological Safety"
                         icon={Droplets} 
                         value={water.ph} 
                         unit="pH"
@@ -191,9 +205,10 @@ const EnvGrid = ({ air, soil, water, weather }) => {
                     />
                 )}
 
+                {!soil && loading && <SkeletonCard label="Surveying Soil Composition..." />}
                 {soil && (
-                    <EnvCard 
-                        title="Lithological Health" 
+                    <EnvCard
+                        title="Lithological Health"
                         icon={Sprout} 
                         value={soil.soil_type} 
                         unit="Soil Type"
