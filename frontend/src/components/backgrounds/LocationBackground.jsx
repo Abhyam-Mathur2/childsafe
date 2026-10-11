@@ -148,9 +148,14 @@ const LocationBackground = () => {
         </AnimatePresence>
       </div>
       
-      {/* Premium Overlays */}
-      <div className="absolute inset-0 bg-black/30 z-[1]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 z-[2]" />
+      {/* Premium Overlays - the middle band used to be fully transparent, so a
+          bright/detailed slideshow frame could show through strongly enough to
+          wash out the low-opacity glass-panel cards sitting over it (text
+          becoming hard to read against a busy photo). Keeping a darkening floor
+          through the middle keeps content legible regardless of which image or
+          scroll position is showing. */}
+      <div className="absolute inset-0 bg-black/45 z-[1]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/35 to-black/90 z-[2]" />
     </div>
   );
 };
