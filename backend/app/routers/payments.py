@@ -21,7 +21,7 @@ _airpay_pending_payments = {}
 
 # Emails that skip the real Airpay checkout entirely (reports auto-unlock).
 # Used for testing since Airpay's Response URL can't reach a local dev server.
-BYPASS_EMAILS = {"abhyammath78@gmail.com", "dakshsingh791@gmail.com"}
+BYPASS_EMAILS = {"abhyammath78@gmail.com", "dakshsingh791@gmail.com", "architectvinay@gmail.com"}
 
 
 def _clean_secret(value: Optional[str]) -> str:

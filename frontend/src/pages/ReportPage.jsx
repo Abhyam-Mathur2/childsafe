@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Emails that skip the real Airpay checkout entirely (reports display as unlocked).
 // Kept in sync with backend/app/routers/payments.py's BYPASS_EMAILS.
-const BYPASS_EMAILS = ['abhyammath78@gmail.com', 'dakshsingh791@gmail.com'];
+const BYPASS_EMAILS = ['abhyammath78@gmail.com', 'dakshsingh791@gmail.com', 'architectvinay@gmail.com'];
 
 const ReportPage = () => {
     const [report, setReport] = useState(null);
