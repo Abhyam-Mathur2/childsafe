@@ -28,7 +28,7 @@ const GoogleSignInButton = ({ onError }) => {
                     navigate('/dashboard');
                 }
             } catch (err) {
-                onError?.('Google sign-in failed. Please try again.');
+                onError?.(err?.response?.data?.detail || 'Google sign-in failed. Please try again.');
             }
         };
 
